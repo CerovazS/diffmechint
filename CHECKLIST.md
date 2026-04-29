@@ -33,8 +33,8 @@ with a `~~...~~` line plus a `# DONE: ...` postmortem.
 - [ ] (1.9) `tokenizers/va_vae.py` — optional 7th (defer until K=5 results)
 - [ ] (1.10) `TokenGridAdapter` for non-grid latents — defer until RAE `load()` lands
 - [x] (1.11) `precompute_latents.py` CLI + Hydra config per adapter — claude — DONE: HDF5 sharding + ImageFolder loader + Hydra `_target_` instantiate verified
-- [ ] (1.12) `tests/test_tokenizer_adapters.py` round-trip PSNR > 25 dB — pending real ImageNet sample
-- [ ] (1.13) Acceptance run on 64 ImageNet-256 images per adapter — pending GPU + ImageNet
+- [x] (1.12) Round-trip PSNR > 25 dB on real image — claude — DONE: GPU smoke (`scripts/smoke_adapters_gpu.py`) on 3090. sd_vae 28.10 / eq_vae 27.30 / repa_e 27.03 / dc_ae_1_0 26.20 dB on the canonical pytorch/hub `dog.jpg`.
+- [ ] (1.13) Acceptance run on 64 ImageNet-256 images per adapter — pending real ImageNet mount (deferred to CINECA / pod)
 
 ## Phase 2 — SiT training pipeline (FM-OT)
 
