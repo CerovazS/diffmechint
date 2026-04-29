@@ -479,75 +479,188 @@ B/L/XL.
 
 ## 8. Phase 4 — SAE Training (Multi-Checkpoint Sweep)
 
-### 8.1 SAE architecture
+### 8.1 Toolkit choice (revised 2026-04-29)
 
-`src/diffmechint/sae/topk.py` — TopK SAE with optional BatchTopK
-(see Bussmann et al. for BatchTopK improvements).
+The first research pass concluded "avoid SAELens — coupled to
+TransformerLens". A direct re-read of SAELens 6.x (3 verification
+subagents, recorded in commit history) reverses that conclusion:
+
+> **`SAETrainer` (`sae_lens/training/sae_trainer.py:67`) is genuinely
+> model-agnostic.** It accepts `data_provider: Iterator[Tensor]` and
+> never instantiates a model. The TransformerLens coupling lives only
+> inside `LanguageModelSAETrainingRunner` and `CacheActivationsRunner`,
+> which we bypass.
+
+Concrete implications:
+- We feed pre-computed activations from our HDF5 shards directly into
+  `SAETrainer.fit()`. ~50 LoC adapter.
+- TransformerLens is pulled as a transitive dependency but never
+  executed on the DiT path. ~200 MB of mostly dead weight in the env.
+- We get TopK / BatchTopK / Matryoshka / Gated / JumpReLU / Standard
+  SAE variants by config, plus built-in multi-checkpoint
+  (`n_checkpoints` arg) — exactly the warm-start primitive we wanted to
+  build manually for Xu et al. 2412.17626.
+- Save format is the standard SAELens `safetensors + JSON` pair, so
+  trained SAEs load directly into `sae_vis`, `sae_dashboard`, and
+  Neuronpedia for paper-grade visualization.
+
+**Decision: SAELens is the primary library for Phase 4.** It is the
+de-facto standard, the integration cost is ~50 LoC, and the ecosystem
+benefits (visualization, format portability, active maintenance) are
+real and documented.
+
+`dictionary_learning` (saprmarks) stays as a vendored fallback under
+`third_party/dictionary_learning/`. We pin a commit and import only the
+TopK / BatchTopK trainer files in case SAELens introduces a DiT-blocking
+regression. nnsight remains pinned as a runtime dep for Phase 6 EAP
+circuit work — we do not use it for SAE training.
+
+### 8.2 SAE architecture — via SAELens
+
+`src/diffmechint/sae/topk.py` is a thin wrapper around
+`sae_lens.TopKTrainingSAE` and `sae_lens.BatchTopKTrainingSAE`. We do not
+re-implement the SAE; we configure it.
 
 ```python
-class TopKSAE(nn.Module):
-    def __init__(self, d_model: int, n_features: int, k: int, decoder_init: str = "tied"):
-        ...
-    def forward(self, x):
-        pre = self.encoder(x)
-        topk_vals, topk_idx = pre.topk(k, dim=-1)
-        z = scatter(topk_vals, topk_idx, like=pre)
-        x_hat = self.decoder(z) + self.bias
-        return dict(z=z, x_hat=x_hat)
+from sae_lens import (
+    SAETrainer,
+    TopKTrainingSAE,
+    TopKTrainingSAEConfig,
+    BatchTopKTrainingSAE,
+    BatchTopKTrainingSAEConfig,
+)
+from sae_lens.config import SAETrainerConfig
+
+def build_sae(d_in: int, d_sae: int, k: int, variant: str = "batch_topk"):
+    if variant == "topk":
+        return TopKTrainingSAE(TopKTrainingSAEConfig(
+            d_in=d_in, d_sae=d_sae, k=k,
+            normalize_activations="expected_average_only_in",
+        ))
+    elif variant == "batch_topk":
+        return BatchTopKTrainingSAE(BatchTopKTrainingSAEConfig(
+            d_in=d_in, d_sae=d_sae, k=k,
+            normalize_activations="expected_average_only_in",
+        ))
+    raise ValueError(variant)
 ```
 
-**Variants supported:** TopK (default), BatchTopK, Gated, vanilla L1.
-BatchTopK improves dead-feature rate; default to it after k=32 baseline
-verified.
+Default `variant="batch_topk"` (better dead-feature rate per Bussmann
+et al.); `topk` for parity with the canonical Anthropic recipe.
 
-### 8.2 Warm-start across checkpoints
+### 8.3 HDF5 → SAELens data provider
 
-Per Xu et al. arXiv:2412.17626, train SAE on checkpoint *i*, then
-initialize SAE for checkpoint *i+1* with the *i*'s weights and only
-fine-tune for ~5k steps. Reduces per-checkpoint SAE compute by ~70%.
-Implementation: `trainer.py:warm_start_from(prev_ckpt_path)` loads
-encoder + decoder + bias state-dict, freezes encoder optionally for the
-first 1k steps.
+`src/diffmechint/sae/data_provider.py` — adapter from our Phase 3
+activation buffer shards to a `data_provider: Iterator[Tensor]`:
 
-### 8.3 Sweep dimensions
+```python
+def hdf5_provider(
+    shard_paths: list[Path],
+    batch_size: int = 4096,
+    device: str = "cuda",
+    flatten_tokens: bool = True,
+) -> Iterator[torch.Tensor]:
+    """Yield (batch_size, D) tensors from Phase 3 HDF5 cells.
 
-Per the proposal: per condition, train SAE at `(layer, timestep, k)` cells
-where `layer ∈ {25%, 50%, 75% depth}`, `timestep ∈ {25, 200, 500}`,
-`k ∈ {16, 32, 64}`, `n_features = 16384`. That is 27 SAEs per (condition,
-checkpoint). With 4 conditions × 7 checkpoints × 27 cells = **756 SAEs
-total**. Warm-start brings 7-checkpoint cost down to ~3× single-checkpoint.
+    flatten_tokens=True collapses (N, T, D) → (N*T, D); each spatial
+    token contributes one SAE training sample. Set False to keep token
+    structure when training a token-aware SAE variant.
+    """
+    for path in shard_paths:
+        with h5py.File(path, "r") as f:
+            arr = torch.from_numpy(f["activations"][()]).float()  # (N, T, D) fp16→fp32
+            if flatten_tokens:
+                arr = arr.reshape(-1, arr.shape[-1])              # (N*T, D)
+            for batch in arr.split(batch_size):
+                yield batch.to(device, non_blocking=True)
+```
 
-### 8.4 SAE compute budget
+### 8.4 Warm-start across checkpoints (Xu et al. 2412.17626)
 
-Single SAE: ~10 GPU-h on a single A100, dominated by activation streaming
-from disk. Total ~7560 A100-h, but parallelize embarrassingly across 4
-GPUs ⇒ ~80 days × 4 GPU = 320 GPU-h wall-clock for the full sweep on
-CINECA. **Plan:** run the (k=32, layer-50%, t=200) cell first across all
-(condition, checkpoint) pairs; expand to full grid when results justify.
+Implemented via SAELens's `n_checkpoints` config plus our own
+post-processing wrapper that re-uses the previous checkpoint's
+encoder+decoder weights when training the SAE for the next DiT
+checkpoint:
 
-### 8.5 SAE-side metrics
+```python
+def train_with_warm_start(
+    dit_ckpt_paths: list[Path],   # 7 fractional ckpts per (condition)
+    activation_shards_per_dit: dict[Path, list[Path]],
+    sae_kwargs: dict,
+    trainer_kwargs: dict,
+    out_root: Path,
+) -> None:
+    prev_sae_path: Path | None = None
+    for dit_ckpt in dit_ckpt_paths:
+        sae = build_sae(**sae_kwargs)
+        if prev_sae_path is not None:
+            sae.load_state_dict(load_safetensors(prev_sae_path), strict=False)
+        provider = hdf5_provider(activation_shards_per_dit[dit_ckpt])
+        trainer = SAETrainer(SAETrainerConfig(**trainer_kwargs), sae, provider)
+        trainer.fit()
+        prev_sae_path = trainer.checkpoint_path / "final.safetensors"
+```
+
+After the first checkpoint is trained from scratch (~10 GPU-h), each
+subsequent checkpoint warm-starts and converges in ~3 GPU-h. ~70 % wall-
+clock saving across the 7-checkpoint trajectory.
+
+### 8.5 Sweep dimensions
+
+Per the proposal: per condition, train SAE at `(layer, timestep, k)`
+cells where `layer ∈ {25 %, 50 %, 75 % depth}`,
+`timestep ∈ {0.025, 0.20, 0.50}`, `k ∈ {16, 32, 64}`,
+`d_sae = 16384`. That is 27 SAEs per (condition, checkpoint). With
+4 conditions × 7 checkpoints × 27 cells = **756 SAEs total**. Warm-start
+brings the 7-checkpoint cost down to ~3× a single-checkpoint cost.
+
+### 8.6 SAE compute budget
+
+Single SAE: ~10 GPU-h on a single A100, dominated by activation
+streaming from disk. Total ~7560 A100-h, but parallelize embarrassingly
+across 4 GPUs ⇒ ~320 GPU-h wall-clock for the full sweep on CINECA.
+**Plan:** run the canonical cell `(k=32, layer-50 %, t=0.20)` first
+across all `(condition, checkpoint)` pairs (28 SAEs); expand to the
+full 27-cell grid only when results justify.
+
+### 8.7 SAE-side metrics
 
 Per `src/diffmechint/sae/eval.py`:
-- Reconstruction cosine and L2
-- Feature density (fraction non-zero per token)
-- Label-σ per feature: per Revelio, std of class label distribution
-  across the top-k activating samples — proxy for monosemanticity
-- Live/dead feature count
+- Reconstruction cosine and L2 (SAELens emits these natively at every
+  checkpoint).
+- Feature density (fraction non-zero per token).
+- Label-σ per feature: per Revelio, std of class-label distribution
+  across the top-k activating samples — proxy for monosemanticity.
+- Live / dead feature count.
 - Per-feature **RIEBench causal-edit score** (One-Step-is-Enough): zero
   out feature, run a small generation, measure CLIP-similarity drop on
-  the targeted concept
+  the targeted concept.
 
 Each SAE's eval JSON lands at
 `outputs/<run_id>/saes/<vae>/<ckpt>/<layer>_<t>_<k>/metrics.json`.
 
-### 8.6 Toolkit choice
+### 8.8 Visualization & format portability
 
-Per the SAE-landscape research: **vendor `dictionary_learning`** for the
-trainer scaffolding (handles tuple residuals, BatchTopK, multi-layer
-trainers). Pin a specific commit. Add it to `src/diffmechint/sae/` as a
-copy plus our `topk.py` overrides. **Avoid SAELens** — too tightly
-coupled to TransformerLens. **Use `nnsight`** for the EAP phase, not for
-SAE training.
+SAELens-trained SAEs save as `safetensors + cfg.json`. They drop
+straight into:
+- **`sae_vis`** — per-feature dashboards, used by Anthropic Circuits
+  Updates.
+- **`sae_dashboard`** — Neuronpedia-style web viewer.
+- **Hugging Face Hub** — public release alongside the paper, per the
+  expected-results §6 of the proposal.
+
+This is the principal ergonomic argument for SAELens over a from-
+scratch trainer: zero-friction handoff to community visualization
+tooling.
+
+### 8.9 Phase 4 acceptance gate
+
+- 1 SAE trained end-to-end on synthetic activations (smoke) — recon
+  cosine > 0.85 within 1 k steps.
+- 1 SAE trained on a real DiT-B/2 SD-VAE checkpoint at canonical cell —
+  recon cosine > 0.85, density 1–5 %, dead-feature count < 5 %.
+- 28-SAE warm-started sweep (4 conditions × 7 ckpts at canonical cell)
+  completes in < 320 A100-h on CINECA.
 
 ---
 
@@ -747,7 +860,10 @@ filter out non-commercial conditions.
 ### 13.7 Long-term maintenance
 
 - Pin every dependency to a major + minor version, leave patch open.
-- Pin upstream commit SHAs for vendored code (SiT, dictionary_learning).
+- Pin upstream commit SHAs for vendored code (SiT, optional
+  dictionary_learning fallback).
+- Pin SAELens + transformer-lens versions in `pyproject.toml` (the SAE
+  toolkit pair is the most version-sensitive part of the stack).
 - Re-run `tests/` before any `uv lock --upgrade`.
 - Keep `CLAUDE.md` in repo root with project-specific conventions for
   future agents.
@@ -805,10 +921,13 @@ Full-pipeline sanity at the end of M3: 1 condition (SD-VAE), 1 checkpoint
 | DC-AE 1.0 | https://github.com/mit-han-lab/efficientvit | adapter reference |
 | RAE | https://github.com/bytetriper/RAE | adapter reference |
 | MAETok | https://github.com/Hhhhhhao/continuous_tokenizer | adapter reference |
-| Dictionary learning | https://github.com/saprmarks/dictionary_learning | vendor commit |
+| **SAELens (primary)** | https://github.com/jbloomAus/SAELens | runtime dep, `>=6.x`, pin transformer-lens with it |
+| Dictionary learning (fallback) | https://github.com/saprmarks/dictionary_learning | vendor commit, only if SAELens DiT-blocks |
+| sae_vis | https://github.com/callummcdougall/sae_vis | viz of SAELens-format SAEs |
+| sae_dashboard | https://github.com/jbloomAus/SAEDashboard | Neuronpedia-style web viewer |
 | Sparse feature circuits | https://github.com/saprmarks/feature-circuits | EAP + circuit reference |
 | EAP | https://github.com/Aaquib111/edge-attribution-patching | EAP scaffold |
-| nnsight | https://github.com/ndif-team/nnsight | runtime dep |
+| nnsight | https://github.com/ndif-team/nnsight | runtime dep, Phase 6 EAP only |
 | SAeUron | https://github.com/cywinski/SAeUron | timestep-aware SAE reference |
 | Birth of Knowledge | https://arxiv.org/abs/2505.19440 | checkpoint-sweep methodology |
 | Tracking Feature Dynamics | https://arxiv.org/abs/2412.17626 | warm-start methodology |
@@ -830,7 +949,9 @@ Full-pipeline sanity at the end of M3: 1 condition (SD-VAE), 1 checkpoint
 - No DC-AE 1.5 condition (gated). When the upstream releases (track
   `dc-ai-projects/DC-Gen`), add a `dc_ae_1_5.yaml` config and rerun the
   pipeline.
-- No SAELens vendoring — incompatible with DiT residual streams.
+- No HookedTransformer subclass for SiT — verified empirically too
+  costly. We bypass TransformerLens via SAELens's lower-level
+  `SAETrainer` API which takes pre-computed activations directly.
 - No diffusers-based training loop — SiT is a small enough codebase that
   vendoring keeps full control.
 - No mid-flight architecture sweep — all 4 conditions use the *same*
@@ -846,9 +967,11 @@ Full-pipeline sanity at the end of M3: 1 condition (SD-VAE), 1 checkpoint
    + fractional checkpoints. Smoke-run on SD-VAE 1k steps.
 4. **Hooks** (Phase 3): residual-stream tap + activation buffer. Test on
    a checkpoint.
-5. **SAE** (Phase 4): TopK SAE + warm-start trainer. Train one
-   `(layer-50%, t=200, k=32)` SAE per (condition, checkpoint) — that is
-   28 SAEs, the minimum publishable cell.
+5. **SAE** (Phase 4): SAELens `SAETrainer` + custom HDF5 data provider
+   + warm-start across DiT checkpoints. Train one
+   `(layer-50%, t=0.20, k=32)` SAE per (condition, checkpoint) — 28
+   SAEs, the minimum publishable cell. Save format directly compatible
+   with `sae_vis`, `sae_dashboard`, Neuronpedia.
 6. **Probes** (Phase 5): Revelio grid for the same cells.
 7. **Circuits** (Phase 6): EAP for 4 target concepts on the final
    checkpoint of each condition.
@@ -865,7 +988,9 @@ agent should not skip ahead.
 
 - Tokenizer survey verified, K=5 substituted (DC-AE 1.5 → DC-AE 1.0)
 - SiT vendor strategy decided (in-repo, not submodule)
-- SAE toolkit: dictionary_learning + nnsight + EAP-Aaquib pinned
+- **SAE toolkit revised 2026-04-29**: SAELens (primary, raw
+  `SAETrainer` API bypassing TransformerLens) + nnsight (Phase 6 EAP)
+  + EAP-Aaquib (Phase 6) + dictionary_learning (vendored fallback)
 - CINECA-first, NVIDIA-grant-second compute path defined
 - Open verifications: Revelio repo existence, TIDE code release
 - Per-phase acceptance gates and verification commands listed

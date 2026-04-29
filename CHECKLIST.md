@@ -57,15 +57,20 @@ with a `~~...~~` line plus a `# DONE: ...` postmortem.
 - [x] (3.3) `hooks/activation_buffer.py` — claude — DONE: per-cell records, HDF5 shard `<layer>_<tbin>.h5` with fp16 lzf-compressed `(N, T, D)`, auto-flush on capacity
 - [x] (3.4) `tests/test_hooks.py` — 36-record smoke — claude — DONE: PLAN §7.5 acceptance met (4 imgs × 3 layers × 3 timesteps → 36 records, shape `(256, 768)` for SiT-B/2)
 
-## Phase 4 — SAE training
+## Phase 4 — SAE training (toolkit revised 2026-04-29 → SAELens primary)
 
-- [ ] (4.1) Vendor `saprmarks/dictionary_learning` at pinned commit
-- [ ] (4.2) `sae/topk.py` — TopK + BatchTopK
-- [ ] (4.3) `sae/trainer.py` — warm-start across checkpoints
-- [ ] (4.4) `sae/eval.py` — cosine, density, label-σ, RIEBench
-- [ ] (4.5) `tests/test_sae_topk.py` — recon cosine > 0.85 on synthetic
-- [ ] (4.6) Canonical-cell SAE sweep (28 SAEs)
-- [ ] (4.7) Full-grid sweep (756 SAEs) — gated on results
+- [ ] (4.1) `uv add sae-lens` + pin `transformer-lens` to compatible version (transitive dep, never executed on the DiT path)
+- [ ] (4.2) `sae/data_provider.py` — `hdf5_provider(shard_paths, batch_size)` yielding `(B, D)` tensors from Phase 3 cells
+- [ ] (4.3) `sae/builder.py` — wrappers around `TopKTrainingSAE` and `BatchTopKTrainingSAE` per-cell (`d_in`, `d_sae`, `k`, `variant`)
+- [ ] (4.4) `sae/trainer.py` — warm-start orchestrator over 7 fractional DiT ckpts (re-init SAE from prev `safetensors`)
+- [ ] (4.5) `sae/eval.py` — recon cosine, density, label-σ, RIEBench causal-edit (SAELens emits cosine natively)
+- [ ] (4.6) Hydra configs `conf/sae/{topk_k16, topk_k32, topk_k64, batch_topk_k32}.yaml`
+- [ ] (4.7) Vendor `third_party/dictionary_learning/{trainers/top_k.py, trainers/batch_top_k.py, dictionary.py, training.py}` as **fallback only** (pin commit)
+- [ ] (4.8) `tests/test_sae_smoke.py` — recon cosine > 0.85 on synthetic activations within 1k steps
+- [ ] (4.9) Canonical-cell SAE smoke on a real DiT-B/2 SD-VAE checkpoint — recon cosine > 0.85, density 1–5%
+- [ ] (4.10) Canonical-cell warm-started sweep (28 SAEs = 4 cond × 7 ckpts)
+- [ ] (4.11) Full 27-cell sweep (756 SAEs) — gated on (4.10) results
+- [ ] (4.12) Confirm SAELens-saved SAEs load cleanly into `sae_vis` / `sae_dashboard`
 
 ## Phase 5 — Linear probes (Revelio grid)
 
