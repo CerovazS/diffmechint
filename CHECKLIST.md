@@ -74,9 +74,14 @@ with a `~~...~~` line plus a `# DONE: ...` postmortem.
 
 ## Phase 5 — Linear probes (Revelio grid)
 
-- [ ] (5.1) `probing/concepts.py` — 5 attribute axes
-- [ ] (5.2) `probing/revelio_grid.py` — per-cell linear probe
-- [ ] (5.3) Probe-peak migration heatmap
+- [x] (5.1) `probing/concepts.py` — 5 attribute axes — claude — DONE: ConceptAxis registry; `object` available via existing HDF5 labels; `scene/color/texture/shape` stubbed with explicit NotImplementedError + docstring TODO
+- [x] (5.2) `probing/revelio_grid.py` — per-cell linear probe — claude — DONE: `train_probe` (sklearn LogisticRegression, ≤50k subsample, stratified split), `probe_one_cell`, `evaluate_grid` over (layers × t_bins), `GridResult.peak()` for migration analysis
+- [x] (5.3) Probe-peak migration heatmap — claude — DONE: `GridResult.matrix(layers, t_bins)` returns `(L, T)` array (NaN for missing cells); `write_grid_result` produces JSON with peak cell per concept
+- [x] (5.4) Buffer label propagation — claude — DONE: `ActivationBuffer.write(..., labels=Tensor | None)` backward-compat; HDF5 emits `labels` dataset alongside `activations` when present
+- [x] (5.5) Hydra config `conf/probe/revelio_grid.yaml` — claude — DONE: concept axes, layers, t_bins, pool mode, probe hyperparameters
+- [x] (5.6) `tests/test_probing.py` — claude — DONE: 18 tests covering registry, pool helpers, train_probe (linear-separable recovery > 0.9 acc), buffer label round-trip, probe_one_cell, evaluate_grid, e2e SiT-B/2 → labelled-buffer integration
+- [ ] (5.7) Real-data acceptance: 5×3×3 accuracy heatmap on a real DiT-B/2 SD-VAE checkpoint — gated on Phase 2 full ImageNet run
+- [ ] (5.8) Cross-condition probe-peak migration figure — gated on (5.7) across all 4 conditions
 
 ## Phase 6 — Sparse feature circuits (EAP)
 

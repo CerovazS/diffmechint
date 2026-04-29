@@ -1,0 +1,21 @@
+# Revelio-style probe grid: per (layer, t_bin) cell train one logistic-regression
+# probe per concept axis. Reads activation HDF5s produced by Phase 3.
+
+# Concept axes — only those marked `available=True` in concepts.py work today
+# without an extra labelling pass.
+concepts:
+  - object
+
+# Sweep grid (matches `default_tap_layers` for SiT-B).
+layers: [3, 6, 9]
+t_bins: [0, 1, 2]            # bin indices: 0=t≈0.025, 1=t≈0.20, 2=t≈0.50
+
+# Token pooling — Revelio uses per-token training; "mean" is the alternative.
+pool: tokens
+
+# Probe hyperparameters.
+max_samples: 50000
+test_size: 0.2
+max_iter: 1000
+C: 1.0
+seed: 42
