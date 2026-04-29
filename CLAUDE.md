@@ -32,10 +32,10 @@ when upstream releases (`dc-ai-projects/DC-Gen`).
 
 | Phase | Subject | Status |
 |---|---|---|
-| 0 | Repo bootstrap | in progress |
-| 1 | Tokenizer adapters + latent precompute | pending |
-| 2 | SiT training (FM-OT) | pending |
-| 3 | Activation extraction (hooks) | pending |
+| 0 | Repo bootstrap | done |
+| 1 | Tokenizer adapters + latent precompute | done (RAE scaffold; M/V optional) |
+| 2 | SiT training (FM-OT) | smoke ✓; full run pending GPU/data |
+| 3 | Activation extraction (hooks) | done |
 | 4 | SAE training (multi-checkpoint) | pending |
 | 5 | Linear probes (Revelio grid) | pending |
 | 6 | Sparse feature circuits (EAP) | pending |

@@ -52,10 +52,10 @@ with a `~~...~~` line plus a `# DONE: ...` postmortem.
 
 ## Phase 3 — Activation extraction
 
-- [ ] (3.1) `hooks/activation_taps.py` — `ResidualStreamTap`
-- [ ] (3.2) `hooks/timestep_router.py` — ContextVar + bin
-- [ ] (3.3) `hooks/activation_buffer.py` — ring + shard-to-disk
-- [ ] (3.4) `tests/test_hooks.py` — 36-record smoke
+- [x] (3.1) `hooks/activation_taps.py` — `ResidualStreamTap` — claude — DONE: ctx-manager API, validates indices, drops on missing/out-of-bin t
+- [x] (3.2) `hooks/timestep_router.py` — claude — DONE: `ContextVar` + `timestep_context` + `bin_revelio` (SiT bins {0.025, 0.20, 0.50} ± 0.05 tol, DDPM bins {25, 200, 500} also exposed)
+- [x] (3.3) `hooks/activation_buffer.py` — claude — DONE: per-cell records, HDF5 shard `<layer>_<tbin>.h5` with fp16 lzf-compressed `(N, T, D)`, auto-flush on capacity
+- [x] (3.4) `tests/test_hooks.py` — 36-record smoke — claude — DONE: PLAN §7.5 acceptance met (4 imgs × 3 layers × 3 timesteps → 36 records, shape `(256, 768)` for SiT-B/2)
 
 ## Phase 4 — SAE training
 
