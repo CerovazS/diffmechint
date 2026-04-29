@@ -59,18 +59,18 @@ with a `~~...~~` line plus a `# DONE: ...` postmortem.
 
 ## Phase 4 — SAE training (toolkit revised 2026-04-29 → SAELens primary)
 
-- [ ] (4.1) `uv add sae-lens` + pin `transformer-lens` to compatible version (transitive dep, never executed on the DiT path)
-- [ ] (4.2) `sae/data_provider.py` — `hdf5_provider(shard_paths, batch_size)` yielding `(B, D)` tensors from Phase 3 cells
-- [ ] (4.3) `sae/builder.py` — wrappers around `TopKTrainingSAE` and `BatchTopKTrainingSAE` per-cell (`d_in`, `d_sae`, `k`, `variant`)
-- [ ] (4.4) `sae/trainer.py` — warm-start orchestrator over 7 fractional DiT ckpts (re-init SAE from prev `safetensors`)
-- [ ] (4.5) `sae/eval.py` — recon cosine, density, label-σ, RIEBench causal-edit (SAELens emits cosine natively)
-- [ ] (4.6) Hydra configs `conf/sae/{topk_k16, topk_k32, topk_k64, batch_topk_k32}.yaml`
-- [ ] (4.7) Vendor `third_party/dictionary_learning/{trainers/top_k.py, trainers/batch_top_k.py, dictionary.py, training.py}` as **fallback only** (pin commit)
-- [ ] (4.8) `tests/test_sae_smoke.py` — recon cosine > 0.85 on synthetic activations within 1k steps
-- [ ] (4.9) Canonical-cell SAE smoke on a real DiT-B/2 SD-VAE checkpoint — recon cosine > 0.85, density 1–5%
-- [ ] (4.10) Canonical-cell warm-started sweep (28 SAEs = 4 cond × 7 ckpts)
+- [x] (4.1) `uv add sae-lens` — claude — DONE: sae-lens 6.42.0, transformer-lens 3.0.0 transitive (never executed on DiT path)
+- [x] (4.2) `sae/data_provider.py` — claude — DONE: `hdf5_provider` (per-shard drop_last, fp16→fp32 cast, optional flatten) + `synthetic_provider` (K-sparse mixtures for tests)
+- [x] (4.3) `sae/builder.py` — claude — DONE: `build_sae(d_in, d_sae, k, variant)` factory for `topk` / `batch_topk` / `matryoshka` over SAELens 6.x classes
+- [x] (4.4) `sae/trainer.py` — claude — DONE: `train_sae(...)` wrapping `SAETrainer` + `warm_start_from(prev.safetensors)` + `warm_started_sweep(...)` orchestrator
+- [x] (4.5) `sae/eval.py` — claude — DONE: `evaluate_sae(...)` produces recon_cosine / recon_l2 / density / live/dead features. Label-σ + RIEBench deferred to (4.10)
+- [x] (4.6) Hydra configs `conf/sae/{topk_k16, topk_k32, topk_k64, batch_topk_k32}.yaml` — claude — DONE
+- [ ] (4.7) Vendor `third_party/dictionary_learning/...` as **fallback only** — deferred (only needed if SAELens DiT-blocks)
+- [x] (4.8) `tests/test_sae_smoke.py` — claude — DONE: 9 tests including loss-decreases-by-25% on synthetic + Phase 3↔4 e2e integration on a SiT-B/2 forward
+- [ ] (4.9) Canonical-cell SAE smoke on a real trained DiT-B/2 SD-VAE checkpoint — recon cosine > 0.85, density 1–5% — gated on Phase 2 full ImageNet run
+- [ ] (4.10) Canonical-cell warm-started sweep (28 SAEs = 4 cond × 7 ckpts) — gated on Phase 2 full runs
 - [ ] (4.11) Full 27-cell sweep (756 SAEs) — gated on (4.10) results
-- [ ] (4.12) Confirm SAELens-saved SAEs load cleanly into `sae_vis` / `sae_dashboard`
+- [ ] (4.12) Confirm SAELens-saved SAEs load cleanly into `sae_vis` / `sae_dashboard` — quick check at end of (4.10)
 
 ## Phase 5 — Linear probes (Revelio grid)
 

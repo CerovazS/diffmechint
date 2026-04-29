@@ -1,0 +1,5 @@
+_target_: diffmechint.sae.build_sae
+variant: topk
+d_sae: 16384
+k: 64
+normalize_activations: expected_average_only_in

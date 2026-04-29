@@ -1,0 +1,6 @@
+# Canonical SAE cell per PLAN §8.5: TopK k=32, d_sae=16384.
+_target_: diffmechint.sae.build_sae
+variant: topk
+d_sae: 16384
+k: 32
+normalize_activations: expected_average_only_in

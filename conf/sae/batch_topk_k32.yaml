@@ -1,0 +1,7 @@
+# BatchTopK (Bussmann et al.) — better dead-feature rate, recommended default
+# once the canonical k=32 baseline is verified.
+_target_: diffmechint.sae.build_sae
+variant: batch_topk
+d_sae: 16384
+k: 32
+normalize_activations: expected_average_only_in

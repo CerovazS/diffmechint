@@ -36,7 +36,7 @@ when upstream releases (`dc-ai-projects/DC-Gen`).
 | 1 | Tokenizer adapters + latent precompute | done (RAE scaffold; M/V optional) |
 | 2 | SiT training (FM-OT) | smoke ✓; full run pending GPU/data |
 | 3 | Activation extraction (hooks) | done |
-| 4 | SAE training (multi-checkpoint) | pending |
+| 4 | SAE training (multi-checkpoint) | scaffolding done; full sweep pending real DiT ckpts |
 | 5 | Linear probes (Revelio grid) | pending |
 | 6 | Sparse feature circuits (EAP) | pending |
 | 7 | Cross-condition analysis | pending |
