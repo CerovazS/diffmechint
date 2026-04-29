@@ -1,0 +1,5 @@
+# 8× H100 (NVIDIA Academic Grant phase). FA3, larger batch.
+max_steps: 400000
+devices: 8
+precision: bf16-mixed
+gradient_clip_val: 1.0

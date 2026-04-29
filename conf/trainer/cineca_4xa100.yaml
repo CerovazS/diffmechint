@@ -1,0 +1,5 @@
+# 4× A100 64GB on CINECA Leonardo (boost_usr_prod). DDP across all 4.
+max_steps: 400000
+devices: 4
+precision: bf16-mixed
+gradient_clip_val: 1.0

@@ -4,6 +4,9 @@
 
 defaults:
   - tokenizer: sd_vae
+  - model: sit_b_2
+  - transport: fm_ot
+  - trainer: local_3090
   - _self_
 
 # Output root: locally is a project subdirectory; on CINECA an env var override

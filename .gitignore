@@ -38,6 +38,7 @@ Thumbs.db
 outputs/
 runs/
 wandb/
+lightning_logs/
 *.h5
 *.hdf5
 *.pt

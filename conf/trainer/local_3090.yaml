@@ -1,0 +1,5 @@
+# Local single-GPU on the lab 3090. Fits SiT-B/2 with batch 32 in bf16.
+max_steps: 1000
+devices: 1
+precision: bf16-mixed
+gradient_clip_val: 1.0

@@ -38,17 +38,17 @@ with a `~~...~~` line plus a `# DONE: ...` postmortem.
 
 ## Phase 2 — SiT training pipeline (FM-OT)
 
-- [ ] (2.1) `training/sit_module.py` — `SiTLightningModule`
-- [ ] (2.2) `conf/transport/fm_ot.yaml` (Linear + velocity)
-- [ ] (2.3) Optional `t_sampler: laplace` extension for logSNR=0
-- [ ] (2.4) AdamW + warm-up, EMA wiring
-- [ ] (2.5) `training/data.py` — latent-cached ImageNet datamodule
-- [ ] (2.6) `training/checkpointing.py` — fractional schedule
-- [ ] (2.7) `training/matched_compute.py` — gFID-or-budget stopping
-- [ ] (2.8) `tests/test_checkpoint_schedule.py`
-- [ ] (2.9) 1k-step smoke run on SD-VAE
-- [ ] (2.10) `slurm/train_sit.slurm` driver
-- [ ] (2.11) Full DiT-B run on SD-VAE matches paper gFID ±0.5
+- [x] (2.1) `training/sit_module.py` — `SiTLightningModule` — claude — DONE: SiT-B/2 130.5M params; FM-OT defaults + EMA via on_fit_start hook
+- [x] (2.2) `conf/transport/fm_ot.yaml` — claude — DONE: Linear + velocity + null loss_weight
+- [ ] (2.3) Optional `t_sampler: laplace` extension for logSNR=0 — deferred (uniform t works for synthetic smoke; Laplace lands when real ImageNet runs)
+- [x] (2.4) AdamW + warm-up + EMA — claude — DONE: `LambdaLR` linear warmup, `EMA` wrapper with shadow on the right device
+- [x] (2.5) `training/data.py` — claude — DONE: `SyntheticLatentDataModule` (smoke) + `CachedLatentDataModule` (HDF5 from precompute)
+- [x] (2.6) `training/checkpointing.py` — fractional schedule — claude — DONE: 7 fractional ckpts at {2,5,10,25,50,75,100}% with safetensors live + EMA + JSON metadata
+- [ ] (2.7) `training/matched_compute.py` — gFID-or-budget stopping — deferred (needs `clean-fid` + real samples; lands with full DiT-B run)
+- [x] (2.8) `tests/test_checkpoint_schedule.py` — claude — DONE: 8 tests covering target rounding, dedup, dir creation
+- [x] (2.9) 1k-step smoke run on SD-VAE — claude — DONE: synthetic-latent run, loss 1.99 → 1.55 monotonic, all 7 fractional ckpts saved (522 MB live + 522 MB EMA each)
+- [ ] (2.10) `slurm/train_sit.slurm` driver — deferred until CINECA push
+- [ ] (2.11) Full DiT-B run on SD-VAE matches paper gFID ±0.5 — deferred (needs real ImageNet-256 + matched-compute stopping)
 
 ## Phase 3 — Activation extraction
 

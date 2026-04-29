@@ -1,0 +1,7 @@
+# FM-OT transport: Linear interpolant + velocity prediction + uniform weighting.
+# Maps to ICPlan with alpha_t = t, sigma_t = 1 - t (the optimal-transport coupling).
+path_type: Linear
+prediction: velocity
+loss_weight: null
+train_eps: 0
+sample_eps: 0
