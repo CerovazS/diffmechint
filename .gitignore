@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+build/
+dist/
+.eggs/
+
+# uv / venv
+.venv/
+.venv-*/
+.python-version
+
+# pytest / mypy / ruff
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project artifacts (the outputs/ tree is symlinked to $FAST elsewhere)
+outputs/
+runs/
+wandb/
+*.h5
+*.hdf5
+*.pt
+*.pth
+*.safetensors
+*.ckpt
+*.bin
+
+# Hydra runtime
+.hydra/
+multirun/
+
+# HF cache (should live under $FAST in production)
+hf_cache/
+
+# Local secrets / env
+.env
+.env.local
+
+# SLURM logs
+slurm/*.out
+slurm/*.err
+*.slurm.log
+
+# notebooks
+.ipynb_checkpoints/
