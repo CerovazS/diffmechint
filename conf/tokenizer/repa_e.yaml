@@ -1,0 +1,2 @@
+_target_: diffmechint.tokenizers.REPAEAdapter
+hf_repo_id: REPA-E/e2e-sdvae-hf

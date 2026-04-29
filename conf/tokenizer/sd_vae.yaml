@@ -1,0 +1,2 @@
+_target_: diffmechint.tokenizers.SDVAEAdapter
+hf_repo_id: stabilityai/sd-vae-ft-mse

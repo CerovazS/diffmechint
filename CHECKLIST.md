@@ -18,23 +18,23 @@ with a `~~...~~` line plus a `# DONE: ...` postmortem.
 - [x] (0.7) Smoke test `tests/test_transport_fm_ot.py` (Linear interpolant) — claude — DONE: 4 tests, ICPlan + alpha=t/sigma=1-t verified
 - [x] (0.8) Smoke test `tests/test_sit_forward.py` (B/2 forward + hooks) — claude — DONE: 4 tests, all 12 blocks fire hooks
 - [x] (0.9) `uv run pytest tests/` green — claude — DONE: 8/8 passed in 14.58s
-- [ ] (0.10) Initial commit + push
+- [x] (0.10) Initial commit + push — claude — DONE: pushed to origin/main
 
 ## Phase 1 — Tokenizer adapters + latent precompute
 
-- [ ] (1.1) `tokenizers/base.py` — `TokenizerAdapter` ABC contract
-- [ ] (1.2) `tokenizers/registry.py` — name → adapter factory
-- [ ] (1.3) `tokenizers/sd_vae.py` — `stabilityai/sd-vae-ft-mse`
-- [ ] (1.4) `tokenizers/eq_vae.py` — `zelaki/eq-vae-ema`
-- [ ] (1.5) `tokenizers/repa_e.py` — `REPA-E/e2e-sdvae-hf`
-- [ ] (1.6) `tokenizers/dc_ae_1_0.py` — `mit-han-lab/dc-ae-f32c32-in-1.0`
-- [ ] (1.7) `tokenizers/rae.py` — `nyu-visionx/rae-dinov2-base-vitxl-n08`
-- [ ] (1.8) `tokenizers/maetok.py` — optional 6th
-- [ ] (1.9) `tokenizers/va_vae.py` — optional 7th
-- [ ] (1.10) `TokenGridAdapter` for non-grid latents (RAE, MAETok)
-- [ ] (1.11) `precompute_latents.py` CLI + Hydra config per adapter
-- [ ] (1.12) `tests/test_tokenizer_adapters.py` round-trip PSNR > 25 dB
-- [ ] (1.13) Acceptance run on 64 ImageNet-256 images per adapter
+- [x] (1.1) `tokenizers/base.py` — `TokenizerAdapter` ABC contract — claude — DONE: dataclass `TokenizerSpec` + `nn.Module` ABC
+- [x] (1.2) `tokenizers/registry.py` — name → adapter factory — claude — DONE: `@register("name")` decorator + `build(name)` dispatch
+- [x] (1.3) `tokenizers/sd_vae.py` — `stabilityai/sd-vae-ft-mse` — claude — DONE: 84M params, frozen, round-trip shape-verified
+- [x] (1.4) `tokenizers/eq_vae.py` — `zelaki/eq-vae-ema` — agent ac43d8 — DONE: drop-in `AutoencoderKL`
+- [x] (1.5) `tokenizers/repa_e.py` — `REPA-E/e2e-sdvae-hf` — agent ac43d8 — DONE: jointly-trained VAE
+- [x] (1.6) `tokenizers/dc_ae_1_0.py` — `mit-han-lab/dc-ae-f32c32-in-1.0-diffusers` — agent af4d9a — DONE: diffusers `AutoencoderDC`
+- [x] (1.7) `tokenizers/rae.py` — `nyu-visionx/rae-dinov2-base-vitxl-n08-256` — agent af4d9a — SCAFFOLD: registry works; `load()` raises NotImplementedError until upstream decoder is vendored
+- [ ] (1.8) `tokenizers/maetok.py` — optional 6th (defer until K=5 results)
+- [ ] (1.9) `tokenizers/va_vae.py` — optional 7th (defer until K=5 results)
+- [ ] (1.10) `TokenGridAdapter` for non-grid latents — defer until RAE `load()` lands
+- [x] (1.11) `precompute_latents.py` CLI + Hydra config per adapter — claude — DONE: HDF5 sharding + ImageFolder loader + Hydra `_target_` instantiate verified
+- [ ] (1.12) `tests/test_tokenizer_adapters.py` round-trip PSNR > 25 dB — pending real ImageNet sample
+- [ ] (1.13) Acceptance run on 64 ImageNet-256 images per adapter — pending GPU + ImageNet
 
 ## Phase 2 — SiT training pipeline (FM-OT)
 

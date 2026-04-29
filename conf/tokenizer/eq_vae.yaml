@@ -1,0 +1,2 @@
+_target_: diffmechint.tokenizers.EQVAEAdapter
+hf_repo_id: zelaki/eq-vae-ema

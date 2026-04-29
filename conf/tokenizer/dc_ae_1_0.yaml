@@ -1,0 +1,2 @@
+_target_: diffmechint.tokenizers.DCAE10Adapter
+hf_repo_id: mit-han-lab/dc-ae-f32c32-in-1.0-diffusers

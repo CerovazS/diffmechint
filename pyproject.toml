@@ -66,6 +66,10 @@ ignore = ["E501"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 addopts = ["-v", "--tb=short"]
+markers = [
+    "integration: opt-in tests that download HF weights (run with `-m integration`)",
+    "slow: tests that take > 30s",
+]
 
 [tool.mypy]
 python_version = "3.11"

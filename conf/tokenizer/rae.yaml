@@ -1,0 +1,5 @@
+# RAE loader is a scaffold (NotImplementedError) — see src/diffmechint/tokenizers/rae.py.
+# This config still registers the adapter so build("rae") works for metadata.
+_target_: diffmechint.tokenizers.RAEAdapter
+hf_repo_id: nyu-visionx/rae-dinov2-base-vitxl-n08-256
+encoder_repo_id: facebook/dinov2-base
