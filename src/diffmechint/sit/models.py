@@ -262,11 +262,14 @@ class SiT(nn.Module):
         half = x[: len(x) // 2]
         combined = torch.cat([half, half], dim=0)
         model_out = self.forward(combined, t, y)
-        # For exact reproducibility reasons, we apply classifier-free guidance on only
-        # three channels by default. The standard approach to cfg applies it to all channels.
-        # This can be done by uncommenting the following line and commenting-out the line following that.
-        # eps, rest = model_out[:, :self.in_channels], model_out[:, self.in_channels:]
-        eps, rest = model_out[:, :3], model_out[:, 3:]
+        # diffmechint patch (2026-05-10): use self.in_channels instead of hardcoded 3,
+        # so CFG is applied to all velocity channels regardless of the tokenizer's
+        # latent shape (4 for SD-VAE-likes, 32 for DC-AE, etc.). Upstream comment
+        # left for traceability:
+        # > For exact reproducibility reasons, we apply classifier-free guidance on
+        # > only three channels by default. The standard approach to cfg applies
+        # > it to all channels.
+        eps, rest = model_out[:, : self.in_channels], model_out[:, self.in_channels :]
         cond_eps, uncond_eps = torch.split(eps, len(eps) // 2, dim=0)
         half_eps = uncond_eps + cfg_scale * (cond_eps - uncond_eps)
         eps = torch.cat([half_eps, half_eps], dim=0)
@@ -332,6 +335,19 @@ def get_1d_sincos_pos_embed_from_grid(embed_dim, pos):
 #                                   SiT Configs                                  #
 #################################################################################
 
+def SiT_XL_1(**kwargs):
+    return SiT(depth=28, hidden_size=1152, patch_size=1, num_heads=16, **kwargs)
+
+def SiT_L_1(**kwargs):
+    return SiT(depth=24, hidden_size=1024, patch_size=1, num_heads=16, **kwargs)
+
+def SiT_B_1(**kwargs):
+    return SiT(depth=12, hidden_size=768, patch_size=1, num_heads=12, **kwargs)
+
+def SiT_S_1(**kwargs):
+    return SiT(depth=12, hidden_size=384, patch_size=1, num_heads=6, **kwargs)
+
+
 def SiT_XL_2(**kwargs):
     return SiT(depth=28, hidden_size=1152, patch_size=2, num_heads=16, **kwargs)
 
@@ -370,8 +386,8 @@ def SiT_S_8(**kwargs):
 
 
 SiT_models = {
-    'SiT-XL/2': SiT_XL_2,  'SiT-XL/4': SiT_XL_4,  'SiT-XL/8': SiT_XL_8,
-    'SiT-L/2':  SiT_L_2,   'SiT-L/4':  SiT_L_4,   'SiT-L/8':  SiT_L_8,
-    'SiT-B/2':  SiT_B_2,   'SiT-B/4':  SiT_B_4,   'SiT-B/8':  SiT_B_8,
-    'SiT-S/2':  SiT_S_2,   'SiT-S/4':  SiT_S_4,   'SiT-S/8':  SiT_S_8,
+    'SiT-XL/1': SiT_XL_1,  'SiT-XL/2': SiT_XL_2,  'SiT-XL/4': SiT_XL_4,  'SiT-XL/8': SiT_XL_8,
+    'SiT-L/1':  SiT_L_1,   'SiT-L/2':  SiT_L_2,   'SiT-L/4':  SiT_L_4,   'SiT-L/8':  SiT_L_8,
+    'SiT-B/1':  SiT_B_1,   'SiT-B/2':  SiT_B_2,   'SiT-B/4':  SiT_B_4,   'SiT-B/8':  SiT_B_8,
+    'SiT-S/1':  SiT_S_1,   'SiT-S/2':  SiT_S_2,   'SiT-S/4':  SiT_S_4,   'SiT-S/8':  SiT_S_8,
 }

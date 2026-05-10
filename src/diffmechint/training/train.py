@@ -40,13 +40,28 @@ def main(cfg: DictConfig) -> None:
     info(f"Tokenizer: {adapter} latent_shape={spec.latent_shape}")
 
     # Model.
+    ema_resume = cfg.get("ema_resume_from")
     sit_module = hydra.utils.instantiate(
         cfg.model,
         input_size=spec.latent_shape[1],
         in_channels=spec.in_channels,
         transport_cfg=OmegaConf.to_container(cfg.transport, resolve=True),
+        ema_resume_path=ema_resume,
     )
     info(f"SiT params: {sit_module.n_parameters() / 1e6:.1f}M")
+
+    # Optional: load live model weights from a prior run's safetensors. Note
+    # that we do NOT recover optimizer/scheduler/RNG state — this is
+    # "weights resume", not full Lightning resume. Pair with model.warmup_steps=0
+    # so the LR schedule doesn't reset to zero on top of an already-trained model.
+    resume_from = cfg.get("resume_from")
+    if resume_from:
+        from safetensors.torch import load_file
+        info(f"Resuming live model weights from {resume_from}")
+        live_sd = load_file(resume_from)
+        missing, unexpected = sit_module.model.load_state_dict(live_sd, strict=False)
+        if missing or unexpected:
+            info(f"  load_state_dict: missing={len(missing)} unexpected={len(unexpected)}")
 
     # Data — default to synthetic if no datamodule explicit.
     if "data" in cfg and "_target_" in cfg.data:
@@ -68,7 +83,14 @@ def main(cfg: DictConfig) -> None:
     max_steps = int(trainer_cfg.get("max_steps", 1000))
     ckpt_dir = Path(cfg.get("ckpt_dir", "outputs/run/checkpoints"))
     ckpt_dir = ckpt_dir if ckpt_dir.is_absolute() else Path.cwd() / ckpt_dir
-    callbacks = [FractionalCheckpoint(out_dir=str(ckpt_dir), max_steps=max_steps)]
+    callbacks: list = [FractionalCheckpoint(out_dir=str(ckpt_dir), max_steps=max_steps)]
+    cb_cfg = cfg.get("callbacks") or {}
+    for name in ("sample", "fid"):
+        sub = cb_cfg.get(name)
+        if sub is not None:
+            cb = hydra.utils.instantiate(sub)
+            callbacks.append(cb)
+            info(f"Callback enabled: {name} ({type(cb).__name__})")
 
     trainer_kwargs: dict = {
         "max_steps": max_steps,
@@ -76,6 +98,7 @@ def main(cfg: DictConfig) -> None:
         "log_every_n_steps": 50,
         "callbacks": callbacks,
         "enable_checkpointing": False,  # the fractional callback owns saving
+        "default_root_dir": str(ckpt_dir.parent),  # SampleCallback writes under here
     }
     if torch.cuda.is_available():
         trainer_kwargs["accelerator"] = "gpu"
@@ -85,7 +108,13 @@ def main(cfg: DictConfig) -> None:
         trainer_kwargs["accelerator"] = "cpu"
 
     # Allow a few specific overrides from the trainer config.
-    for k in ("gradient_clip_val", "accumulate_grad_batches"):
+    for k in (
+        "gradient_clip_val",
+        "accumulate_grad_batches",
+        "val_check_interval",
+        "limit_val_batches",
+        "check_val_every_n_epoch",
+    ):
         if k in trainer_cfg:
             trainer_kwargs[k] = trainer_cfg[k]
 

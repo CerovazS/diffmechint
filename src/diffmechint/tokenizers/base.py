@@ -11,17 +11,42 @@ from torch import Tensor, nn
 
 @dataclass(frozen=True)
 class TokenizerSpec:
-    """Static metadata an adapter exposes without loading weights."""
+    """Static metadata an adapter exposes without loading weights.
+
+    `kind` + `feature_axis` make the spec self-describing for downstream
+    consumers (precompute stats, DiT input head, SAE, probes) so that none of
+    them need to hardcode the layout per VAE family.
+    """
 
     name: str
-    latent_shape: tuple[int, int, int]  # (C, H, W) at 256² input
+    latent_shape: tuple[int, ...]  # (C, H, W) for spatial; (T, D) for sequence
     scaling_factor: float                # multiplicative pre-DiT scaling, fixed or learned
     license: str                         # for compliance audit
     commercial_use: bool = True
     paper_arxiv: str = ""                # optional arXiv id
+    # Layout-awareness — keeps the codebase honest when sequence-token VAEs land.
+    kind: str = "spatial"                # "spatial" (B,C,H,W) | "sequence" (B,T,D)
+    feature_axis: int = 1                # axis (in the batched tensor) holding features
+    suggested_patch_size: int | None = 2  # SiT patchify hint; None for sequence layouts
 
     @property
     def in_channels(self) -> int:
+        # For spatial latents the feature dim is the channel count (axis 1 → idx 0
+        # in the post-batch shape). For sequence latents it's the last dim. The
+        # feature_axis field encodes both cases: post-batch index = feature_axis - 1.
+        idx = self.feature_axis - 1 if self.feature_axis >= 0 else self.feature_axis
+        return self.latent_shape[idx]
+
+    @property
+    def feature_dim(self) -> int:
+        return self.in_channels
+
+    @property
+    def input_size(self) -> int:
+        """Spatial side length for grid latents; sequence length for token latents."""
+        if self.kind == "spatial":
+            return self.latent_shape[1]  # H (assumes H == W, true for all 4 active VAEs)
+        # Sequence: latent_shape == (T, D), so axis 0 (post-batch) is T.
         return self.latent_shape[0]
 
 

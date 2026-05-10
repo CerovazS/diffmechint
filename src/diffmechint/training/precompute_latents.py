@@ -69,14 +69,49 @@ def _open_shard(out_dir: Path, shard_idx: int, latent_shape: tuple[int, int, int
     return f
 
 
-def _stat_summary(values: np.ndarray) -> dict:
-    return {
-        "mean": float(values.mean()),
-        "std": float(values.std()),
-        "min": float(values.min()),
-        "max": float(values.max()),
-        "count": int(values.size),
-    }
+class _RunningStats:
+    """Streaming per-feature stats, aware of the latent's feature axis.
+
+    For spatial latents (B, C, H, W) with feature_axis=1 → reduce over (B, H, W),
+    accumulating C-vectors. For sequence latents (B, T, D) with feature_axis=-1
+    → reduce over (B, T), accumulating D-vectors. Accumulates in fp64 to avoid
+    catastrophic cancellation in the sum-of-squares variance identity.
+    """
+
+    def __init__(self, n_features: int, feature_axis: int = 1) -> None:
+        self.n_features = n_features
+        self.feature_axis = feature_axis  # axis in the *batched* tensor
+        self._sum = np.zeros(n_features, dtype=np.float64)
+        self._sumsq = np.zeros(n_features, dtype=np.float64)
+        self._count = 0  # samples per feature, summed across batches
+        self._min = np.full(n_features, np.inf, dtype=np.float64)
+        self._max = np.full(n_features, -np.inf, dtype=np.float64)
+
+    def update(self, z: np.ndarray) -> None:
+        # Move feature axis to dim 0, flatten everything else into dim 1.
+        feat = self.feature_axis if self.feature_axis >= 0 else z.ndim + self.feature_axis
+        zf = np.moveaxis(z, feat, 0).reshape(z.shape[feat], -1).astype(np.float64, copy=False)
+        self._sum += zf.sum(axis=1)
+        self._sumsq += (zf * zf).sum(axis=1)
+        self._count += zf.shape[1]
+        self._min = np.minimum(self._min, zf.min(axis=1))
+        self._max = np.maximum(self._max, zf.max(axis=1))
+
+    def to_dict(self) -> dict:
+        if self._count == 0:
+            return {"count": 0}
+        mean = self._sum / self._count
+        var = np.maximum(self._sumsq / self._count - mean * mean, 0.0)
+        std = np.sqrt(var)
+        return {
+            "count_tokens_per_feature": int(self._count),
+            "per_feature_mean": mean.tolist(),
+            "per_feature_std": std.tolist(),
+            "per_feature_min": self._min.tolist(),
+            "per_feature_max": self._max.tolist(),
+            "global_mean": float(mean.mean()),
+            "global_std": float(std.mean()),
+        }
 
 
 @hydra.main(version_base=None, config_path="../../../conf", config_name="config")
@@ -109,7 +144,10 @@ def main(cfg: DictConfig) -> None:
     dataset, loader = _build_loader(data_dir, image_size, batch_size, num_workers)
     info(f"Dataset: {len(dataset)} images; batch_size={batch_size}; shard_size={shard_size}")
 
-    sample_buf: list[np.ndarray] = []
+    stats = _RunningStats(
+        n_features=adapter.spec.feature_dim,
+        feature_axis=adapter.spec.feature_axis,
+    )
     written = 0
     shard_idx = 0
     shard = _open_shard(out_dir, shard_idx, adapter.spec.latent_shape)
@@ -117,7 +155,10 @@ def main(cfg: DictConfig) -> None:
 
     for batch_idx, (imgs, labels) in enumerate(loader):
         imgs = imgs.to(device, non_blocking=True)
-        z = adapter.encode(imgs).to(torch.float16).cpu().numpy()
+        # Encode in fp32 so stats are accumulated faithfully; cast to fp16 only for storage.
+        z_fp32 = adapter.encode(imgs).cpu().numpy().astype(np.float32)
+        stats.update(z_fp32)
+        z = z_fp32.astype(np.float16)
         labels_np = labels.numpy().astype(np.int32)
 
         # Append to current shard, rolling over when full.
@@ -128,10 +169,6 @@ def main(cfg: DictConfig) -> None:
         shard["labels"].resize((cur_size + n,))
         shard["labels"][cur_size : cur_size + n] = labels_np
         written += n
-
-        # Stats sample (cheap, used for run report).
-        if len(sample_buf) < 8:
-            sample_buf.append(z[:1].astype(np.float32))
 
         if (cur_size + n) >= shard_size:
             shard.close()
@@ -148,16 +185,29 @@ def main(cfg: DictConfig) -> None:
 
     shard.close()
 
-    # Stats summary written next to the shards for quick eyeballing.
-    if sample_buf:
-        all_samples = np.concatenate(sample_buf, axis=0)
-        stats = _stat_summary(all_samples)
-        stats["adapter"] = adapter.spec.name
-        stats["latent_shape"] = list(adapter.spec.latent_shape)
-        stats["scaling_factor"] = adapter.spec.scaling_factor
-        stats["images_written"] = written
-        stats["wall_seconds"] = time.perf_counter() - t0
-        (out_dir / "stats.json").write_text(json.dumps(stats, indent=2))
+    # Canonical stats.json — single source of truth for de/normalization + DiT setup.
+    spec = adapter.spec
+    hf_repo_id = getattr(adapter, "hf_repo_id", None) or getattr(adapter, "HF_REPO_ID", None)
+    stats_dict = {
+        "format_version": "1",
+        "adapter": spec.name,
+        "hf_repo_id": hf_repo_id,
+        "latent_shape": list(spec.latent_shape),
+        "kind": spec.kind,
+        "feature_axis": spec.feature_axis,
+        "feature_dim": spec.feature_dim,
+        "input_size": spec.input_size,
+        "scaling_factor": spec.scaling_factor,
+        "suggested_patch_size": spec.suggested_patch_size,
+        **stats.to_dict(),
+        "images_written": written,
+        "wall_seconds": time.perf_counter() - t0,
+    }
+    (out_dir / "stats.json").write_text(json.dumps(stats_dict, indent=2))
+    info(
+        f"per-channel mean: [{stats_dict.get('global_mean', float('nan')):.4f}] "
+        f"std: [{stats_dict.get('global_std', float('nan')):.4f}] (averaged over channels)"
+    )
     ok(f"Done — {written} images encoded in {time.perf_counter() - t0:.1f}s")
 
 

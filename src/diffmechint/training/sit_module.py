@@ -52,6 +52,7 @@ class SiTLightningModule(L.LightningModule):
         betas: tuple[float, float] = (0.9, 0.999),
         warmup_steps: int = 10_000,
         ema_decay: float = 0.9999,
+        ema_resume_path: str | None = None,
     ) -> None:
         super().__init__()
         self.save_hyperparameters()
@@ -81,6 +82,14 @@ class SiTLightningModule(L.LightningModule):
         if self.ema is None:
             self.ema = EMA(self.model, decay=self.hparams.ema_decay)
             self.ema.shadow.to(self.device)
+        # If resuming from a previous run, overwrite EMA shadow weights with the
+        # saved EMA. The live model is loaded earlier in train.py before fit().
+        ema_path = self.hparams.ema_resume_path
+        if ema_path:
+            from safetensors.torch import load_file
+            ema_sd = load_file(ema_path)
+            self.ema.shadow.load_state_dict(ema_sd)
+            ok(f"EMA shadow resumed from {ema_path}")
 
     def training_step(self, batch: dict[str, Tensor], batch_idx: int) -> Tensor:
         z, y = batch["latent"], batch["label"]
@@ -88,6 +97,17 @@ class SiTLightningModule(L.LightningModule):
         loss_dict = self.transport.training_losses(self.model, z, dict(y=y))
         loss = loss_dict["loss"].mean()
         self.log("train/loss", loss, prog_bar=True, on_step=True, on_epoch=True)
+        return loss
+
+    def validation_step(self, batch: dict[str, Tensor], batch_idx: int) -> Tensor:
+        # Same loss as training but on held-out latents. Class label still passed:
+        # we want val loss under the same conditional regime as train (no CFG drop
+        # at val time — class_dropout is applied inside the model under .train()).
+        z, y = batch["latent"], batch["label"]
+        with torch.no_grad():
+            loss_dict = self.transport.training_losses(self.model, z, dict(y=y))
+        loss = loss_dict["loss"].mean()
+        self.log("val/loss", loss, prog_bar=True, on_step=False, on_epoch=True, sync_dist=True)
         return loss
 
     def on_before_optimizer_step(self, optimizer) -> None:  # noqa: ARG002

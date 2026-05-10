@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.11, <3.13"
 resolution-markers = [
     "python_full_version >= '3.12' and sys_platform == 'win32'",
@@ -257,6 +257,23 @@ wheels = [
 ]
 
 [[package]]
+name = "clean-fid"
+version = "0.1.35"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "pillow" },
+    { name = "requests" },
+    { name = "scipy" },
+    { name = "torch" },
+    { name = "torchvision" },
+    { name = "tqdm" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/70/56/0dfc83e0fe455cfe6272b23a65039b4101c63a4e7446801e26178b675fbf/clean_fid-0.1.35-py3-none-any.whl", hash = "sha256:757cf49d75debe9b07ab14955fe59c845a296deaf0616153b40c5e75b3cf87fb", size = 26008, upload-time = "2022-12-18T20:19:35.819Z" },
+]
+
+[[package]]
 name = "click"
 version = "8.3.3"
 source = { registry = "https://pypi.org/simple" }
@@ -430,6 +447,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "accelerate" },
+    { name = "clean-fid" },
     { name = "diffusers" },
     { name = "einops" },
     { name = "h5py" },
@@ -469,6 +487,7 @@ mechint = [
 [package.metadata]
 requires-dist = [
     { name = "accelerate", specifier = ">=1.0" },
+    { name = "clean-fid", specifier = ">=0.1.35" },
     { name = "diffusers", specifier = ">=0.30" },
     { name = "einops" },
     { name = "h5py" },

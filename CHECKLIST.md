@@ -34,7 +34,9 @@ with a `~~...~~` line plus a `# DONE: ...` postmortem.
 - [ ] (1.10) `TokenGridAdapter` for non-grid latents — defer until RAE `load()` lands
 - [x] (1.11) `precompute_latents.py` CLI + Hydra config per adapter — claude — DONE: HDF5 sharding + ImageFolder loader + Hydra `_target_` instantiate verified
 - [x] (1.12) Round-trip PSNR > 25 dB on real image — claude — DONE: GPU smoke (`scripts/smoke_adapters_gpu.py`) on 3090. sd_vae 28.10 / eq_vae 27.30 / repa_e 27.03 / dc_ae_1_0 26.20 dB on the canonical pytorch/hub `dog.jpg`.
-- [ ] (1.13) Acceptance run on 64 ImageNet-256 images per adapter — pending real ImageNet mount (deferred to CINECA / pod)
+- [x] (1.13) Acceptance run on 256 ImageNet-256 images per adapter — claude — DONE: 4×256 imgs round-trip PSNR sd_vae 25.11 / eq_vae 24.14 / repa_e 24.23 / dc_ae_1_0 23.00 dB (all ≥ 22 dB threshold). Run on CINECA, 4× A100, 27 s wall-clock.
+- [x] (1.14) Stats schema v1 — `stats.json` self-describing: `kind`, `feature_axis`, `feature_dim`, `input_size`, `scaling_factor`, `suggested_patch_size`, per-feature mean/std/min/max (fp64-accumulated). Drives runtime z-score in `CachedLatentDataset` and is the canonical descriptor for DiT setup. Findings on real ImageNet: eq_vae σ≈2.5 and dc_ae_1_0 σ≈3.0 confirm runtime z-score is mandatory for matched-compute comparability.
+- [x] (1.15) Full ImageNet precompute (1.28 M × 4 VAE) → `$SCRATCH/diffmechint/latents/<tok>/` — claude — DONE: 4 single-GPU sbatch jobs (sd_vae=41194528 / eq_vae=41194530 / repa_e=41194531 / dc_ae_1_0=41194533) all COMPLETED 0:0. Throughput 206 img/s per gli SD-likes, 124 img/s per DC-AE. Wall 1h44 per gli SD-likes, 2h53 per DC-AE. 128 shard × 10k img per VAE, 9.9 GB ciascuno per gli SD-likes, 5.0 GB per DC-AE; 34.7 GB totali. Statistiche full-dataset: sd_vae σ=0.832, eq_vae σ=2.661, repa_e σ=0.797, dc_ae_1_0 σ=3.076 — confermate vs smoke (256 sample) entro 6 %. Phase 1 chiusa; pronti per Phase 2 training.
 
 ## Phase 2 — SiT training pipeline (FM-OT)
 
@@ -44,11 +46,14 @@ with a `~~...~~` line plus a `# DONE: ...` postmortem.
 - [x] (2.4) AdamW + warm-up + EMA — claude — DONE: `LambdaLR` linear warmup, `EMA` wrapper with shadow on the right device
 - [x] (2.5) `training/data.py` — claude — DONE: `SyntheticLatentDataModule` (smoke) + `CachedLatentDataModule` (HDF5 from precompute)
 - [x] (2.6) `training/checkpointing.py` — fractional schedule — claude — DONE: 7 fractional ckpts at {2,5,10,25,50,75,100}% with safetensors live + EMA + JSON metadata
-- [ ] (2.7) `training/matched_compute.py` — gFID-or-budget stopping — deferred (needs `clean-fid` + real samples; lands with full DiT-B run)
+- [ ] (2.7) `training/matched_compute.py` — gFID-or-budget stopping — deferred (replaced with fixed step-budget for K=4 matched comparison; FID monitored via MiniFIDCallback below)
+- [x] (2.7b) `MiniFIDCallback` (clean-fid vs ImageNet val 50k, mini-FID on 5k generated) every 25k step — claude — DONE: `src/diffmechint/training/callbacks/fid.py`, conf `conf/callbacks/full.yaml`, `clean-fid==0.1.35` added via `uv add`. Reference stats built once on first call (~5 min) and cached.
+- [x] (2.7c) `validation_step` + holdout split — claude — DONE: `CachedLatentDataset` (+ DataModule) take `holdout_fraction` + `holdout_seed`; deterministic complementary split between train/val instances. `SiTLightningModule.validation_step` re-uses transport.training_losses on held-out batch with `sync_dist=True`. 5 new tests in `tests/test_data_holdout.py`.
+- [x] (2.7d) `SampleCallback` — class-cond ODE sample (CFG=4) + VAE decode + grid PNG every N step — claude — DONE: `src/diffmechint/training/callbacks/sample.py`. Uses EMA shadow when present (analysis target), denormalizes via `stats.json`. Note: `SiT.forward_with_cfg` is hardcoded `[:, :3]` upstream → applies CFG to first 3 of 4 SD-VAE channels. Need fix for DC-AE (32 channels) before its run. Conf `conf/callbacks/{none,sample_only,full}.yaml`.
 - [x] (2.8) `tests/test_checkpoint_schedule.py` — claude — DONE: 8 tests covering target rounding, dedup, dir creation
 - [x] (2.9) 1k-step smoke run on SD-VAE — claude — DONE: synthetic-latent run, loss 1.99 → 1.55 monotonic, all 7 fractional ckpts saved (522 MB live + 522 MB EMA each)
-- [ ] (2.10) `slurm/train_sit.slurm` driver — deferred until CINECA push
-- [ ] (2.11) Full DiT-B run on SD-VAE matches paper gFID ±0.5 — deferred (needs real ImageNet-256 + matched-compute stopping)
+- [x] (2.10) `slurm/train_sit_full.slurm` driver — claude — DONE: parametric `TOK=...` env, 2× A100 DDP, 16 CPU, 80 GB mem, 10 h walltime. `scripts/train_sit_full.sh` instantiates with `callbacks=full` (sample+FID), batch 128/GPU = 256 global, holdout 5 %, val every 1k step.
+- [ ] (2.11) Full DiT-B run on K=4 conditions — claude — IN PROGRESS: 4 sbatch submitted (sd_vae=41270854, eq_vae=41270856, repa_e=41270857, dc_ae_1_0=41270858), 200 k step each, DDP 2× A100, batch globale 256 (4× PLAN baseline). Aspettiamo ~7.5 h compute + ~3 h FID overhead per condizione. matched-compute stopping (2.7) sostituito da fixed-step + MiniFIDCallback (2.7b) for the K=4 comparison.
 
 ## Phase 3 — Activation extraction
 

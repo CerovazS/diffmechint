@@ -1,0 +1,14 @@
+# Periodic class-conditional ODE sampling + VAE decode + grid PNG.
+sample:
+  _target_: diffmechint.training.callbacks.SampleCallback
+  every_n_steps: 5000
+  n_samples: 16
+  cfg_scales: [1.0, 4.0]
+  sample_steps: 50
+  sample_method: dopri5
+  out_subdir: samples
+  adapter_name: ???   # set per condition (e.g. sd_vae)
+  num_classes: 1000
+  stats_path: ???     # set to <shard_dir>/stats.json
+  seed: 0
+fid: null

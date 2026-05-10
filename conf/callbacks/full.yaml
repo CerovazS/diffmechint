@@ -1,0 +1,27 @@
+# Full Tier 1 + Tier 2: sample callback every 5k step + mini-FID every 25k step.
+sample:
+  _target_: diffmechint.training.callbacks.SampleCallback
+  every_n_steps: 5000
+  n_samples: 16
+  cfg_scales: [1.0, 4.0]
+  sample_steps: 50
+  sample_method: dopri5
+  out_subdir: samples
+  adapter_name: ???
+  num_classes: 1000
+  stats_path: ???
+  seed: 0
+fid:
+  _target_: diffmechint.training.callbacks.MiniFIDCallback
+  every_n_steps: 25000
+  n_samples: 5000
+  sample_batch_size: 32
+  cfg_scale: 4.0
+  sample_steps: 50
+  sample_method: dopri5
+  reference_dir: /leonardo_scratch/fast/IscrC_YENDRI/imagenet/val
+  reference_name: imagenet_val_50k
+  adapter_name: ???
+  num_classes: 1000
+  stats_path: ???
+  seed: 0
