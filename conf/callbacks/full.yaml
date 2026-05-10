@@ -14,7 +14,10 @@ sample:
 fid:
   _target_: diffmechint.training.callbacks.MiniFIDCallback
   every_n_steps: 25000
-  n_samples: 5000
+  # 1k samples for live tracking → FID call ~3-4 min < 30 min NCCL timeout.
+  # Use scripts/post_hoc_fid.py with n_samples=5000 for paper-grade curves
+  # after training completes.
+  n_samples: 1000
   sample_batch_size: 32
   cfg_scale: 4.0
   sample_steps: 50
@@ -25,3 +28,5 @@ fid:
   num_classes: 1000
   stats_path: ???
   seed: 0
+  # Refuse to start training if cleanfid cache isn't built.
+  require_cache_at_init: true

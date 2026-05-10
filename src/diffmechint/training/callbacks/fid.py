@@ -44,7 +44,7 @@ class MiniFIDCallback(Callback):
     def __init__(
         self,
         every_n_steps: int = 25_000,
-        n_samples: int = 5000,
+        n_samples: int = 1000,                      # 1k for live (NCCL-safe < 5 min)
         sample_batch_size: int = 32,
         cfg_scale: float = 4.0,
         sample_steps: int = 50,
@@ -55,6 +55,7 @@ class MiniFIDCallback(Callback):
         num_classes: int = 1000,
         stats_path: str | None = None,
         seed: int = 0,
+        require_cache_at_init: bool = True,         # fail fast if stats missing
     ) -> None:
         super().__init__()
         self.every_n_steps = every_n_steps
@@ -69,6 +70,7 @@ class MiniFIDCallback(Callback):
         self.num_classes = num_classes
         self.stats_path = Path(stats_path) if stats_path else None
         self.seed = seed
+        self.require_cache_at_init = require_cache_at_init
 
         self._adapter = None
         self._mean: Tensor | None = None
@@ -129,6 +131,33 @@ class MiniFIDCallback(Callback):
         )
         self._ref_stats_built = True
 
+    def on_fit_start(self, trainer: L.Trainer, pl_module: L.LightningModule) -> None:
+        """Verify the Clean-FID reference stats exist before training starts.
+
+        Failing here (loud, immediate) is far better than failing 25k steps in,
+        when each rank-0 retry causes a 30-min NCCL allreduce stall on rank > 0.
+        Disable by passing require_cache_at_init=False.
+        """
+        if not self.require_cache_at_init:
+            return
+        if trainer.global_rank != 0:
+            return
+        from cleanfid import fid as _fid
+        if not _fid.test_stats_exists(self.reference_name, mode="clean"):
+            raise FileNotFoundError(
+                f"MiniFIDCallback: clean-fid reference stats '{self.reference_name}' "
+                f"are missing. Run `scripts/prefetch_cleanfid.sh` first to build them."
+            )
+        # Pre-symlink the Inception weights into /tmp here so the first FID call
+        # never blocks on a download attempt mid-training.
+        inc_home = Path.home() / ".cache" / "cleanfid_models" / "inception-2015-12-05.pt"
+        inc_tmp = Path("/tmp/inception-2015-12-05.pt")
+        if inc_home.exists() and not inc_tmp.exists():
+            try:
+                inc_tmp.symlink_to(inc_home)
+            except FileExistsError:
+                pass
+
     def on_train_batch_end(
         self,
         trainer: L.Trainer,
@@ -137,15 +166,22 @@ class MiniFIDCallback(Callback):
         batch,
         batch_idx: int,
     ) -> None:
-        if trainer.global_rank != 0:
-            return
         step = trainer.global_step + 1
         if step % self.every_n_steps != 0:
             return
-        try:
-            self._compute_and_log(trainer, pl_module, step)
-        except Exception as e:  # noqa: BLE001
-            warn(f"MiniFIDCallback @ step {step}: {type(e).__name__}: {e}")
+        # All ranks enter — only rank 0 does the heavy work — all ranks sync at the
+        # end. Without this barrier, rank > 0 returns immediately, runs the next
+        # train step, and tries to allreduce against a still-busy rank 0 → NCCL
+        # watchdog times out at 30 min and SIGABRTs the whole job.
+        if trainer.global_rank == 0:
+            try:
+                self._compute_and_log(trainer, pl_module, step)
+            except Exception as e:  # noqa: BLE001
+                warn(f"MiniFIDCallback @ step {step}: {type(e).__name__}: {e}")
+        if trainer.world_size > 1:
+            import torch.distributed as dist
+            if dist.is_initialized():
+                dist.barrier()
 
     @torch.no_grad()
     def _compute_and_log(
