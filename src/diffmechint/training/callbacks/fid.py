@@ -44,7 +44,12 @@ class MiniFIDCallback(Callback):
     def __init__(
         self,
         every_n_steps: int = 25_000,
-        n_samples: int = 1000,                      # 1k for live (NCCL-safe < 5 min)
+        # 5000 samples for parity with post_hoc_fid.py — both go into the
+        # same metrics/validation/fid.csv across runs, so the live and
+        # post-hoc curves must use identical n_samples to be comparable.
+        # Per call ~5-8 min on 1× A100; pair with NCCL_TIMEOUT_MS=3600000
+        # in the sbatch wrapper so the rank > 0 barrier doesn't time out.
+        n_samples: int = 5000,
         sample_batch_size: int = 32,
         cfg_scale: float = 4.0,
         sample_steps: int = 50,
