@@ -17,6 +17,7 @@ set -euo pipefail
 #   ADAPTER=<tokenizer name: sd_vae | eq_vae | repa_e | dc_ae_1_0>
 RUN="${RUN:?must export RUN before sbatch}"
 ADAPTER="${ADAPTER:?must export ADAPTER before sbatch}"
+MODEL_NAME="${MODEL_NAME:-SiT-B/2}"  # SiT-B/1 for DC-AE patch=1
 
 REPO=/leonardo/home/userexternal/lcerovaz/diffmechint
 
@@ -31,7 +32,7 @@ cd "$REPO"
 echo "=== post_hoc_fid for $ADAPTER ($RUN) start: $(date) ==="
 nvidia-smi --query-gpu=index,name,memory.total --format=csv
 
-uv run python scripts/post_hoc_fid.py "$RUN" "$ADAPTER"
+uv run python scripts/post_hoc_fid.py "$RUN" "$ADAPTER" --model_name "$MODEL_NAME"
 
 echo
 echo "=== post_hoc_fid done: $(date) ==="

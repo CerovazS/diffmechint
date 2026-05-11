@@ -51,7 +51,6 @@ from diffmechint.utils import error, info, ok, warn  # noqa: E402
 LATENTS_BASE = Path("/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/latents")
 REF_NAME = "imagenet_val_50k"
 NUM_CLASSES = 1000
-MODEL_NAME = "SiT-B/2"
 
 
 def _load_stats(adapter_name: str) -> tuple[torch.Tensor, torch.Tensor, dict]:
@@ -70,8 +69,8 @@ def _list_ema_checkpoints(run_dir: Path) -> list[tuple[int, Path]]:
     return out
 
 
-def _build_model(in_channels: int, input_size: int, device: torch.device) -> torch.nn.Module:
-    model = SiT_models[MODEL_NAME](
+def _build_model(model_name: str, in_channels: int, input_size: int, device: torch.device) -> torch.nn.Module:
+    model = SiT_models[model_name](
         input_size=input_size,
         in_channels=in_channels,
         num_classes=NUM_CLASSES,
@@ -132,6 +131,8 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("run_dir", type=Path)
     p.add_argument("adapter", type=str)
+    p.add_argument("--model_name", type=str, default="SiT-B/2",
+                   help="SiT variant: 'SiT-B/2' (default) or 'SiT-B/1' for DC-AE patch=1")
     p.add_argument("--n_samples", type=int, default=5000)
     p.add_argument("--batch_size", type=int, default=32)
     p.add_argument("--cfg", type=float, default=4.0)
@@ -163,7 +164,8 @@ def main() -> int:
     adapter.to(device)
 
     transport = create_transport(path_type="Linear", prediction="velocity", loss_weight=None)
-    model = _build_model(in_channels, input_size, device)
+    info(f"Building model {args.model_name} (in_ch={in_channels}, input_size={input_size})")
+    model = _build_model(args.model_name, in_channels, input_size, device)
 
     fid_csv = args.run_dir / "metrics" / "validation" / "fid.csv"
     fid_csv.parent.mkdir(parents=True, exist_ok=True)
