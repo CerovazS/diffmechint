@@ -19,9 +19,10 @@ fid:
   # wrapper so the DDP rank > 0 barrier doesn't time out at the default 30 min.
   n_samples: 5000
   sample_batch_size: 32
-  cfg_scale: 4.0
-  sample_steps: 50
-  sample_method: dopri5
+  # SiT/REPA-E published recipe: SDE Euler-Maruyama 250 steps + CFG=1.5.
+  cfg_scale: 1.5
+  sample_steps: 250
+  sampler_kind: sde
   reference_dir: /leonardo_scratch/fast/IscrC_YENDRI/imagenet/val
   reference_name: imagenet_val_50k
   adapter_name: ???

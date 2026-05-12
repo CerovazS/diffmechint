@@ -51,9 +51,12 @@ class MiniFIDCallback(Callback):
         # in the sbatch wrapper so the rank > 0 barrier doesn't time out.
         n_samples: int = 5000,
         sample_batch_size: int = 32,
-        cfg_scale: float = 4.0,
-        sample_steps: int = 50,
-        sample_method: str = "dopri5",
+        # SiT/REPA-E published FID recipe: SDE Euler-Maruyama 250 steps + CFG=1.5.
+        # ODE 50 steps + CFG=4 produces FID ~5-10× higher (verified empirically
+        # against the SiT-B/2 baseline of ~8.6 @ 50k steps).
+        cfg_scale: float = 1.5,
+        sample_steps: int = 250,
+        sampler_kind: str = "sde",  # "sde" (Euler-Maruyama) | "ode" (dopri5)
         reference_dir: str = "/leonardo_scratch/fast/IscrC_YENDRI/imagenet/val",
         reference_name: str = "imagenet_val_50k",
         adapter_name: str = "sd_vae",
@@ -68,7 +71,7 @@ class MiniFIDCallback(Callback):
         self.sample_batch_size = sample_batch_size
         self.cfg_scale = cfg_scale
         self.sample_steps = sample_steps
-        self.sample_method = sample_method
+        self.sampler_kind = sampler_kind
         self.reference_dir = Path(reference_dir)
         self.reference_name = reference_name
         self.adapter_name = adapter_name
@@ -216,9 +219,16 @@ class MiniFIDCallback(Callback):
         eval_dir.mkdir(parents=True, exist_ok=True)
 
         sampler = Sampler(pl_module.transport)
-        sample_fn = sampler.sample_ode(
-            sampling_method=self.sample_method, num_steps=self.sample_steps
-        )
+        if self.sampler_kind == "sde":
+            sample_fn = sampler.sample_sde(
+                sampling_method="Euler",
+                diffusion_form="SBDM",
+                num_steps=self.sample_steps,
+            )
+        else:
+            sample_fn = sampler.sample_ode(
+                sampling_method="dopri5", num_steps=self.sample_steps
+            )
         n_ch = latent_shape[0]
         cfg_scale = self.cfg_scale
 

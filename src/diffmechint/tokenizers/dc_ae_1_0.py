@@ -16,7 +16,11 @@ from .registry import register
 DC_AE_1_0_SPEC = TokenizerSpec(
     name="dc_ae_1_0",
     latent_shape=(32, 8, 8),  # 256² input → 32× spatial compression, 32-channel latent
-    scaling_factor=1.0,  # DC-AE applies learned scaling internally; no post-encode multiply
+    # 0.3189 is the value the upstream training scripts use (efficientvit/applications/dc_ae);
+    # it normalizes the raw latent std (≈3) to ≈1 before the diffusion model. Note: this
+    # value is COSMETIC for our pipeline since CachedLatentDataset z-scores per-channel at
+    # runtime (any constant scaling cancels), but matching upstream is the right convention.
+    scaling_factor=0.3189,
     license="Apache-2.0",
     commercial_use=True,
     paper_arxiv="2410.10733",

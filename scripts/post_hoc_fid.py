@@ -95,10 +95,20 @@ def _sample_ckpt(
     seed: int,
     device: torch.device,
     input_size: int,
+    sampler_kind: str = "sde",
 ) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     sampler = Sampler(transport)
-    sample_fn = sampler.sample_ode(sampling_method="dopri5", num_steps=sample_steps)
+    if sampler_kind == "sde":
+        # Paper standard for SiT FID benchmarking: Euler-Maruyama 250 steps,
+        # SBDM diffusion form (matches SiT/REPA-E published numbers).
+        sample_fn = sampler.sample_sde(
+            sampling_method="Euler",
+            diffusion_form="SBDM",
+            num_steps=sample_steps,
+        )
+    else:
+        sample_fn = sampler.sample_ode(sampling_method="dopri5", num_steps=sample_steps)
 
     in_ch = int(mean_d.shape[1])
     H = W = int(input_size)
@@ -135,8 +145,12 @@ def main() -> int:
                    help="SiT variant: 'SiT-B/2' (default) or 'SiT-B/1' for DC-AE patch=1")
     p.add_argument("--n_samples", type=int, default=5000)
     p.add_argument("--batch_size", type=int, default=32)
-    p.add_argument("--cfg", type=float, default=4.0)
-    p.add_argument("--sample_steps", type=int, default=50)
+    # Defaults aligned with SiT / REPA-E published recipe:
+    # SDE Euler-Maruyama 250 steps + CFG=1.5 (paper SiT-XL/2 Table 2 reports FID
+    # ~2.06 with these settings; ODE 50 + CFG=4 produces visibly worse numbers).
+    p.add_argument("--sampler", type=str, default="sde", choices=["sde", "ode"])
+    p.add_argument("--cfg", type=float, default=1.5)
+    p.add_argument("--sample_steps", type=int, default=250)
     p.add_argument("--seed", type=int, default=0)
     args = p.parse_args()
 
@@ -208,7 +222,7 @@ def main() -> int:
             n_samples=args.n_samples, batch_size=args.batch_size,
             cfg_scale=args.cfg, sample_steps=args.sample_steps,
             out_dir=out_imgs, seed=args.seed + step, device=device,
-            input_size=input_size,
+            input_size=input_size, sampler_kind=args.sampler,
         )
         info(f"  scoring with Clean-FID against {REF_NAME}…")
         score = fid.compute_fid(
