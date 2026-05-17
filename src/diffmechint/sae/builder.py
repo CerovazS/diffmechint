@@ -20,6 +20,7 @@ from sae_lens import (
     TopKTrainingSAEConfig,
     TrainingSAE,
 )
+from sae_lens.saes.sae import SAEMetadata
 
 SAEVariant = Literal["topk", "batch_topk", "matryoshka"]
 
@@ -55,7 +56,10 @@ def build_sae(
 
     Returns: a SAELens TrainingSAE on `device` with `dtype`.
     """
-    md = dict(metadata or {})
+    # SAELens 6.x expects an SAEMetadata dataclass (not a plain dict). Build it
+    # via from_dict so our free-form keys (condition, layer, t_bin, ...) land in
+    # the extra_data bucket without colliding with SAEMetadata's reserved fields.
+    md = SAEMetadata.from_dict(dict(metadata or {}))
     if variant == "topk":
         cfg = TopKTrainingSAEConfig(
             d_in=d_in,

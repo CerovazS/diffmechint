@@ -96,6 +96,7 @@ def _sample_ckpt(
     device: torch.device,
     input_size: int,
     sampler_kind: str = "sde",
+    denormalize: bool = True,
 ) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     sampler = Sampler(transport)
@@ -130,7 +131,12 @@ def _sample_ckpt(
             return out[:, :in_ch]
 
         samples = sample_fn(noise_full, model_fn, y=labels_full)[-1][:bsz]
-        samples = samples / std_d + mean_d
+        # Reverse the per-feature z-score only when the dataset/training side
+        # applied it. The no-zscore ablation (eq_vae_noz) trains the SiT on
+        # latents scaled solely by the AE's `scaling_factor`, so we hand
+        # `samples` to `adapter.decode` directly.
+        if denormalize:
+            samples = samples / std_d + mean_d
         imgs = adapter.decode(samples).clamp_(-1, 1).add(1).div(2).clamp_(0, 1)
         for k, img in enumerate(imgs):
             save_image(img, out_dir / f"img_{n_done + k:06d}.png")
@@ -146,12 +152,18 @@ def main() -> int:
     p.add_argument("--n_samples", type=int, default=5000)
     p.add_argument("--batch_size", type=int, default=32)
     # Defaults aligned with SiT / REPA-E published recipe:
-    # SDE Euler-Maruyama 250 steps + CFG=1.5 (paper SiT-XL/2 Table 2 reports FID
-    # ~2.06 with these settings; ODE 50 + CFG=4 produces visibly worse numbers).
-    p.add_argument("--sampler", type=str, default="sde", choices=["sde", "ode"])
+    # ODE dopri5 (adaptive) with 250 datapoints + CFG=1.5. We tried SDE
+    # Euler-Maruyama but the velocity → score conversion inside transport
+    # diverged for our SiT-B/2 FM-OT velocity-prediction setup (all FIDs
+    # collapsed to a constant ~569, i.e. uniform-image vs ImageNet). ODE is
+    # more stable for our recipe.
+    p.add_argument("--sampler", type=str, default="ode", choices=["sde", "ode"])
     p.add_argument("--cfg", type=float, default=1.5)
     p.add_argument("--sample_steps", type=int, default=250)
     p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--no_normalize", action="store_true",
+                   help="Skip per-feature z-score denormalization before VAE decode. "
+                        "Required when the run was trained with +data.normalize=false.")
     args = p.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -223,6 +235,7 @@ def main() -> int:
             cfg_scale=args.cfg, sample_steps=args.sample_steps,
             out_dir=out_imgs, seed=args.seed + step, device=device,
             input_size=input_size, sampler_kind=args.sampler,
+            denormalize=not args.no_normalize,
         )
         info(f"  scoring with Clean-FID against {REF_NAME}…")
         score = fid.compute_fid(

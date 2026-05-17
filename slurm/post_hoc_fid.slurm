@@ -1,13 +1,13 @@
 #!/bin/bash
 #SBATCH --job-name=dmi_post_hoc_fid
 #SBATCH --partition=boost_usr_prod
-#SBATCH --account=IscrC_YENDRI
+#SBATCH --account=IscrC_PDR
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=40G
-#SBATCH --time=04:00:00
+#SBATCH --time=08:00:00
 #SBATCH --output=slurm/%x-%j.out
 #SBATCH --error=slurm/%x-%j.err
 set -euo pipefail
@@ -18,6 +18,9 @@ set -euo pipefail
 RUN="${RUN:?must export RUN before sbatch}"
 ADAPTER="${ADAPTER:?must export ADAPTER before sbatch}"
 MODEL_NAME="${MODEL_NAME:-SiT-B/2}"  # SiT-B/1 for DC-AE patch=1
+# Set NORMALIZE=false when the run was trained with +data.normalize=false
+# (e.g. eq_vae no-zscore ablation) — skips the inverse z-score before decode.
+NORMALIZE="${NORMALIZE:-true}"
 
 REPO=/leonardo/home/userexternal/lcerovaz/diffmechint
 
@@ -32,7 +35,13 @@ cd "$REPO"
 echo "=== post_hoc_fid for $ADAPTER ($RUN) start: $(date) ==="
 nvidia-smi --query-gpu=index,name,memory.total --format=csv
 
-uv run python scripts/post_hoc_fid.py "$RUN" "$ADAPTER" --model_name "$MODEL_NAME"
+EXTRA_ARGS=()
+if [[ "$NORMALIZE" == "false" ]]; then
+    EXTRA_ARGS+=("--no_normalize")
+    echo "NORMALIZE=false → passing --no_normalize"
+fi
+
+uv run python scripts/post_hoc_fid.py "$RUN" "$ADAPTER" --model_name "$MODEL_NAME" "${EXTRA_ARGS[@]}"
 
 echo
 echo "=== post_hoc_fid done: $(date) ==="

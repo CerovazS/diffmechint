@@ -575,35 +575,59 @@ def hdf5_provider(
                 yield batch.to(device, non_blocking=True)
 ```
 
-### 8.4 Warm-start across checkpoints (Xu et al. 2412.17626)
+### 8.4 Per-checkpoint training strategy — REVISED 2026-05-17
 
-Implemented via SAELens's `n_checkpoints` config plus our own
-post-processing wrapper that re-uses the previous checkpoint's
-encoder+decoder weights when training the SAE for the next DiT
-checkpoint:
+**Decision: cold-start every stage; warm-start removed as a dead path.**
+
+Original plan was to warm-start the SAE for each DiT ckpt from the previous
+ckpt's SAE weights, as in Xu et al. 2412.17626 (`Superposition09m/SAE-Track`).
+A direct audit of their code revealed that:
+
+- They transfer **only SAE weights** (no optimizer, no LR scheduler, no input
+  normalization stats, no firing-rate EMA). The `weights_only` mode in our
+  `warm_started_sweep` exactly replicates this.
+- Their cold-start budget is **300 M tokens** (16× our 20 M); their DiT-ckpt
+  gaps are tiny (Δ=20 ckpts out of 154); the activation drift between stages
+  is qualitatively small.
+- They never numerically benchmarked warm vs cold — only a qualitative
+  Figure 11 in Appendix I shows "warm converges faster". No EV/L0/dead
+  comparison.
+
+In our setup (SiT-B/2 DiT, 7 fractional ckpts with very large gaps from 4 k
+to 200 k step, 20 M cold budget) the warm-start replication produced
+**catastrophic dead-feature collapse**: 94 % dead at stage 1+, EV plateau
+at 0.83. We tested a stronger variant ("Fix B") that additionally carries
+Adam optimizer state — it mitigated marginally (94 → 91 % dead) but did
+not fix the underlying problem (activation drift between DiT ckpts > what
+a few-million-token warm budget can recover from).
+
+**Cold-start per stage** (`warm_mode='cold'`, every stage cold with full
+20 M token budget) drops dead-features from 94 % to **0.16 %** and lifts
+EV from 0.83 to **0.89** on the test cell (`sd_vae / L6 / T1`, k=64).
+
+Implementation (`src/diffmechint/sae/trainer.py:warm_started_sweep`):
 
 ```python
-def train_with_warm_start(
-    dit_ckpt_paths: list[Path],   # 7 fractional ckpts per (condition)
-    activation_shards_per_dit: dict[Path, list[Path]],
-    sae_kwargs: dict,
-    trainer_kwargs: dict,
-    out_root: Path,
-) -> None:
-    prev_sae_path: Path | None = None
-    for dit_ckpt in dit_ckpt_paths:
-        sae = build_sae(**sae_kwargs)
-        if prev_sae_path is not None:
-            sae.load_state_dict(load_safetensors(prev_sae_path), strict=False)
-        provider = hdf5_provider(activation_shards_per_dit[dit_ckpt])
-        trainer = SAETrainer(SAETrainerConfig(**trainer_kwargs), sae, provider)
-        trainer.fit()
-        prev_sae_path = trainer.checkpoint_path / "final.safetensors"
+warm_started_sweep(
+    sae_factory,
+    activation_shards_per_dit,   # 7 (label, shards) tuples in DiT-step order
+    out_root=...,
+    base_total_samples=20_000_000,
+    warm_total_samples=20_000_000,   # for cold mode this equals base
+    warm_mode='cold',                # canonical; alt: 'weights_only' (diagnostic)
+    lr=3e-4,
+    lr_warm_up_steps=200,
+)
 ```
 
-After the first checkpoint is trained from scratch (~10 GPU-h), each
-subsequent checkpoint warm-starts and converges in ~3 GPU-h. ~70 % wall-
-clock saving across the 7-checkpoint trajectory.
+Cost trade-off: cold per stage = 7 × cold budget = 7 × 20 M = 140 M tok/chain,
+vs the warm-start dream of ~50 M tok/chain. Wall time per chain on 1× A100:
+~40 min (cold) vs ~14 min (warm). Full sweep (27 chains) on 3 parallel jobs:
+~6 h with cold, ~2 h with warm. The 4× compute overhead is the price for
+SAE quality that's actually usable for downstream Phase 5 / Phase 6 analyses.
+
+Earlier warm-start scaffolding (`weights_only` mode) is retained ONLY as a
+diagnostic baseline for reproducing the failure mode on demand.
 
 ### 8.5 Sweep dimensions
 
@@ -783,6 +807,63 @@ The codebase is "publication-ready" when:
    pairs.
 3. All Level-3 circuits validated by SHIFT ablation (zero-out drops CLIP
    classification > 30%).
+
+### 11.4 Expected findings — three layers
+
+The class-conditional setup is *not* limiting: it admits three layers of
+findings, only the first of which depends on labels. Listed in order of
+increasing novelty over Revelio (Kim et al. 2024 / arXiv 2411.16725).
+
+**Layer 1 — Probe-based (uses labels).**
+- *Class identity & WordNet super-categories*: which SAE features predict
+  class / animal-vehicle-furniture / dog-vs-cat. Direct from ImageNet labels.
+- *Temporal class emergence*: at which fractional ckpt does each condition
+  start to discriminate dog vs cat; do `eq_vae_noz` features stabilize earlier
+  than `sd_vae` features.
+- *Revelio-style concept probes* via post-hoc CLIP zero-shot labels (texture,
+  color, scene, composition, style) — unlocks the full Revelio §4.1-§4.4
+  concept grid without re-training the DiT or adding a text encoder.
+
+**Layer 2 — Cross-condition comparison (label-free).**
+The *unique* value of our setup vs Revelio: K=3 fully controlled conditions
+(same architecture, dataset, compute — only the tokenizer differs).
+- *Universality test*: do the 3 tokenizers learn the same dictionary of
+  features (Hungarian-matched, §11.1)? Confirms / refutes Anthropic-style
+  universality in the diffusion-transformer regime.
+- *Feature drift cross-VAE*: which features are unique to one condition.
+  Especially: which features does `eq_vae_noz` learn that `sd_vae` does not
+  (and vice-versa).
+- *Z-score-destroyed-equivariance, mechanistic version*: compare
+  `eq_vae` (z-scored, FID 276) vs `eq_vae_noz` (FID 25). Hypothesis: the
+  z-scored variant develops more polysemantic, less class-pure features —
+  i.e. the FID gap has a *mechanistic* counterpart, not just a quality one.
+- *Compositional vs holistic*: dictionary structure analysis (clustering,
+  intrinsic dimensionality) of features per condition. Does the
+  joint-trained `repa_e` develop more compositional features than the
+  standalone `sd_vae`?
+
+**Layer 3 — Temporal dynamics (label-free).**
+Enabled by the 7 fractional checkpoints per condition (Revelio analyses a
+single final ckpt and cannot do this).
+- *Feature emergence schedule*: at which training fraction features
+  stabilize; cross-condition lag detection.
+- *Coarse-to-fine layer order*: does layer 3 stabilize before layer 9, and
+  is this order tokenizer-invariant?
+- *Warm-start transfer efficiency*: how predictive are checkpoint-N features
+  of checkpoint-(N+1) features — proxies for the speed of representational
+  refinement across training.
+
+**Candidate headline result** (to be refuted or confirmed):
+
+> Different tokenizers do not just change FID — they cause the DiT to learn
+> **fundamentally different feature dictionaries**. Tokenizers that produce
+> lower FID (e.g. `eq_vae_noz`) yield more class-pure, less polysemantic SAE
+> features. The mechanistic divergence emerges by ~50k training steps,
+> correlates with the FID gap, and is *not* predictable from PSNR
+> (reconstruction quality alone).
+
+This is a finding Revelio cannot make: they have 4 uncontrolled models,
+we have K=3 with controlled tokenizer-as-only-variable.
 
 ---
 
