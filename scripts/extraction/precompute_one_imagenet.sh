@@ -6,7 +6,7 @@ set -euo pipefail
 
 TOK="${1:?usage: $0 <tokenizer>}"
 
-REPO=/leonardo/home/userexternal/lcerovaz/diffmechint
+REPO=/leonardo_work/IscrC_PDR/lcerovaz/diffmechint
 DATA=/leonardo_scratch/fast/IscrC_YENDRI/imagenet/train
 SCRATCH_BASE=/leonardo_scratch/large/userexternal/lcerovaz
 FAST_BASE=/leonardo_scratch/fast/IscrC_YENDRI

@@ -34,7 +34,7 @@ def build_sae(
     device: str | torch.device = "cuda",
     dtype: torch.dtype = torch.float32,
     normalize_activations: str = "expected_average_only_in",
-    matryoshka_group_sizes: tuple[int, ...] | None = None,
+    matryoshka_widths: tuple[int, ...] | None = None,
     metadata: dict | None = None,
 ) -> TrainingSAE:
     """Instantiate a SAELens `TrainingSAE` of the chosen variant.
@@ -47,8 +47,10 @@ def build_sae(
       normalize_activations: SAELens preset; the default subtracts the
         expected mean per channel from inputs only (recommended for diffusion
         residuals where the mean is non-zero).
-      matryoshka_group_sizes: cumulative sizes for nested dictionaries.
-        E.g. `(1024, 4096, 16384)` exposes coarse-to-fine sub-dictionaries.
+      matryoshka_widths: cumulative latent prefix widths for nested matryoshka
+        levels. E.g. `(4096, 8192, 16384, 32768)` with `k=256` and `d_sae=32768`
+        gives 4 readout endpoints with effective K ≈ (32, 64, 128, 256) — features
+        are split proportionally across prefixes via BatchTopK selection.
         Used only for variant="matryoshka".
       metadata: free-form dict written into the SAE's saved `cfg.json` —
         we stamp `(condition, dit_ckpt_step, layer, t_bin, k)` here so the
@@ -83,8 +85,8 @@ def build_sae(
         )
         return BatchTopKTrainingSAE(cfg)
     if variant == "matryoshka":
-        if matryoshka_group_sizes is None:
-            raise ValueError("matryoshka variant requires matryoshka_group_sizes.")
+        if matryoshka_widths is None:
+            raise ValueError("matryoshka variant requires matryoshka_widths.")
         cfg = MatryoshkaBatchTopKTrainingSAEConfig(
             d_in=d_in,
             d_sae=d_sae,
@@ -92,7 +94,7 @@ def build_sae(
             dtype=str(dtype).split(".")[-1],
             device=str(device),
             normalize_activations=normalize_activations,
-            matryoshka_group_sizes=tuple(matryoshka_group_sizes),
+            matryoshka_widths=list(matryoshka_widths),
             metadata=md,
         )
         return MatryoshkaBatchTopKTrainingSAE(cfg)

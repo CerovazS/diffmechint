@@ -22,7 +22,7 @@ MODEL_NAME="${MODEL_NAME:-SiT-B/2}"  # SiT-B/1 for DC-AE patch=1
 # (e.g. eq_vae no-zscore ablation) — skips the inverse z-score before decode.
 NORMALIZE="${NORMALIZE:-true}"
 
-REPO=/leonardo/home/userexternal/lcerovaz/diffmechint
+REPO=/leonardo_work/IscrC_PDR/lcerovaz/diffmechint
 
 module load cuda/12.2 || true
 
@@ -41,7 +41,7 @@ if [[ "$NORMALIZE" == "false" ]]; then
     echo "NORMALIZE=false → passing --no_normalize"
 fi
 
-uv run python scripts/post_hoc_fid.py "$RUN" "$ADAPTER" --model_name "$MODEL_NAME" "${EXTRA_ARGS[@]}"
+uv run python scripts/eval/post_hoc_fid.py "$RUN" "$ADAPTER" --model_name "$MODEL_NAME" "${EXTRA_ARGS[@]}"
 
 echo
 echo "=== post_hoc_fid done: $(date) ==="

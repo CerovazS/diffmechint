@@ -25,4 +25,4 @@ MODEL="${MODEL:-sit_b_2}"  # default sit_b_2; export MODEL=sit_b_1 for DC-AE pat
 export NCCL_TIMEOUT_MS="${NCCL_TIMEOUT_MS:-3600000}"
 export TORCH_NCCL_BLOCKING_WAIT="${TORCH_NCCL_BLOCKING_WAIT:-0}"
 
-srun --export=ALL bash /leonardo/home/userexternal/lcerovaz/diffmechint/scripts/train_sit_full.sh "$TOK" "$MODEL"
+srun --export=ALL bash /leonardo_work/IscrC_PDR/lcerovaz/diffmechint/scripts/training/train_sit_full.sh "$TOK" "$MODEL"

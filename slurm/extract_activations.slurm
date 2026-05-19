@@ -32,8 +32,14 @@ STRATIFIED="${STRATIFIED:-}"
 # Output root (default is the canonical path; override to write to a parallel
 # tree e.g. `activations_s20` without overwriting an existing extraction).
 OUT_ROOT="${OUT_ROOT:-/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/activations}"
+# Latents root (default is the canonical train-encoded path; override to
+# `latents_val` to source activations from val-encoded latents).
+LATENTS_ROOT="${LATENTS_ROOT:-/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/latents}"
+# When LATENTS_ROOT points at val-encoded latents, set NO_HOLDOUT=true to use
+# the full set (the entire val set is already OOD for the SiT).
+NO_HOLDOUT="${NO_HOLDOUT:-false}"
 
-REPO=/leonardo/home/userexternal/lcerovaz/diffmechint
+REPO=/leonardo_work/IscrC_PDR/lcerovaz/diffmechint
 
 module load cuda/12.2 || true
 
@@ -58,13 +64,18 @@ if [[ -n "$STRATIFIED" ]]; then
     EXTRA_ARGS+=("--stratified" "$STRATIFIED")
     echo "STRATIFIED=$STRATIFIED → passing --stratified $STRATIFIED (overrides N_SAMPLES)"
 fi
+if [[ "$NO_HOLDOUT" == "true" ]]; then
+    EXTRA_ARGS+=("--no_holdout")
+    echo "NO_HOLDOUT=true → passing --no_holdout (use entire shard set)"
+fi
 
-uv run python scripts/extract_activations.py \
+uv run python scripts/extraction/extract_activations.py \
     "$RUN" "$CONDITION" \
     --model_name "$MODEL_NAME" \
     --n_samples "$N_SAMPLES" \
     --batch_size "$BATCH_SIZE" \
     --out_root "$OUT_ROOT" \
+    --latents_root "$LATENTS_ROOT" \
     "${EXTRA_ARGS[@]}"
 
 echo

@@ -4,7 +4,7 @@
 # slurm/precompute_all.slurm; the SLURM job ID is appended to each per-VAE log.
 set -euo pipefail
 
-REPO=/leonardo/home/userexternal/lcerovaz/diffmechint
+REPO=/leonardo_work/IscrC_PDR/lcerovaz/diffmechint
 DATA=/leonardo_scratch/fast/IscrC_YENDRI/imagenet/train
 OUT_BASE="${SCRATCH}/diffmechint/latents"
 LOG_BASE="${REPO}/slurm/precompute-${SLURM_JOB_ID:-local}"

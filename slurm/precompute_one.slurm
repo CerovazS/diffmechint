@@ -12,4 +12,4 @@
 set -euo pipefail
 
 TOK="${TOK:?must export TOK before sbatch (the tokenizer name)}"
-bash /leonardo/home/userexternal/lcerovaz/diffmechint/scripts/precompute_one_imagenet.sh "$TOK"
+bash /leonardo_work/IscrC_PDR/lcerovaz/diffmechint/scripts/extraction/precompute_one_imagenet.sh "$TOK"

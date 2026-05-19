@@ -40,17 +40,27 @@ from diffmechint.sae.trainer import warm_started_sweep  # noqa: E402
 from diffmechint.utils import error, info, ok, warn  # noqa: E402
 
 ACTIVATIONS_BASE = Path("/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/activations")
+VAL_ACTIVATIONS_BASE = Path("/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/activations_val")
 SAE_BASE = Path("/leonardo_scratch/fast/IscrC_YENDRI/lcerovaz/diffmechint/sae")
 # Default DiT fractional steps (set by FractionalCheckpoint callback in training).
 DEFAULT_DIT_STEPS = [4000, 10000, 20000, 50000, 100000, 150000, 200000]
 
 
-def _cell_shards(condition: str, dit_step: int, layer: int, t_bin: int) -> list[Path]:
+def _cell_shards(condition: str, dit_step: int, layer: int, t_bin: int,
+                 activations_root: Path = ACTIVATIONS_BASE) -> list[Path]:
     """Return the single Phase 3 HDF5 shard for one (cond × ckpt × layer × t_bin) cell."""
-    p = ACTIVATIONS_BASE / condition / f"step_{dit_step:06d}" / f"{layer}_{t_bin}.h5"
+    p = activations_root / condition / f"step_{dit_step:06d}" / f"{layer}_{t_bin}.h5"
     if not p.is_file():
         raise FileNotFoundError(f"cell shard not found: {p}")
     return [p]
+
+
+def _val_shard(condition: str, dit_step: int, layer: int, t_bin: int,
+               val_root: Path) -> Path:
+    p = val_root / condition / f"step_{dit_step:06d}" / f"{layer}_{t_bin}.h5"
+    if not p.is_file():
+        raise FileNotFoundError(f"val shard not found: {p}")
+    return p
 
 
 def train_one_chain(
@@ -74,6 +84,11 @@ def train_one_chain(
     out_root: Path,
     wandb_project: str,
     variant_tag: str = "",
+    activations_root: Path = ACTIVATIONS_BASE,
+    val_root: Path | None = None,
+    val_every_n_steps: int = 1500,
+    val_max_tokens: int = 200_000,
+    matryoshka_widths: tuple[int, ...] | None = None,
 ) -> list[Path]:
     """Train the 7-ckpt warm-started SAE chain for a single (cond, layer, t_bin) cell."""
     out_dir = out_root / condition / f"L{layer}_T{t_bin}"
@@ -81,7 +96,7 @@ def train_one_chain(
 
     # Build the (label, shards) sequence in DiT-checkpoint order.
     chain: list[tuple[str, list[Path]]] = [
-        (f"step_{s:06d}", _cell_shards(condition, s, layer, t_bin)) for s in dit_steps
+        (f"step_{s:06d}", _cell_shards(condition, s, layer, t_bin, activations_root)) for s in dit_steps
     ]
 
     def sae_factory():
@@ -91,6 +106,7 @@ def train_one_chain(
             k=k,
             variant=variant,
             device=device,
+            matryoshka_widths=matryoshka_widths,
             metadata={
                 "condition": condition,
                 "layer": layer,
@@ -99,6 +115,7 @@ def train_one_chain(
                 "d_sae": d_sae,
                 "k": k,
                 "variant": variant,
+                "matryoshka_widths": list(matryoshka_widths) if matryoshka_widths else None,
             },
         )
 
@@ -107,6 +124,10 @@ def train_one_chain(
             shards, batch_size=batch_size, device=device,
             flatten_tokens=True, loop_forever=True, shuffle=True,
         )
+
+    val_shards: list[Path] | None = None
+    if val_root is not None:
+        val_shards = [_val_shard(condition, s, layer, t_bin, val_root) for s in dit_steps]
 
     info(f"=== chain {condition} / L{layer} / T{t_bin} (tag={variant_tag or '-'}) ===")
     group = f"{condition}_L{layer}_T{t_bin}" + (f"_{variant_tag}" if variant_tag else "")
@@ -127,6 +148,10 @@ def train_one_chain(
         wandb_project=wandb_project,
         wandb_entity=os.environ.get("WANDB_ENTITY"),
         wandb_group=group,
+        val_shards_per_dit=val_shards,
+        val_every_n_steps=val_every_n_steps,
+        val_max_tokens=val_max_tokens,
+        val_batch_size=batch_size,
     )
     return finals
 
@@ -143,6 +168,10 @@ def main() -> int:
     p.add_argument("--k", type=int, default=32)
     p.add_argument("--variant", type=str, default="topk",
                    choices=["topk", "batch_topk", "matryoshka"])
+    p.add_argument("--matryoshka_widths", type=int, nargs="+", default=None,
+                   help="Cumulative latent prefix widths for matryoshka variant. "
+                        "E.g. 4096 8192 16384 32768 with k=256 d_sae=32768 → "
+                        "effective K endpoints ~(32, 64, 128, 256).")
     p.add_argument("--base_total_samples", type=int, default=20_000_000,
                    help="Tokens (post-flatten) seen on first/cold-start ckpt.")
     p.add_argument("--warm_total_samples", type=int, default=5_000_000,
@@ -150,6 +179,20 @@ def main() -> int:
     p.add_argument("--batch_size", type=int, default=4096)
     p.add_argument("--lr", type=float, default=3e-4)
     p.add_argument("--out_root", type=Path, default=SAE_BASE)
+    p.add_argument("--activations_root", type=Path, default=ACTIVATIONS_BASE,
+                   help="Root dir containing <condition>/step_NNNNNN/<L>_<T>.h5. "
+                        "Default = canonical Phase 3 path (7/class). Override for "
+                        "alternate dataset like 20/class.")
+    p.add_argument("--val_activations_root", type=Path, default=VAL_ACTIVATIONS_BASE,
+                   help="Root dir for held-out val activations "
+                        "(<root>/<cond>/step_<N>/<L>_<T>.h5). Set to empty string "
+                        "to disable inline validation.")
+    p.add_argument("--no_val", action="store_true",
+                   help="Disable inline validation entirely.")
+    p.add_argument("--val_every_n_steps", type=int, default=1500,
+                   help="Run val eval every N optimizer steps (default 1500).")
+    p.add_argument("--val_max_tokens", type=int, default=200_000,
+                   help="Cap held-out tokens per stage. 200k is enough for stable EV.")
     p.add_argument("--wandb_project", type=str,
                    default=os.environ.get("WANDB_PROJECT", "diffmechint"))
     p.add_argument("--only", type=str, default=None,
@@ -196,6 +239,18 @@ def main() -> int:
     info(f"{len(chains)} chains × {len(args.dit_steps)} DiT ckpts = "
          f"{len(chains) * len(args.dit_steps)} SAE trainings")
 
+    val_root: Path | None = None
+    if not args.no_val:
+        if args.val_activations_root and Path(args.val_activations_root).is_dir():
+            val_root = Path(args.val_activations_root)
+            info(f"validation enabled: val_root={val_root} every {args.val_every_n_steps} steps "
+                 f"max_tokens={args.val_max_tokens}")
+        else:
+            warn(f"val_activations_root not found: {args.val_activations_root!r} — "
+                 f"validation disabled. Pass --no_val to silence this.")
+    else:
+        info("validation disabled (--no_val)")
+
     t0 = time.perf_counter()
     for i, (cond, lay, tb) in enumerate(chains, start=1):
         info(f"[{i}/{len(chains)}] chain {cond} L{lay} T{tb}")
@@ -215,6 +270,11 @@ def main() -> int:
                 out_root=args.out_root,
                 wandb_project=args.wandb_project,
                 variant_tag=args.variant_tag,
+                activations_root=args.activations_root,
+                val_root=val_root,
+                val_every_n_steps=args.val_every_n_steps,
+                val_max_tokens=args.val_max_tokens,
+                matryoshka_widths=tuple(args.matryoshka_widths) if args.matryoshka_widths else None,
             )
         except Exception as e:  # noqa: BLE001
             error(f"chain {cond}/L{lay}/T{tb} failed: {type(e).__name__}: {e}")

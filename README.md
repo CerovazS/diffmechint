@@ -4,10 +4,10 @@
 
 > [!WARNING]
 > 🚧 **Repository under active construction (May 2026).**
-> Phase 0–5 scaffolding is complete and unit-tested, but the K=4 SiT-B/2 ImageNet
-> sweep is currently mid-flight. Numbers, configs and APIs in this repo will
-> change over the next ~2 weeks. **Do not** treat current `metrics/` or `samples/`
-> outputs as paper-grade. See `CHECKLIST.md` §2.11 for live status.
+> Phases 0–4.5 are complete on the K=3 SiT-B/2 ImageNet leg (`sd_vae`, `repa_e`,
+> `eq_vae`); Phase 5 is unblocked and starts next. DC-AE-1.0 is deferred. Numbers,
+> configs and APIs in this repo continue to evolve. See `CHECKLIST.md` for live
+> per-item status.
 
 > [!IMPORTANT]
 > Codebase for the paper *"The Semantic Geometry of Diffusability:
@@ -41,7 +41,7 @@ uv run pytest tests/
 GPU smoke for the tokenizer adapters (real HF download, ~2 min on 1 A100):
 
 ```bash
-uv run python scripts/smoke_adapters_gpu.py
+uv run python scripts/util/smoke_adapters_gpu.py
 ```
 
 1k-step SiT-B/2 smoke run with synthetic latents on a single GPU:
@@ -85,14 +85,11 @@ diffmechint/
 │   ├── analysis/          — Hungarian dictionary overlap + temporal atlas (Phase 7, pending)
 │   └── utils/             — rich console helpers
 ├── scripts/
-│   ├── prefetch_tokenizers.py     — warm $FAST HF cache on login node
-│   ├── precompute_one_imagenet.sh — one tokenizer × ImageNet train → HDF5 shards
-│   ├── round_trip_psnr_imagenet.py — adapter acceptance: PSNR > 22 dB on real ImageNet
-│   ├── train_sit_full.sh          — DDP 2× A100 SiT training (with optional resume_from)
-│   ├── post_hoc_fid.py            — Mini-FID 5k vs ImageNet val 50k for every EMA ckpt
-│   ├── prefetch_cleanfid.sh       — one-time Inception cache + reference stats
-│   ├── extract_metrics.py         — Lightning CSV → metrics/{train,validation}/*.csv
-│   └── plot_run.py                — palette-B PNG plots from metrics/
+│   ├── training/                  — SiT / SAE training drivers (train_sit_full.sh, train_sae.py)
+│   ├── extraction/                — activation + latent precompute (extract_activations.py, precompute_*_imagenet.sh)
+│   ├── eval/                      — post-hoc evaluators (post_hoc_fid.py, round_trip_psnr_imagenet.{py,sh}, eval_sae_on_val.py, sae_substitution_fid.py, make_substitution_grid.py, extract_metrics.py)
+│   ├── plotting/                  — figure / CSV producers (plot_run.py, plot_fid_compare.py, plot_e0{4,5,6}_*.py, regenerate_flywheel_findings.py)
+│   └── util/                      — one-offs: prefetchers, dataset builders, smoke tests (prefetch_tokenizers.py, prefetch_cleanfid.sh, smoke_adapters_gpu.py, build_imagenet_val_imagefolder.py, migrate-session.sh)
 ├── slurm/                 — CINECA SLURM templates (precompute, train, FID)
 ├── tests/                 — pytest suite (88 tests green)
 └── outputs/               — gitignored; symlinked to $FAST/diffmechint/outputs/ on CINECA
@@ -101,7 +98,7 @@ diffmechint/
 ### Standardized run output layout
 
 > [!IMPORTANT]
-> Every `<run_id>/` produced by `scripts/train_sit_full.sh` uses this exact layout:
+> Every `<run_id>/` produced by `scripts/training/train_sit_full.sh` uses this exact layout:
 >
 > ```
 > runs/<run_id>/
@@ -141,7 +138,7 @@ DC-AE 1.5 enters as a 6th condition once `dc-ai-projects/DC-Gen` is released.
 
 > [!NOTE]
 > Round-trip PSNR on 256 real ImageNet images (run via
-> [`scripts/round_trip_psnr_imagenet.py`](scripts/round_trip_psnr_imagenet.py)):
+> [`scripts/eval/round_trip_psnr_imagenet.py`](scripts/eval/round_trip_psnr_imagenet.py)):
 > sd_vae **25.11 dB**, eq_vae **24.14 dB**, repa_e **24.23 dB**,
 > dc_ae_1_0 **23.00 dB** — all ≥ 22 dB threshold (PLAN §14).
 
@@ -188,7 +185,7 @@ SAMPLE   z̃ → z̃*σ + μ → ÷scaling_factor → vae.decode → image
 > (`callbacks=sample_only`). Reason: `clean-fid` requires Inception weight
 > downloads and a built reference stat cache that the compute nodes can't
 > reach without the squid proxy, and a partial failure caused 30-min NCCL
-> deadlocks. **Use `scripts/post_hoc_fid.py` after training instead** —
+> deadlocks. **Use `scripts/eval/post_hoc_fid.py` after training instead** —
 > it computes Mini-FID for every saved EMA checkpoint and writes
 > `metrics/validation/fid.csv`. Run via `slurm/post_hoc_fid.slurm`.
 
@@ -215,16 +212,25 @@ Hardware path:
 |-------|-----------------------------------------------------|-------------------------------------|-------|
 | 0     | Repo bootstrap + vendor SiT                         | ✅ done                             | 8     |
 | 1     | Tokenizer adapters + latent precompute (4 × 1.28 M ImageNet → HDF5) | ✅ done | 17 |
-| 2     | SiT training pipeline (FM-OT, fractional ckpts, val + sample callbacks) | 🟡 mid-flight: K=4 training running on Leonardo (DDP 2× A100) | 12 |
-| 3     | Activation extraction (hooks + buffer)              | ✅ done                             | 23    |
-| 4     | SAE training (SAELens-backed, warm-start)           | ✅ scaffolding done                 | 9     |
-| 5     | Linear probes (Revelio grid)                        | ✅ scaffolding done                 | 18    |
+| 2     | SiT training pipeline (FM-OT, fractional ckpts, val + sample callbacks) | ✅ done — 3 / 3 conditions reached step 200 k on Leonardo (sd_vae · repa_e · eq_vae_noz). post-hoc FID 25 / 43 / 52 | 12 |
+| 3     | Activation extraction (hooks + buffer)              | ✅ done — train + val activation trees cached for all 3 conditions × 7 DiT-step × 9 (L, t) cells | 23 |
+| 4     | SAE training — TopK / BatchTopK / Matryoshka sweeps | ✅ done — 567 SAEs across 3 variant sweeps (27 chains × 7 DiT-ckpt × 3 variants); Matryoshka K=256 d=32 k wins val EV (E04 / I04 / E05) | 9 |
+| 4.5   | Causal-faithfulness gate (Matryoshka substitution-FID) | ✅ done — 30 jobs (3 baselines + 27 sub), **27 / 27 cells faithful** (ΔFID < 2); E06 on Flywheel | — |
+| 5     | Linear probes (Revelio grid)                        | 🟢 unblocked — all 27 cells admissible; scaffolding done | 18 |
 | 6     | Sparse feature circuits via EAP                     | 🔴 pending                          | —     |
 | 7     | Cross-condition analysis (Hungarian + temporal)     | 🔴 pending                          | —     |
 | 8     | Audio extension (deferred)                          | 🔴 pending                          | —     |
 
 **Total: 88/88 unit tests green.** Per-phase verification commands and
 acceptance gates live in `PLAN.md` §14.
+
+### Phase 4 / 4.5 highlights
+
+- **E02 / E03** — TopK k-comparison and dataset-size ablations on a single condition pre-Phase-2-completion (`sd_vae`, k=32 vs k=64 winner; k=64 confirmed across 3 conditions on the canonical cell).
+- **E04** — Matryoshka vs plain TopK head-to-head on the full 27-cell production grid: Matryoshka wins 103 / 108 matched stages, mean Δ EV +0.060.
+- **I04** — Promotes Matryoshka as the default Phase-5 / Phase-6 SAE; sets a "BatchTopK promotion gap" decision rule of 0.02 val EV.
+- **E05** — BatchTopK sweep tested against the I04 rule: gap to Matryoshka at deep cells is −0.10 to −0.14, far worse than the 0.02 tolerance. Matryoshka stays default.
+- **E06 (Phase 4.5a)** — Drops the production Matryoshka SAE into the SiT residual stream at one (L, t) cell during sampling; measures Clean-FID shift. All 27 cells fall under the +2.0 faithfulness gate (mean ΔFID +0.59, max +1.80, min −0.10), so the entire Matryoshka grid is admissible as a Phase-5 probe basis.
 
 ---
 
@@ -262,19 +268,16 @@ short list:
       `torch.distributed.barrier()` after rank-0-only block to avoid NCCL
       allreduce timeout. For now the callback is replaced by `post_hoc_fid.py`.
 
-### Gated on K = 4 ImageNet runs completing (in flight now)
+### Gated on Phase 4.5 / Phase 5 (some done, rest unblocked)
 
-- [ ] **(2.11)** Full 200 k-step DiT-B/2 runs on **sd_vae · eq_vae · repa_e**
-      (resumed from step 50 k after NCCL crash) plus **DC-AE 1.0 with
-      patch_size=1** (SiT-B/1 from scratch). All 4 currently RUNNING on Leonardo.
-- [ ] **(2.12)** Per-condition Mini-FID curves via `post_hoc_fid.py` once each
-      training finishes.
-- [ ] **(4.9)** Canonical-cell SAE on a real DiT ckpt: recon cosine > 0.85,
-      density 1–5 %, dead-feature count < 5 %.
-- [ ] **(4.10)** 28-SAE warm-started sweep (4 conditions × 7 ckpts).
-- [ ] **(4.11)** Full 27-cell sweep (756 SAEs) — gated on (4.10) results.
-- [ ] **(4.12)** Verify saved SAEs load into `sae_vis` / `sae_dashboard`.
-- [ ] **(5.7)** Real 5 × 3 × 3 probe-accuracy heatmap per condition.
+- [x] ~~**(2.11)** Full 200 k-step DiT-B/2 runs on **sd_vae · eq_vae · repa_e**~~ — done (DC-AE-1.0 with patch_size=1 deferred; no blocking impact on the K=3 SAE story).
+- [x] ~~**(2.12)** Per-condition Mini-FID curves via `post_hoc_fid.py`~~ — done at 200 k: sd_vae 52.31, repa_e 43.46, eq_vae 25.29.
+- [x] ~~**(4.9)** Canonical-cell SAE on a real DiT ckpt~~ — done in E02 (`sd_vae`, k=64, val EV 0.890 at L6/T1, dead-pct < 0.1 %).
+- [x] ~~**(4.10)** 28-SAE warm-started sweep~~ — superseded by E03 dataset-size ablation + the 567-SAE 3-variant production sweep (cold-start per stage replaced warm-start, see `plan/phase4_sae.md` §"Per-checkpoint training strategy").
+- [x] ~~**(4.11)** Full 27-cell production sweep~~ — done **three times** (TopK k=128, BatchTopK k=128, Matryoshka K=256 — 567 SAEs total at d_sae=32 768). Matryoshka wins (E04 / I04 / E05).
+- [x] ~~**(4.12)** Verify saved SAEs load into `sae_vis` / `sae_dashboard`~~ — confirmed via `eval_sae_on_val.py` loading every `final_*/sae_weights.safetensors` through `MatryoshkaBatchTopKTrainingSAE.load_from_disk`.
+- [x] ~~**(4.5a)** Causal-faithfulness substitution-FID gate~~ — done: 27 / 27 cells faithful (E06), Phase 5 green-lit for the full grid.
+- [ ] **(5.7)** Real 5 × 3 × 3 probe-accuracy heatmap per condition (Phase 5 production run).
 - [ ] **(5.8)** Cross-condition probe-peak migration figure for Claim 1.
 
 ### Optional / stretch

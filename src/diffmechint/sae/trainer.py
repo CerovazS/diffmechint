@@ -14,6 +14,8 @@ from safetensors.torch import load_file
 
 from diffmechint.utils import info, ok, warn
 
+from .eval import evaluate_sae_on_tokens, load_val_tokens
+
 
 def _is_rank0() -> bool:
     """True on rank 0 of a distributed run; True everywhere if not distributed.
@@ -51,16 +53,81 @@ def _coerce_for_json(v):
     return None  # drop histograms, dicts, etc.
 
 
+class _ValidationHook:
+    """Run held-out eval every N optimizer steps; log under `val/*` keys.
+
+    The hook owns the unwrapped `wandb.log` so val payloads do NOT recurse
+    through `_WandbJsonlMirror` (they would otherwise pollute `train.jsonl`).
+    Val rows are written to a sibling `val.jsonl` instead, keyed by the same
+    optimizer step the training metrics use.
+    """
+
+    def __init__(
+        self,
+        sae: TrainingSAE,
+        val_tokens: torch.Tensor,
+        *,
+        every_n_steps: int,
+        batch_size: int,
+        jsonl_path: Path,
+    ):
+        self.sae = sae
+        self.val_tokens = val_tokens  # (T, D) on CPU
+        self.every = int(every_n_steps)
+        self.batch_size = int(batch_size)
+        self.jsonl_path = Path(jsonl_path)
+        self._unwrapped_log = None  # bound by the mirror at __enter__ time
+        self._last_eval_step = -10**9
+        self._in_eval = False
+        self._is_rank0 = _is_rank0()
+        if self._is_rank0:
+            self.jsonl_path.parent.mkdir(parents=True, exist_ok=True)
+
+    def bind_wandb_log(self, unwrapped_log) -> None:
+        self._unwrapped_log = unwrapped_log
+
+    def maybe_run(self, step: int | None) -> None:
+        if step is None or self._in_eval:
+            return
+        if step - self._last_eval_step < self.every:
+            return
+        self._in_eval = True
+        try:
+            m = evaluate_sae_on_tokens(
+                self.sae, self.val_tokens, batch_size=self.batch_size,
+            )
+            self._last_eval_step = int(step)
+            payload = {f"val/{k}": v for k, v in m.items()
+                       if isinstance(v, (int, float))}
+            if self._unwrapped_log is not None:
+                try:
+                    self._unwrapped_log(payload, step=step, commit=False)
+                except TypeError:
+                    self._unwrapped_log(payload, step=step)
+            if self._is_rank0:
+                rec = {"step": int(step), **payload}
+                try:
+                    with self.jsonl_path.open("a") as f:
+                        f.write(json.dumps(rec) + "\n")
+                except Exception as e:  # noqa: BLE001
+                    warn(f"_ValidationHook: failed to append {self.jsonl_path}: {e}")
+        finally:
+            self._in_eval = False
+
+
 class _WandbJsonlMirror:
     """Monkey-patch `wandb.log` so every call also appends one line to a JSONL.
 
     Reverts on exit. Only rank-0 actually writes (no-op on other ranks).
     SAELens 6.x logs only via `wandb.log`, so this captures everything the
-    trainer emits without needing a SAELens-internal hook.
+    trainer emits without needing a SAELens-internal hook. When `val_hook`
+    is provided it is triggered after each wrapped call, with the unwrapped
+    `wandb.log` bound so val payloads bypass this mirror.
     """
 
-    def __init__(self, jsonl_path: Path):
+    def __init__(self, jsonl_path: Path, val_hook: _ValidationHook | None = None):
         self.path = Path(jsonl_path)
+        self.val_hook = val_hook
         self._original = None
         self._is_rank0 = _is_rank0()
 
@@ -70,8 +137,11 @@ class _WandbJsonlMirror:
         original = self._original
         path = self.path
         is_rank0 = self._is_rank0
+        val_hook = self.val_hook
         if is_rank0:
             path.parent.mkdir(parents=True, exist_ok=True)
+        if val_hook is not None:
+            val_hook.bind_wandb_log(original)
 
         def wrapped_log(data, step=None, commit=None, sync=None):  # noqa: ARG001
             try:
@@ -79,18 +149,19 @@ class _WandbJsonlMirror:
             except TypeError:
                 # Older wandb signatures missed `sync`; retry without it.
                 original(data, step=step, commit=commit)
-            if not is_rank0:
-                return
-            rec = {"step": step}
-            for k, v in (data or {}).items():
-                coerced = _coerce_for_json(v)
-                if coerced is not None:
-                    rec[k] = coerced
-            try:
-                with path.open("a") as f:
-                    f.write(json.dumps(rec) + "\n")
-            except Exception as e:  # noqa: BLE001
-                warn(f"_WandbJsonlMirror: failed to append {path}: {e}")
+            if is_rank0:
+                rec = {"step": step}
+                for k, v in (data or {}).items():
+                    coerced = _coerce_for_json(v)
+                    if coerced is not None:
+                        rec[k] = coerced
+                try:
+                    with path.open("a") as f:
+                        f.write(json.dumps(rec) + "\n")
+                except Exception as e:  # noqa: BLE001
+                    warn(f"_WandbJsonlMirror: failed to append {path}: {e}")
+            if val_hook is not None:
+                val_hook.maybe_run(step)
 
         wandb.log = wrapped_log
         return self
@@ -121,6 +192,9 @@ def train_sae(
     wandb_group: str | None = None,
     wandb_run_name: str | None = None,
     save_final_checkpoint: bool = True,
+    val_tokens: torch.Tensor | None = None,
+    val_every_n_steps: int = 1500,
+    val_batch_size: int = 4096,
 ) -> Path:
     """Run SAELens `SAETrainer.fit` end-to-end and return the output dir.
 
@@ -189,8 +263,20 @@ def train_sae(
     # format even if wandb is unavailable. Path is co-located with the
     # safetensors checkpoint.
     metrics_path = out_dir / "metrics" / "train.jsonl"
+    val_hook: _ValidationHook | None = None
+    if val_tokens is not None:
+        val_hook = _ValidationHook(
+            sae, val_tokens,
+            every_n_steps=val_every_n_steps,
+            batch_size=val_batch_size,
+            jsonl_path=out_dir / "metrics" / "val.jsonl",
+        )
+        info(
+            f"  validation: every {val_every_n_steps} steps on "
+            f"{int(val_tokens.shape[0])} held-out tokens"
+        )
     try:
-        with _WandbJsonlMirror(metrics_path):
+        with _WandbJsonlMirror(metrics_path, val_hook=val_hook):
             trainer.fit()
     finally:
         if log_to_wandb:
@@ -241,6 +327,10 @@ def warm_started_sweep(
     wandb_entity: str | None = None,
     wandb_group: str | None = None,
     warm_mode: str = "cold",
+    val_shards_per_dit: Sequence[Path | str] | None = None,
+    val_every_n_steps: int = 1500,
+    val_max_tokens: int = 200_000,
+    val_batch_size: int = 4096,
 ) -> list[Path]:
     """Train one SAE per (DiT-checkpoint) pair, chaining stages by `warm_mode`.
 
@@ -283,6 +373,13 @@ def warm_started_sweep(
 
     info(f"warm_started_sweep: mode={warm_mode} stages={len(activation_shards_per_dit)} "
          f"cold_budget={base_total_samples} warm_budget={warm_total_samples}")
+    if val_shards_per_dit is not None:
+        if len(val_shards_per_dit) != len(activation_shards_per_dit):
+            raise ValueError(
+                f"val_shards_per_dit len={len(val_shards_per_dit)} must match "
+                f"activation_shards_per_dit len={len(activation_shards_per_dit)}"
+            )
+        info(f"  val: every {val_every_n_steps} steps on ≤{val_max_tokens} held-out tokens/stage")
 
     prev_final: Path | None = None
     finals: list[Path] = []
@@ -305,6 +402,12 @@ def warm_started_sweep(
             if (warm_mode == "weights_only" and i > 0)
             else lr_warm_up_steps
         )
+        # Load this stage's val shard once (CPU resident, deterministic).
+        val_tokens = None
+        if val_shards_per_dit is not None:
+            shard = val_shards_per_dit[i]
+            val_tokens = load_val_tokens(shard, max_tokens=val_max_tokens)
+            info(f"  val tokens loaded from {shard} → {tuple(val_tokens.shape)}")
         out_dir = train_sae(
             sae,
             provider,
@@ -319,6 +422,9 @@ def warm_started_sweep(
             wandb_entity=wandb_entity,
             wandb_group=wandb_group,
             wandb_run_name=f"{wandb_group}_{label}" if wandb_group else label,
+            val_tokens=val_tokens,
+            val_every_n_steps=val_every_n_steps,
+            val_batch_size=val_batch_size,
         )
         # SAELens writes a `final/` subdirectory per the SAETrainer contract.
         prev_final = next((d for d in out_dir.iterdir() if d.is_dir() and d.name == "final"), None)

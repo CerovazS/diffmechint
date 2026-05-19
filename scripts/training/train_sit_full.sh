@@ -16,7 +16,7 @@ NORMALIZE="${NORMALIZE:-true}"
 # Optional run-name suffix (e.g. "noz" for no-zscore ablations) to avoid collisions.
 RUN_SUFFIX="${RUN_SUFFIX:-}"
 
-REPO=/leonardo/home/userexternal/lcerovaz/diffmechint
+REPO=/leonardo_work/IscrC_PDR/lcerovaz/diffmechint
 SCRATCH_BASE=/leonardo_scratch/large/userexternal/lcerovaz
 FAST_BASE=/leonardo_scratch/fast/IscrC_YENDRI
 LATENTS="${SCRATCH_BASE}/diffmechint/latents/${TOK}"

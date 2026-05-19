@@ -65,3 +65,10 @@ slurm/*.err
 
 # notebooks
 .ipynb_checkpoints/
+
+# Flywheel artifact tree — large plots / CSV / JSON not appropriate for git;
+# canonical home is the Flywheel graph (https://flywheel.paradigma.inc).
+flywheel/
+
+# Stray screenshots / temp images at repo root
+/image.png

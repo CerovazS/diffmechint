@@ -26,6 +26,10 @@ BATCH_SIZE="${BATCH_SIZE:-4096}"
 ONLY="${ONLY:-}"
 D_SAE="${D_SAE:-16384}"
 K="${K:-32}"
+VARIANT="${VARIANT:-topk}"
+# Space-separated cumulative latent prefix widths. Used iff VARIANT=matryoshka.
+# Example: MATRYOSHKA_WIDTHS="4096 8192 16384 32768" with K=256 d_sae=32768.
+MATRYOSHKA_WIDTHS="${MATRYOSHKA_WIDTHS:-}"
 LR_WARMUP="${LR_WARMUP:-200}"
 WARM_LR_WARMUP="${WARM_LR_WARMUP:-0}"
 # WARM_MODE: cold (default, canonical) | weights_only (diagnostic baseline reproducing
@@ -35,8 +39,15 @@ WARM_LR_WARMUP="${WARM_LR_WARMUP:-0}"
 WARM_MODE="${WARM_MODE:-cold}"
 VARIANT_TAG="${VARIANT_TAG:-}"
 OUT_ROOT="${OUT_ROOT:-/leonardo_scratch/fast/IscrC_PDR/lcerovaz/diffmechint/sae}"
+# Activations source — default 7/class; set to ".../activations_s20" for the 20/class dataset.
+ACTIVATIONS_ROOT="${ACTIVATIONS_ROOT:-/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/activations}"
+# Held-out validation activations (same layout). Set NO_VAL=1 to disable inline eval.
+VAL_ACTIVATIONS_ROOT="${VAL_ACTIVATIONS_ROOT:-/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/activations_val}"
+VAL_EVERY_N_STEPS="${VAL_EVERY_N_STEPS:-1500}"
+VAL_MAX_TOKENS="${VAL_MAX_TOKENS:-200000}"
+NO_VAL="${NO_VAL:-0}"
 
-REPO=/leonardo/home/userexternal/lcerovaz/diffmechint
+REPO=/leonardo_work/IscrC_PDR/lcerovaz/diffmechint
 module load cuda/12.2 || true
 
 # CINECA boost nodes occasionally come up with no visible GPU — fail loud.
@@ -62,11 +73,22 @@ if [[ -n "$ONLY" ]]; then
     EXTRA_ARGS+=("--only" "$ONLY")
     echo "ONLY=$ONLY → single-chain smoke"
 fi
+if [[ "$NO_VAL" == "1" ]]; then
+    EXTRA_ARGS+=("--no_val")
+    echo "NO_VAL=1 → inline validation disabled"
+fi
+if [[ -n "$MATRYOSHKA_WIDTHS" ]]; then
+    # word-split intentionally — pass widths as separate argv tokens.
+    EXTRA_ARGS+=("--matryoshka_widths")
+    for w in $MATRYOSHKA_WIDTHS; do EXTRA_ARGS+=("$w"); done
+    echo "MATRYOSHKA_WIDTHS=$MATRYOSHKA_WIDTHS"
+fi
 
-uv run python scripts/train_sae.py \
+uv run python scripts/training/train_sae.py \
     --conditions $CONDITIONS \
     --layers $LAYERS \
     --t_bins $T_BINS \
+    --variant "$VARIANT" \
     --d_sae "$D_SAE" \
     --k "$K" \
     --lr_warm_up_steps "$LR_WARMUP" \
@@ -77,6 +99,10 @@ uv run python scripts/train_sae.py \
     --warm_total_samples "$WARM_SAMPLES" \
     --batch_size "$BATCH_SIZE" \
     --out_root "$OUT_ROOT" \
+    --activations_root "$ACTIVATIONS_ROOT" \
+    --val_activations_root "$VAL_ACTIVATIONS_ROOT" \
+    --val_every_n_steps "$VAL_EVERY_N_STEPS" \
+    --val_max_tokens "$VAL_MAX_TOKENS" \
     "${EXTRA_ARGS[@]}"
 
 echo

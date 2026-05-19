@@ -14,7 +14,7 @@ sample:
 fid:
   _target_: diffmechint.training.callbacks.MiniFIDCallback
   every_n_steps: 25000
-  # 5000 samples to stay comparable with scripts/post_hoc_fid.py (same default).
+  # 5000 samples to stay comparable with scripts/eval/post_hoc_fid.py (same default).
   # Per call ~5-8 min on 1× A100; pair with NCCL_TIMEOUT_MS=3600000 in the sbatch
   # wrapper so the DDP rank > 0 barrier doesn't time out at the default 30 min.
   n_samples: 5000

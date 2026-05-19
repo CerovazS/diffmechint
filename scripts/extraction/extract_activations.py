@@ -233,6 +233,13 @@ def main() -> int:
                         "Overrides --n_samples. Total = #classes × this value.")
     p.add_argument("--out_root", type=Path, default=ACTIVATIONS_BASE,
                    help="Activation root; per-ckpt subdirs are <out_root>/<condition>/step_<NNNNNN>/")
+    p.add_argument("--latents_root", type=Path, default=LATENTS_BASE,
+                   help="Latent shard root; reads from <latents_root>/<condition>/. "
+                        "Override to use a parallel tree like 'latents_val/'.")
+    p.add_argument("--no_holdout", action="store_true",
+                   help="Disable the 5%% train holdout split; use the entire shard set. "
+                        "Set when --latents_root points at val-encoded latents (the whole "
+                        "val set is already OOD for the SiT, no need to carve a holdout).")
     # Whether to apply per-feature z-score on the cached latents before
     # constructing x_t. Must match the training-time setting of the source run.
     p.add_argument("--no_normalize", action="store_true",
@@ -245,22 +252,27 @@ def main() -> int:
     if device.type == "cpu":
         warn("CUDA not available — extraction will be very slow.")
 
-    shard_dir = LATENTS_BASE / args.condition
+    shard_dir = args.latents_root / args.condition
     if not shard_dir.exists():
         error(f"latent shards not found at {shard_dir}")
         return 1
 
-    info(f"Loading dataset from {shard_dir} (normalize={not args.no_normalize})")
+    info(f"Loading dataset from {shard_dir} (normalize={not args.no_normalize}, "
+         f"no_holdout={args.no_holdout})")
+    if args.no_holdout:
+        # Source already entirely OOD for the SiT (val-encoded latents) — skip
+        # the holdout carve; use the full set.
+        ds_kwargs = dict(holdout_fraction=0.0, holdout_seed=42, is_val=False)
+    else:
+        # Use the same holdout split as training so we don't analyze data the
+        # SiT trained on. Source run trained with holdout_fraction=0.05.
+        ds_kwargs = dict(holdout_fraction=0.05, holdout_seed=42, is_val=True)
     dataset = CachedLatentDataset(
         shard_dir=shard_dir,
         normalize=not args.no_normalize,
-        # Use the same holdout split as training so we don't analyze data the
-        # SiT trained on. Source run trained with holdout_fraction=0.05.
-        holdout_fraction=0.05,
-        holdout_seed=42,
-        is_val=True,
+        **ds_kwargs,
     )
-    info(f"  dataset (val partition) size: {len(dataset)}")
+    info(f"  dataset size: {len(dataset)}")
 
     # Read latent shape from stats.json for model construction.
     stats = json.loads((shard_dir / "stats.json").read_text())

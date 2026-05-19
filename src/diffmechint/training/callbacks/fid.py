@@ -154,7 +154,7 @@ class MiniFIDCallback(Callback):
         if not _fid.test_stats_exists(self.reference_name, mode="clean"):
             raise FileNotFoundError(
                 f"MiniFIDCallback: clean-fid reference stats '{self.reference_name}' "
-                f"are missing. Run `scripts/prefetch_cleanfid.sh` first to build them."
+                f"are missing. Run `scripts/util/prefetch_cleanfid.sh` first to build them."
             )
         # Pre-symlink the Inception weights into /tmp here so the first FID call
         # never blocks on a download attempt mid-training.

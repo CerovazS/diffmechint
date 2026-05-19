@@ -81,7 +81,7 @@ def test_build_sae_variants_instantiate_on_cpu(variant: str) -> None:
 
 
 def test_build_sae_matryoshka_requires_groups() -> None:
-    with pytest.raises(ValueError, match="matryoshka_group_sizes"):
+    with pytest.raises(ValueError, match="matryoshka_widths"):
         build_sae(d_in=64, d_sae=128, k=4, variant="matryoshka", device="cpu")
 
 

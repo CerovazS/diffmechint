@@ -3,7 +3,7 @@
 # Closes CHECKLIST 1.13. Run from inside an `srun --gres=gpu:1 ...` allocation.
 set -euo pipefail
 
-REPO=/leonardo/home/userexternal/lcerovaz/diffmechint
+REPO=/leonardo_work/IscrC_PDR/lcerovaz/diffmechint
 
 module load cuda/12.2 || true
 

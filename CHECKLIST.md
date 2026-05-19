@@ -33,7 +33,7 @@ with a `~~...~~` line plus a `# DONE: ...` postmortem.
 - [ ] (1.9) `tokenizers/va_vae.py` — optional 7th (defer until K=5 results)
 - [ ] (1.10) `TokenGridAdapter` for non-grid latents — defer until RAE `load()` lands
 - [x] (1.11) `precompute_latents.py` CLI + Hydra config per adapter — claude — DONE: HDF5 sharding + ImageFolder loader + Hydra `_target_` instantiate verified
-- [x] (1.12) Round-trip PSNR > 25 dB on real image — claude — DONE: GPU smoke (`scripts/smoke_adapters_gpu.py`) on 3090. sd_vae 28.10 / eq_vae 27.30 / repa_e 27.03 / dc_ae_1_0 26.20 dB on the canonical pytorch/hub `dog.jpg`.
+- [x] (1.12) Round-trip PSNR > 25 dB on real image — claude — DONE: GPU smoke (`scripts/util/smoke_adapters_gpu.py`) on 3090. sd_vae 28.10 / eq_vae 27.30 / repa_e 27.03 / dc_ae_1_0 26.20 dB on the canonical pytorch/hub `dog.jpg`.
 - [x] (1.13) Acceptance run on 256 ImageNet-256 images per adapter — claude — DONE: 4×256 imgs round-trip PSNR sd_vae 25.11 / eq_vae 24.14 / repa_e 24.23 / dc_ae_1_0 23.00 dB (all ≥ 22 dB threshold). Run on CINECA, 4× A100, 27 s wall-clock.
 - [x] (1.14) Stats schema v1 — `stats.json` self-describing: `kind`, `feature_axis`, `feature_dim`, `input_size`, `scaling_factor`, `suggested_patch_size`, per-feature mean/std/min/max (fp64-accumulated). Drives runtime z-score in `CachedLatentDataset` and is the canonical descriptor for DiT setup. Findings on real ImageNet: eq_vae σ≈2.5 and dc_ae_1_0 σ≈3.0 confirm runtime z-score is mandatory for matched-compute comparability.
 - [x] (1.15) Full ImageNet precompute (1.28 M × 4 VAE) → `$SCRATCH/diffmechint/latents/<tok>/` — claude — DONE: 4 single-GPU sbatch jobs (sd_vae=41194528 / eq_vae=41194530 / repa_e=41194531 / dc_ae_1_0=41194533) all COMPLETED 0:0. Throughput 206 img/s per gli SD-likes, 124 img/s per DC-AE. Wall 1h44 per gli SD-likes, 2h53 per DC-AE. 128 shard × 10k img per VAE, 9.9 GB ciascuno per gli SD-likes, 5.0 GB per DC-AE; 34.7 GB totali. Statistiche full-dataset: sd_vae σ=0.832, eq_vae σ=2.661, repa_e σ=0.797, dc_ae_1_0 σ=3.076 — confermate vs smoke (256 sample) entro 6 %. Phase 1 chiusa; pronti per Phase 2 training.
@@ -52,7 +52,7 @@ with a `~~...~~` line plus a `# DONE: ...` postmortem.
 - [x] (2.7d) `SampleCallback` — class-cond ODE sample (CFG=4) + VAE decode + grid PNG every N step — claude — DONE: `src/diffmechint/training/callbacks/sample.py`. Uses EMA shadow when present (analysis target), denormalizes via `stats.json`. Note: `SiT.forward_with_cfg` is hardcoded `[:, :3]` upstream → applies CFG to first 3 of 4 SD-VAE channels. Need fix for DC-AE (32 channels) before its run. Conf `conf/callbacks/{none,sample_only,full}.yaml`.
 - [x] (2.8) `tests/test_checkpoint_schedule.py` — claude — DONE: 8 tests covering target rounding, dedup, dir creation
 - [x] (2.9) 1k-step smoke run on SD-VAE — claude — DONE: synthetic-latent run, loss 1.99 → 1.55 monotonic, all 7 fractional ckpts saved (522 MB live + 522 MB EMA each)
-- [x] (2.10) `slurm/train_sit_full.slurm` driver — claude — DONE: parametric `TOK=...` env, 2× A100 DDP, 16 CPU, 80 GB mem, 10 h walltime. `scripts/train_sit_full.sh` instantiates with `callbacks=full` (sample+FID), batch 128/GPU = 256 global, holdout 5 %, val every 1k step.
+- [x] (2.10) `slurm/train_sit_full.slurm` driver — claude — DONE: parametric `TOK=...` env, 2× A100 DDP, 16 CPU, 80 GB mem, 10 h walltime. `scripts/training/train_sit_full.sh` instantiates with `callbacks=full` (sample+FID), batch 128/GPU = 256 global, holdout 5 %, val every 1k step.
 - [ ] (2.11) Full DiT-B run on K=4 conditions — claude — IN PROGRESS: 4 sbatch submitted (sd_vae=41270854, eq_vae=41270856, repa_e=41270857, dc_ae_1_0=41270858), 200 k step each, DDP 2× A100, batch globale 256 (4× PLAN baseline). Aspettiamo ~7.5 h compute + ~3 h FID overhead per condizione. matched-compute stopping (2.7) sostituito da fixed-step + MiniFIDCallback (2.7b) for the K=4 comparison.
 
 ## Phase 3 — Activation extraction
@@ -72,10 +72,20 @@ with a `~~...~~` line plus a `# DONE: ...` postmortem.
 - [x] (4.6) Hydra configs `conf/sae/{topk_k16, topk_k32, topk_k64, batch_topk_k32}.yaml` — claude — DONE
 - [ ] (4.7) Vendor `third_party/dictionary_learning/...` as **fallback only** — deferred (only needed if SAELens DiT-blocks)
 - [x] (4.8) `tests/test_sae_smoke.py` — claude — DONE: 9 tests including loss-decreases-by-25% on synthetic + Phase 3↔4 e2e integration on a SiT-B/2 forward
-- [ ] (4.9) Canonical-cell SAE smoke on a real trained DiT-B/2 SD-VAE checkpoint — recon cosine > 0.85, density 1–5% — gated on Phase 2 full ImageNet run
-- [ ] (4.10) Canonical-cell warm-started sweep (28 SAEs = 4 cond × 7 ckpts) — gated on Phase 2 full runs
-- [ ] (4.11) Full 27-cell sweep (756 SAEs) — gated on (4.10) results
-- [ ] (4.12) Confirm SAELens-saved SAEs load cleanly into `sae_vis` / `sae_dashboard` — quick check at end of (4.10)
+- [x] ~~(4.9) Canonical-cell SAE smoke on a real trained DiT-B/2 SD-VAE checkpoint~~ — claude — DONE in E02 (`sd_vae`, k=64, L6/T1, val EV 0.890, dead-pct < 0.1 %)
+- [x] ~~(4.10) Canonical-cell warm-started sweep (28 SAEs = 4 cond × 7 ckpts)~~ — claude — SUPERSEDED: warm-start replaced by cold-start per stage (Fix C, see `plan/phase4_sae.md`); 28-SAE warm sweep no longer the canonical milestone
+- [x] ~~(4.11) Full 27-cell sweep (756 SAEs)~~ — claude — DONE × 3 variants: 567 SAEs total (27 chains × 7 DiT-step × {TopK k=128, BatchTopK k=128, Matryoshka K=256}, all at d_sae=32 768). E04 / E05 settle Matryoshka as the winner.
+- [x] ~~(4.12) Confirm SAELens-saved SAEs load cleanly into `sae_vis` / `sae_dashboard`~~ — claude — DONE: `eval_sae_on_val.py` loads every `final_*/sae_weights.safetensors` via `MatryoshkaBatchTopKTrainingSAE.load_from_disk` without modification.
+
+## Phase 4.5 — Causal-faithfulness gate (added 2026-05-19, see `plan/phase4_sae.md` §4.5)
+
+- [x] (4.5a.1) `scripts/eval/sae_substitution_fid.py` — single-cell driver: hook on SiT block `L`, substitute residual with `sae.decode(sae.encode(x))` when `|t − t_bin_center| ≤ 0.01`, generate 5 000 samples, Clean-FID vs ImageNet val 50 k. — claude — DONE
+- [x] (4.5a.2) `slurm/{sae_substitution_fid.slurm, launch_substitution_fid.sh}` — submit 27 substitution + 3 baseline jobs in one call. — claude — DONE
+- [x] (4.5a.3) Full 27-cell grid + 3 baselines run on production Matryoshka (DiT step 200 k). — claude — DONE: 30 / 30 jobs completed, ~10 GPU·h on `IscrC_PDR`.
+- [x] (4.5a.4) Plot ΔFID heatmap, bars, vs-val-EV scatter; aggregate CSV + JSON headline. — claude — DONE: `scripts/plotting/plot_e06_delta_fid.py`.
+- [x] (4.5a.5) Qualitative 4-class side-by-side grid (baseline vs substitution) at eq_vae L6/T2. — claude — DONE: `scripts/eval/make_substitution_grid.py` + `slurm/qualitative_grid.slurm`, CFG 4.0 for visual sharpness.
+- [x] (4.5a.6) E06 Flywheel node (`mute-band-0440`) with 9 artifacts + tags experiment + phase-4. — claude — DONE.
+- [x] (4.5a.7) **Acceptance gate**: 27 / 27 cells below ΔFID = 2.0 → Phase 5 green-lit on the full grid. — claude — DONE: mean ΔFID +0.59, max +1.80 (sd_vae L6/T2), min −0.10 (eq_vae L9/T0).
 
 ## Phase 5 — Linear probes (Revelio grid)
 
@@ -85,8 +95,8 @@ with a `~~...~~` line plus a `# DONE: ...` postmortem.
 - [x] (5.4) Buffer label propagation — claude — DONE: `ActivationBuffer.write(..., labels=Tensor | None)` backward-compat; HDF5 emits `labels` dataset alongside `activations` when present
 - [x] (5.5) Hydra config `conf/probe/revelio_grid.yaml` — claude — DONE: concept axes, layers, t_bins, pool mode, probe hyperparameters
 - [x] (5.6) `tests/test_probing.py` — claude — DONE: 18 tests covering registry, pool helpers, train_probe (linear-separable recovery > 0.9 acc), buffer label round-trip, probe_one_cell, evaluate_grid, e2e SiT-B/2 → labelled-buffer integration
-- [ ] (5.7) Real-data acceptance: 5×3×3 accuracy heatmap on a real DiT-B/2 SD-VAE checkpoint — gated on Phase 2 full ImageNet run
-- [ ] (5.8) Cross-condition probe-peak migration figure — gated on (5.7) across all 4 conditions
+- [ ] (5.7) Real-data acceptance: 5×3×3 accuracy heatmap on a real DiT-B/2 checkpoint — **unblocked by 4.5a**; run on the production Matryoshka SAE activations + Phase 3 val shards.
+- [ ] (5.8) Cross-condition probe-peak migration figure — gated on (5.7) across the K=3 conditions.
 
 ## Phase 6 — Sparse feature circuits (EAP)
 

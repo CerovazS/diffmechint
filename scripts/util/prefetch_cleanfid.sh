@@ -4,7 +4,7 @@
 # in ~/.cache/cleanfid/ and runs offline. ~5 min on 1 A100.
 set -euo pipefail
 
-REPO=/leonardo/home/userexternal/lcerovaz/diffmechint
+REPO=/leonardo_work/IscrC_PDR/lcerovaz/diffmechint
 FAST_BASE=/leonardo_scratch/fast/IscrC_YENDRI
 REF_DIR=/leonardo_scratch/fast/IscrC_YENDRI/imagenet/val
 REF_NAME=imagenet_val_50k

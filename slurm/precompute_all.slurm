@@ -12,4 +12,4 @@
 #SBATCH --error=slurm/%x-%j.err
 set -euo pipefail
 
-bash /leonardo/home/userexternal/lcerovaz/diffmechint/scripts/precompute_all_imagenet.sh
+bash /leonardo_work/IscrC_PDR/lcerovaz/diffmechint/scripts/extraction/precompute_all_imagenet.sh
