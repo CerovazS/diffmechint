@@ -19,14 +19,14 @@ from .revelio_grid import (
 
 __all__ = [
     "CONCEPTS",
+    "CellResult",
     "ConceptAxis",
+    "GridResult",
     "available_concepts",
+    "evaluate_grid",
     "expand_labels_for_tokens",
     "get_concept",
     "pool_tokens",
-    "CellResult",
-    "GridResult",
-    "evaluate_grid",
     "probe_one_cell",
     "train_probe",
     "write_grid_result",

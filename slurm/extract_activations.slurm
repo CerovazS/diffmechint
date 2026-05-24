@@ -38,6 +38,13 @@ LATENTS_ROOT="${LATENTS_ROOT:-/leonardo_scratch/large/userexternal/lcerovaz/diff
 # When LATENTS_ROOT points at val-encoded latents, set NO_HOLDOUT=true to use
 # the full set (the entire val set is already OOD for the SiT).
 NO_HOLDOUT="${NO_HOLDOUT:-false}"
+# When Y_NULL=true, replace the class label with the null token in forward
+# (removes y_embedder contribution; manifest labels remain the true labels).
+Y_NULL="${Y_NULL:-false}"
+# Optional: ONLY_STEP=<int> to extract only that single checkpoint; BINS to
+# restrict to a subset of diffusion-time bins (space-separated floats).
+ONLY_STEP="${ONLY_STEP:-}"
+BINS="${BINS:-}"
 
 REPO=/leonardo_work/IscrC_PDR/lcerovaz/diffmechint
 
@@ -67,6 +74,20 @@ fi
 if [[ "$NO_HOLDOUT" == "true" ]]; then
     EXTRA_ARGS+=("--no_holdout")
     echo "NO_HOLDOUT=true → passing --no_holdout (use entire shard set)"
+fi
+if [[ "$Y_NULL" == "true" ]]; then
+    EXTRA_ARGS+=("--y_null")
+    echo "Y_NULL=true → passing --y_null (null-token forward, residual without y_embedder)"
+fi
+if [[ -n "$ONLY_STEP" ]]; then
+    EXTRA_ARGS+=("--only_step" "$ONLY_STEP")
+    echo "ONLY_STEP=$ONLY_STEP → restricting extraction to single checkpoint"
+fi
+if [[ -n "$BINS" ]]; then
+    # BINS is a space-separated list of floats; pass as multiple args.
+    read -ra BIN_ARR <<< "$BINS"
+    EXTRA_ARGS+=("--bins" "${BIN_ARR[@]}")
+    echo "BINS=$BINS → restricting diffusion-time bins"
 fi
 
 uv run python scripts/extraction/extract_activations.py \

@@ -1,0 +1,8014 @@
+{
+  "broad_8_classes": [
+    "dog",
+    "cat",
+    "bird",
+    "fish",
+    "reptile",
+    "insect_arthropod",
+    "other_mammal",
+    "non_animal"
+  ],
+  "per_class": {
+    "0": {
+      "synset": "n01440764",
+      "animal_binary": 1,
+      "broad_8": 3,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "1": {
+      "synset": "n01443537",
+      "animal_binary": 1,
+      "broad_8": 3,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "2": {
+      "synset": "n01484850",
+      "animal_binary": 1,
+      "broad_8": 3,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "3": {
+      "synset": "n01491361",
+      "animal_binary": 1,
+      "broad_8": 3,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "4": {
+      "synset": "n01494475",
+      "animal_binary": 1,
+      "broad_8": 3,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "5": {
+      "synset": "n01496331",
+      "animal_binary": 1,
+      "broad_8": 3,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "6": {
+      "synset": "n01498041",
+      "animal_binary": 1,
+      "broad_8": 3,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "7": {
+      "synset": "n01514668",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "8": {
+      "synset": "n01514859",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "9": {
+      "synset": "n01518878",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "10": {
+      "synset": "n01530575",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "11": {
+      "synset": "n01531178",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "12": {
+      "synset": "n01532829",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "13": {
+      "synset": "n01534433",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "14": {
+      "synset": "n01537544",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "15": {
+      "synset": "n01558993",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "16": {
+      "synset": "n01560419",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "17": {
+      "synset": "n01580077",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "18": {
+      "synset": "n01582220",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "19": {
+      "synset": "n01592084",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "20": {
+      "synset": "n01601694",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "21": {
+      "synset": "n01608432",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "22": {
+      "synset": "n01614925",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "23": {
+      "synset": "n01616318",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "24": {
+      "synset": "n01622779",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "25": {
+      "synset": "n01629819",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "26": {
+      "synset": "n01630670",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "27": {
+      "synset": "n01631663",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "28": {
+      "synset": "n01632458",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "29": {
+      "synset": "n01632777",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "30": {
+      "synset": "n01641577",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "31": {
+      "synset": "n01644373",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "32": {
+      "synset": "n01644900",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "33": {
+      "synset": "n01664065",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "34": {
+      "synset": "n01665541",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "35": {
+      "synset": "n01667114",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "36": {
+      "synset": "n01667778",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "37": {
+      "synset": "n01669191",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "38": {
+      "synset": "n01675722",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "39": {
+      "synset": "n01677366",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "40": {
+      "synset": "n01682714",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "41": {
+      "synset": "n01685808",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "42": {
+      "synset": "n01687978",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "43": {
+      "synset": "n01688243",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "44": {
+      "synset": "n01689811",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "45": {
+      "synset": "n01692333",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "46": {
+      "synset": "n01693334",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "47": {
+      "synset": "n01694178",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "48": {
+      "synset": "n01695060",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "49": {
+      "synset": "n01697457",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "50": {
+      "synset": "n01698640",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "51": {
+      "synset": "n01704323",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "52": {
+      "synset": "n01728572",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "53": {
+      "synset": "n01728920",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "54": {
+      "synset": "n01729322",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "55": {
+      "synset": "n01729977",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "56": {
+      "synset": "n01734418",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "57": {
+      "synset": "n01735189",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "58": {
+      "synset": "n01737021",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "59": {
+      "synset": "n01739381",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "60": {
+      "synset": "n01740131",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "61": {
+      "synset": "n01742172",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "62": {
+      "synset": "n01744401",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "63": {
+      "synset": "n01748264",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "64": {
+      "synset": "n01749939",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "65": {
+      "synset": "n01751748",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "66": {
+      "synset": "n01753488",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "67": {
+      "synset": "n01755581",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "68": {
+      "synset": "n01756291",
+      "animal_binary": 1,
+      "broad_8": 4,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "69": {
+      "synset": "n01768244",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "70": {
+      "synset": "n01770081",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "71": {
+      "synset": "n01770393",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "72": {
+      "synset": "n01773157",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "73": {
+      "synset": "n01773549",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "74": {
+      "synset": "n01773797",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "75": {
+      "synset": "n01774384",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "76": {
+      "synset": "n01774750",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "77": {
+      "synset": "n01775062",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "78": {
+      "synset": "n01776313",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "79": {
+      "synset": "n01784675",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "80": {
+      "synset": "n01795545",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "81": {
+      "synset": "n01796340",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "82": {
+      "synset": "n01797886",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "83": {
+      "synset": "n01798484",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "84": {
+      "synset": "n01806143",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "85": {
+      "synset": "n01806567",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "86": {
+      "synset": "n01807496",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "87": {
+      "synset": "n01817953",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "88": {
+      "synset": "n01818515",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "89": {
+      "synset": "n01819313",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "90": {
+      "synset": "n01820546",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "91": {
+      "synset": "n01824575",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "92": {
+      "synset": "n01828970",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "93": {
+      "synset": "n01829413",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "94": {
+      "synset": "n01833805",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "95": {
+      "synset": "n01843065",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "96": {
+      "synset": "n01843383",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "97": {
+      "synset": "n01847000",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "98": {
+      "synset": "n01855032",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "99": {
+      "synset": "n01855672",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "100": {
+      "synset": "n01860187",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "101": {
+      "synset": "n01871265",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "102": {
+      "synset": "n01872401",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "103": {
+      "synset": "n01873310",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "104": {
+      "synset": "n01877812",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "105": {
+      "synset": "n01882714",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "106": {
+      "synset": "n01883070",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "107": {
+      "synset": "n01910747",
+      "animal_binary": 1,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "108": {
+      "synset": "n01914609",
+      "animal_binary": 1,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "109": {
+      "synset": "n01917289",
+      "animal_binary": 1,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "110": {
+      "synset": "n01924916",
+      "animal_binary": 1,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "111": {
+      "synset": "n01930112",
+      "animal_binary": 1,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "112": {
+      "synset": "n01943899",
+      "animal_binary": 1,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "113": {
+      "synset": "n01944390",
+      "animal_binary": 1,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "114": {
+      "synset": "n01945685",
+      "animal_binary": 1,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "115": {
+      "synset": "n01950731",
+      "animal_binary": 1,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "116": {
+      "synset": "n01955084",
+      "animal_binary": 1,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "117": {
+      "synset": "n01968897",
+      "animal_binary": 1,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "118": {
+      "synset": "n01978287",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "119": {
+      "synset": "n01978455",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "120": {
+      "synset": "n01980166",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "121": {
+      "synset": "n01981276",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "122": {
+      "synset": "n01983481",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "123": {
+      "synset": "n01984695",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "124": {
+      "synset": "n01985128",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "125": {
+      "synset": "n01986214",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "126": {
+      "synset": "n01990800",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "127": {
+      "synset": "n02002556",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "128": {
+      "synset": "n02002724",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "129": {
+      "synset": "n02006656",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "130": {
+      "synset": "n02007558",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "131": {
+      "synset": "n02009229",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "132": {
+      "synset": "n02009912",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "133": {
+      "synset": "n02011460",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "134": {
+      "synset": "n02012849",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "135": {
+      "synset": "n02013706",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "136": {
+      "synset": "n02017213",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "137": {
+      "synset": "n02018207",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "138": {
+      "synset": "n02018795",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "139": {
+      "synset": "n02025239",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "140": {
+      "synset": "n02027492",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "141": {
+      "synset": "n02028035",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "142": {
+      "synset": "n02033041",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "143": {
+      "synset": "n02037110",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "144": {
+      "synset": "n02051845",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "145": {
+      "synset": "n02056570",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "146": {
+      "synset": "n02058221",
+      "animal_binary": 1,
+      "broad_8": 2,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "147": {
+      "synset": "n02066245",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "148": {
+      "synset": "n02071294",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "149": {
+      "synset": "n02074367",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "150": {
+      "synset": "n02077923",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "151": {
+      "synset": "n02085620",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "152": {
+      "synset": "n02085782",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "153": {
+      "synset": "n02085936",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "154": {
+      "synset": "n02086079",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "155": {
+      "synset": "n02086240",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "156": {
+      "synset": "n02086646",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "157": {
+      "synset": "n02086910",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "158": {
+      "synset": "n02087046",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "159": {
+      "synset": "n02087394",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "160": {
+      "synset": "n02088094",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "161": {
+      "synset": "n02088238",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "162": {
+      "synset": "n02088364",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "163": {
+      "synset": "n02088466",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "164": {
+      "synset": "n02088632",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "165": {
+      "synset": "n02089078",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "166": {
+      "synset": "n02089867",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "167": {
+      "synset": "n02089973",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "168": {
+      "synset": "n02090379",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "169": {
+      "synset": "n02090622",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "170": {
+      "synset": "n02090721",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "171": {
+      "synset": "n02091032",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "172": {
+      "synset": "n02091134",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "173": {
+      "synset": "n02091244",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "174": {
+      "synset": "n02091467",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "175": {
+      "synset": "n02091635",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "176": {
+      "synset": "n02091831",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "177": {
+      "synset": "n02092002",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "178": {
+      "synset": "n02092339",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "179": {
+      "synset": "n02093256",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "180": {
+      "synset": "n02093428",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "181": {
+      "synset": "n02093647",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "182": {
+      "synset": "n02093754",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "183": {
+      "synset": "n02093859",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "184": {
+      "synset": "n02093991",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "185": {
+      "synset": "n02094114",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "186": {
+      "synset": "n02094258",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "187": {
+      "synset": "n02094433",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "188": {
+      "synset": "n02095314",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "189": {
+      "synset": "n02095570",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "190": {
+      "synset": "n02095889",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "191": {
+      "synset": "n02096051",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "192": {
+      "synset": "n02096177",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "193": {
+      "synset": "n02096294",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "194": {
+      "synset": "n02096437",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "195": {
+      "synset": "n02096585",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "196": {
+      "synset": "n02097047",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "197": {
+      "synset": "n02097130",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "198": {
+      "synset": "n02097209",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "199": {
+      "synset": "n02097298",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "200": {
+      "synset": "n02097474",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "201": {
+      "synset": "n02097658",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "202": {
+      "synset": "n02098105",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "203": {
+      "synset": "n02098286",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "204": {
+      "synset": "n02098413",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "205": {
+      "synset": "n02099267",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "206": {
+      "synset": "n02099429",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "207": {
+      "synset": "n02099601",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "208": {
+      "synset": "n02099712",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "209": {
+      "synset": "n02099849",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "210": {
+      "synset": "n02100236",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "211": {
+      "synset": "n02100583",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "212": {
+      "synset": "n02100735",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "213": {
+      "synset": "n02100877",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "214": {
+      "synset": "n02101006",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "215": {
+      "synset": "n02101388",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "216": {
+      "synset": "n02101556",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "217": {
+      "synset": "n02102040",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "218": {
+      "synset": "n02102177",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "219": {
+      "synset": "n02102318",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "220": {
+      "synset": "n02102480",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "221": {
+      "synset": "n02102973",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "222": {
+      "synset": "n02104029",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "223": {
+      "synset": "n02104365",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "224": {
+      "synset": "n02105056",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "225": {
+      "synset": "n02105162",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "226": {
+      "synset": "n02105251",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "227": {
+      "synset": "n02105412",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "228": {
+      "synset": "n02105505",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "229": {
+      "synset": "n02105641",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "230": {
+      "synset": "n02105855",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "231": {
+      "synset": "n02106030",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "232": {
+      "synset": "n02106166",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "233": {
+      "synset": "n02106382",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "234": {
+      "synset": "n02106550",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "235": {
+      "synset": "n02106662",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "236": {
+      "synset": "n02107142",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "237": {
+      "synset": "n02107312",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "238": {
+      "synset": "n02107574",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "239": {
+      "synset": "n02107683",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "240": {
+      "synset": "n02107908",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "241": {
+      "synset": "n02108000",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "242": {
+      "synset": "n02108089",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "243": {
+      "synset": "n02108422",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "244": {
+      "synset": "n02108551",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "245": {
+      "synset": "n02108915",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "246": {
+      "synset": "n02109047",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "247": {
+      "synset": "n02109525",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "248": {
+      "synset": "n02109961",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "249": {
+      "synset": "n02110063",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "250": {
+      "synset": "n02110185",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "251": {
+      "synset": "n02110341",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "252": {
+      "synset": "n02110627",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "253": {
+      "synset": "n02110806",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "254": {
+      "synset": "n02110958",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "255": {
+      "synset": "n02111129",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "256": {
+      "synset": "n02111277",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "257": {
+      "synset": "n02111500",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "258": {
+      "synset": "n02111889",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "259": {
+      "synset": "n02112018",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "260": {
+      "synset": "n02112137",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "261": {
+      "synset": "n02112350",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "262": {
+      "synset": "n02112706",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "263": {
+      "synset": "n02113023",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "264": {
+      "synset": "n02113186",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "265": {
+      "synset": "n02113624",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "266": {
+      "synset": "n02113712",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "267": {
+      "synset": "n02113799",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "268": {
+      "synset": "n02113978",
+      "animal_binary": 1,
+      "broad_8": 0,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "269": {
+      "synset": "n02114367",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "270": {
+      "synset": "n02114548",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "271": {
+      "synset": "n02114712",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "272": {
+      "synset": "n02114855",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "273": {
+      "synset": "n02115641",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "274": {
+      "synset": "n02115913",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "275": {
+      "synset": "n02116738",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "276": {
+      "synset": "n02117135",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "277": {
+      "synset": "n02119022",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "278": {
+      "synset": "n02119789",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "279": {
+      "synset": "n02120079",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "280": {
+      "synset": "n02120505",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "281": {
+      "synset": "n02123045",
+      "animal_binary": 1,
+      "broad_8": 1,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "282": {
+      "synset": "n02123159",
+      "animal_binary": 1,
+      "broad_8": 1,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "283": {
+      "synset": "n02123394",
+      "animal_binary": 1,
+      "broad_8": 1,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "284": {
+      "synset": "n02123597",
+      "animal_binary": 1,
+      "broad_8": 1,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "285": {
+      "synset": "n02124075",
+      "animal_binary": 1,
+      "broad_8": 1,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "286": {
+      "synset": "n02125311",
+      "animal_binary": 1,
+      "broad_8": 1,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "287": {
+      "synset": "n02127052",
+      "animal_binary": 1,
+      "broad_8": 1,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "288": {
+      "synset": "n02128385",
+      "animal_binary": 1,
+      "broad_8": 1,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "289": {
+      "synset": "n02128757",
+      "animal_binary": 1,
+      "broad_8": 1,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "290": {
+      "synset": "n02128925",
+      "animal_binary": 1,
+      "broad_8": 1,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "291": {
+      "synset": "n02129165",
+      "animal_binary": 1,
+      "broad_8": 1,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "292": {
+      "synset": "n02129604",
+      "animal_binary": 1,
+      "broad_8": 1,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "293": {
+      "synset": "n02130308",
+      "animal_binary": 1,
+      "broad_8": 1,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "294": {
+      "synset": "n02132136",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "295": {
+      "synset": "n02133161",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "296": {
+      "synset": "n02134084",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "297": {
+      "synset": "n02134418",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "298": {
+      "synset": "n02137549",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "299": {
+      "synset": "n02138441",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "300": {
+      "synset": "n02165105",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "301": {
+      "synset": "n02165456",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "302": {
+      "synset": "n02167151",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "303": {
+      "synset": "n02168699",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "304": {
+      "synset": "n02169497",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "305": {
+      "synset": "n02172182",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "306": {
+      "synset": "n02174001",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "307": {
+      "synset": "n02177972",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "308": {
+      "synset": "n02190166",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "309": {
+      "synset": "n02206856",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "310": {
+      "synset": "n02219486",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "311": {
+      "synset": "n02226429",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "312": {
+      "synset": "n02229544",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "313": {
+      "synset": "n02231487",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "314": {
+      "synset": "n02233338",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "315": {
+      "synset": "n02236044",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "316": {
+      "synset": "n02256656",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "317": {
+      "synset": "n02259212",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "318": {
+      "synset": "n02264363",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "319": {
+      "synset": "n02268443",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "320": {
+      "synset": "n02268853",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "321": {
+      "synset": "n02276258",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "322": {
+      "synset": "n02277742",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "323": {
+      "synset": "n02279972",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "324": {
+      "synset": "n02280649",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "325": {
+      "synset": "n02281406",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "326": {
+      "synset": "n02281787",
+      "animal_binary": 1,
+      "broad_8": 5,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "327": {
+      "synset": "n02317335",
+      "animal_binary": 1,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "328": {
+      "synset": "n02319095",
+      "animal_binary": 1,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "329": {
+      "synset": "n02321529",
+      "animal_binary": 1,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "330": {
+      "synset": "n02325366",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "331": {
+      "synset": "n02326432",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "332": {
+      "synset": "n02328150",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "333": {
+      "synset": "n02342885",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "334": {
+      "synset": "n02346627",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "335": {
+      "synset": "n02356798",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "336": {
+      "synset": "n02361337",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "337": {
+      "synset": "n02363005",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "338": {
+      "synset": "n02364673",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "339": {
+      "synset": "n02389026",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "340": {
+      "synset": "n02391049",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "341": {
+      "synset": "n02395406",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "342": {
+      "synset": "n02396427",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "343": {
+      "synset": "n02397096",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "344": {
+      "synset": "n02398521",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "345": {
+      "synset": "n02403003",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "346": {
+      "synset": "n02408429",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "347": {
+      "synset": "n02410509",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "348": {
+      "synset": "n02412080",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "349": {
+      "synset": "n02415577",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "350": {
+      "synset": "n02417914",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "351": {
+      "synset": "n02422106",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "352": {
+      "synset": "n02422699",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "353": {
+      "synset": "n02423022",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "354": {
+      "synset": "n02437312",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "355": {
+      "synset": "n02437616",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "356": {
+      "synset": "n02441942",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "357": {
+      "synset": "n02442845",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "358": {
+      "synset": "n02443114",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "359": {
+      "synset": "n02443484",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "360": {
+      "synset": "n02444819",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "361": {
+      "synset": "n02445715",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "362": {
+      "synset": "n02447366",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "363": {
+      "synset": "n02454379",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "364": {
+      "synset": "n02457408",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "365": {
+      "synset": "n02480495",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "366": {
+      "synset": "n02480855",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "367": {
+      "synset": "n02481823",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "368": {
+      "synset": "n02483362",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "369": {
+      "synset": "n02483708",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "370": {
+      "synset": "n02484975",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "371": {
+      "synset": "n02486261",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "372": {
+      "synset": "n02486410",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "373": {
+      "synset": "n02487347",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "374": {
+      "synset": "n02488291",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "375": {
+      "synset": "n02488702",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "376": {
+      "synset": "n02489166",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "377": {
+      "synset": "n02490219",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "378": {
+      "synset": "n02492035",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "379": {
+      "synset": "n02492660",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "380": {
+      "synset": "n02493509",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "381": {
+      "synset": "n02493793",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "382": {
+      "synset": "n02494079",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "383": {
+      "synset": "n02497673",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "384": {
+      "synset": "n02500267",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "385": {
+      "synset": "n02504013",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "386": {
+      "synset": "n02504458",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "387": {
+      "synset": "n02509815",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "388": {
+      "synset": "n02510455",
+      "animal_binary": 1,
+      "broad_8": 6,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "389": {
+      "synset": "n02514041",
+      "animal_binary": 1,
+      "broad_8": 3,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "390": {
+      "synset": "n02526121",
+      "animal_binary": 1,
+      "broad_8": 3,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "391": {
+      "synset": "n02536864",
+      "animal_binary": 1,
+      "broad_8": 3,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "392": {
+      "synset": "n02606052",
+      "animal_binary": 1,
+      "broad_8": 3,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "393": {
+      "synset": "n02607072",
+      "animal_binary": 1,
+      "broad_8": 3,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "394": {
+      "synset": "n02640242",
+      "animal_binary": 1,
+      "broad_8": 3,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "395": {
+      "synset": "n02641379",
+      "animal_binary": 1,
+      "broad_8": 3,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "396": {
+      "synset": "n02643566",
+      "animal_binary": 1,
+      "broad_8": 3,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "397": {
+      "synset": "n02655020",
+      "animal_binary": 1,
+      "broad_8": 3,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "398": {
+      "synset": "n02666196",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "399": {
+      "synset": "n02667093",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "400": {
+      "synset": "n02669723",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "401": {
+      "synset": "n02672831",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "402": {
+      "synset": "n02676566",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "403": {
+      "synset": "n02687172",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "404": {
+      "synset": "n02690373",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "405": {
+      "synset": "n02692877",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "406": {
+      "synset": "n02699494",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "407": {
+      "synset": "n02701002",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "408": {
+      "synset": "n02704792",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "409": {
+      "synset": "n02708093",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "410": {
+      "synset": "n02727426",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "411": {
+      "synset": "n02730930",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "412": {
+      "synset": "n02747177",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "413": {
+      "synset": "n02749479",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "414": {
+      "synset": "n02769748",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "415": {
+      "synset": "n02776631",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "416": {
+      "synset": "n02777292",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "417": {
+      "synset": "n02782093",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "418": {
+      "synset": "n02783161",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "419": {
+      "synset": "n02786058",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "420": {
+      "synset": "n02787622",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "421": {
+      "synset": "n02788148",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "422": {
+      "synset": "n02790996",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "423": {
+      "synset": "n02791124",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "424": {
+      "synset": "n02791270",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "425": {
+      "synset": "n02793495",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "426": {
+      "synset": "n02794156",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "427": {
+      "synset": "n02795169",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "428": {
+      "synset": "n02797295",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "429": {
+      "synset": "n02799071",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "430": {
+      "synset": "n02802426",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "431": {
+      "synset": "n02804414",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "432": {
+      "synset": "n02804610",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "433": {
+      "synset": "n02807133",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "434": {
+      "synset": "n02808304",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "435": {
+      "synset": "n02808440",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "436": {
+      "synset": "n02814533",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "437": {
+      "synset": "n02814860",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "438": {
+      "synset": "n02815834",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "439": {
+      "synset": "n02817516",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "440": {
+      "synset": "n02823428",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "441": {
+      "synset": "n02823750",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "442": {
+      "synset": "n02825657",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "443": {
+      "synset": "n02834397",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "444": {
+      "synset": "n02835271",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "445": {
+      "synset": "n02837789",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "446": {
+      "synset": "n02840245",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "447": {
+      "synset": "n02841315",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "448": {
+      "synset": "n02843684",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "449": {
+      "synset": "n02859443",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "450": {
+      "synset": "n02860847",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "451": {
+      "synset": "n02865351",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "452": {
+      "synset": "n02869837",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "453": {
+      "synset": "n02870880",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "454": {
+      "synset": "n02871525",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "455": {
+      "synset": "n02877765",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "456": {
+      "synset": "n02879718",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "457": {
+      "synset": "n02883205",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "458": {
+      "synset": "n02892201",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "459": {
+      "synset": "n02892767",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "460": {
+      "synset": "n02894605",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "461": {
+      "synset": "n02895154",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "462": {
+      "synset": "n02906734",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "463": {
+      "synset": "n02909870",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "464": {
+      "synset": "n02910353",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "465": {
+      "synset": "n02916936",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "466": {
+      "synset": "n02917067",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "467": {
+      "synset": "n02927161",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "468": {
+      "synset": "n02930766",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "469": {
+      "synset": "n02939185",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "470": {
+      "synset": "n02948072",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "471": {
+      "synset": "n02950826",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "472": {
+      "synset": "n02951358",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "473": {
+      "synset": "n02951585",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "474": {
+      "synset": "n02963159",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "475": {
+      "synset": "n02965783",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "476": {
+      "synset": "n02966193",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "477": {
+      "synset": "n02966687",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "478": {
+      "synset": "n02971356",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "479": {
+      "synset": "n02974003",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "480": {
+      "synset": "n02977058",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "481": {
+      "synset": "n02978881",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "482": {
+      "synset": "n02979186",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "483": {
+      "synset": "n02980441",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "484": {
+      "synset": "n02981792",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "485": {
+      "synset": "n02988304",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "486": {
+      "synset": "n02992211",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "487": {
+      "synset": "n02992529",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "488": {
+      "synset": "n02999410",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "489": {
+      "synset": "n03000134",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "490": {
+      "synset": "n03000247",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "491": {
+      "synset": "n03000684",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "492": {
+      "synset": "n03014705",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "493": {
+      "synset": "n03016953",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "494": {
+      "synset": "n03017168",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "495": {
+      "synset": "n03018349",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "496": {
+      "synset": "n03026506",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "497": {
+      "synset": "n03028079",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "498": {
+      "synset": "n03032252",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "499": {
+      "synset": "n03041632",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "500": {
+      "synset": "n03042490",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "501": {
+      "synset": "n03045698",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "502": {
+      "synset": "n03047690",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "503": {
+      "synset": "n03062245",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "504": {
+      "synset": "n03063599",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "505": {
+      "synset": "n03063689",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "506": {
+      "synset": "n03065424",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "507": {
+      "synset": "n03075370",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "508": {
+      "synset": "n03085013",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "509": {
+      "synset": "n03089624",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "510": {
+      "synset": "n03095699",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "511": {
+      "synset": "n03100240",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "512": {
+      "synset": "n03109150",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "513": {
+      "synset": "n03110669",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "514": {
+      "synset": "n03124043",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "515": {
+      "synset": "n03124170",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "516": {
+      "synset": "n03125729",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "517": {
+      "synset": "n03126707",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "518": {
+      "synset": "n03127747",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "519": {
+      "synset": "n03127925",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "520": {
+      "synset": "n03131574",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "521": {
+      "synset": "n03133878",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "522": {
+      "synset": "n03134739",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "523": {
+      "synset": "n03141823",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "524": {
+      "synset": "n03146219",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "525": {
+      "synset": "n03160309",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "526": {
+      "synset": "n03179701",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "527": {
+      "synset": "n03180011",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "528": {
+      "synset": "n03187595",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "529": {
+      "synset": "n03188531",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "530": {
+      "synset": "n03196217",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "531": {
+      "synset": "n03197337",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "532": {
+      "synset": "n03201208",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "533": {
+      "synset": "n03207743",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "534": {
+      "synset": "n03207941",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "535": {
+      "synset": "n03208938",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "536": {
+      "synset": "n03216828",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "537": {
+      "synset": "n03218198",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "538": {
+      "synset": "n03220513",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "539": {
+      "synset": "n03223299",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "540": {
+      "synset": "n03240683",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "541": {
+      "synset": "n03249569",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "542": {
+      "synset": "n03250847",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "543": {
+      "synset": "n03255030",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "544": {
+      "synset": "n03259280",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "545": {
+      "synset": "n03271574",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "546": {
+      "synset": "n03272010",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "547": {
+      "synset": "n03272562",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "548": {
+      "synset": "n03290653",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "549": {
+      "synset": "n03291819",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "550": {
+      "synset": "n03297495",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "551": {
+      "synset": "n03314780",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "552": {
+      "synset": "n03325584",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "553": {
+      "synset": "n03337140",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "554": {
+      "synset": "n03344393",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "555": {
+      "synset": "n03345487",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "556": {
+      "synset": "n03347037",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "557": {
+      "synset": "n03355925",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "558": {
+      "synset": "n03372029",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "559": {
+      "synset": "n03376595",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "560": {
+      "synset": "n03379051",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "561": {
+      "synset": "n03384352",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "562": {
+      "synset": "n03388043",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "563": {
+      "synset": "n03388183",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "564": {
+      "synset": "n03388549",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "565": {
+      "synset": "n03393912",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "566": {
+      "synset": "n03394916",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "567": {
+      "synset": "n03400231",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "568": {
+      "synset": "n03404251",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "569": {
+      "synset": "n03417042",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "570": {
+      "synset": "n03424325",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "571": {
+      "synset": "n03425413",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "572": {
+      "synset": "n03443371",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "573": {
+      "synset": "n03444034",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "574": {
+      "synset": "n03445777",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "575": {
+      "synset": "n03445924",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "576": {
+      "synset": "n03447447",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "577": {
+      "synset": "n03447721",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "578": {
+      "synset": "n03450230",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "579": {
+      "synset": "n03452741",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "580": {
+      "synset": "n03457902",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "581": {
+      "synset": "n03459775",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "582": {
+      "synset": "n03461385",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "583": {
+      "synset": "n03467068",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "584": {
+      "synset": "n03476684",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "585": {
+      "synset": "n03476991",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "586": {
+      "synset": "n03478589",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "587": {
+      "synset": "n03481172",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "588": {
+      "synset": "n03482405",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "589": {
+      "synset": "n03483316",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "590": {
+      "synset": "n03485407",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "591": {
+      "synset": "n03485794",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "592": {
+      "synset": "n03492542",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "593": {
+      "synset": "n03494278",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "594": {
+      "synset": "n03495258",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "595": {
+      "synset": "n03496892",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "596": {
+      "synset": "n03498962",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "597": {
+      "synset": "n03527444",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "598": {
+      "synset": "n03529860",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "599": {
+      "synset": "n03530642",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "600": {
+      "synset": "n03532672",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "601": {
+      "synset": "n03534580",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "602": {
+      "synset": "n03535780",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "603": {
+      "synset": "n03538406",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "604": {
+      "synset": "n03544143",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "605": {
+      "synset": "n03584254",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "606": {
+      "synset": "n03584829",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "607": {
+      "synset": "n03590841",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "608": {
+      "synset": "n03594734",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "609": {
+      "synset": "n03594945",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "610": {
+      "synset": "n03595614",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "611": {
+      "synset": "n03598930",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "612": {
+      "synset": "n03599486",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "613": {
+      "synset": "n03602883",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "614": {
+      "synset": "n03617480",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "615": {
+      "synset": "n03623198",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "616": {
+      "synset": "n03627232",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "617": {
+      "synset": "n03630383",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "618": {
+      "synset": "n03633091",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "619": {
+      "synset": "n03637318",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "620": {
+      "synset": "n03642806",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "621": {
+      "synset": "n03649909",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "622": {
+      "synset": "n03657121",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "623": {
+      "synset": "n03658185",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "624": {
+      "synset": "n03661043",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "625": {
+      "synset": "n03662601",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "626": {
+      "synset": "n03666591",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "627": {
+      "synset": "n03670208",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "628": {
+      "synset": "n03673027",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "629": {
+      "synset": "n03676483",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "630": {
+      "synset": "n03680355",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "631": {
+      "synset": "n03690938",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "632": {
+      "synset": "n03691459",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "633": {
+      "synset": "n03692522",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "634": {
+      "synset": "n03697007",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "635": {
+      "synset": "n03706229",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "636": {
+      "synset": "n03709823",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "637": {
+      "synset": "n03710193",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "638": {
+      "synset": "n03710637",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "639": {
+      "synset": "n03710721",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "640": {
+      "synset": "n03717622",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "641": {
+      "synset": "n03720891",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "642": {
+      "synset": "n03721384",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "643": {
+      "synset": "n03724870",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "644": {
+      "synset": "n03729826",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "645": {
+      "synset": "n03733131",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "646": {
+      "synset": "n03733281",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "647": {
+      "synset": "n03733805",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "648": {
+      "synset": "n03742115",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "649": {
+      "synset": "n03743016",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "650": {
+      "synset": "n03759954",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "651": {
+      "synset": "n03761084",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "652": {
+      "synset": "n03763968",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "653": {
+      "synset": "n03764736",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "654": {
+      "synset": "n03769881",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "655": {
+      "synset": "n03770439",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "656": {
+      "synset": "n03770679",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "657": {
+      "synset": "n03773504",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "658": {
+      "synset": "n03775071",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "659": {
+      "synset": "n03775546",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "660": {
+      "synset": "n03776460",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "661": {
+      "synset": "n03777568",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "662": {
+      "synset": "n03777754",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "663": {
+      "synset": "n03781244",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "664": {
+      "synset": "n03782006",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "665": {
+      "synset": "n03785016",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "666": {
+      "synset": "n03786901",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "667": {
+      "synset": "n03787032",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "668": {
+      "synset": "n03788195",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "669": {
+      "synset": "n03788365",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "670": {
+      "synset": "n03791053",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "671": {
+      "synset": "n03792782",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "672": {
+      "synset": "n03792972",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "673": {
+      "synset": "n03793489",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "674": {
+      "synset": "n03794056",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "675": {
+      "synset": "n03796401",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "676": {
+      "synset": "n03803284",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "677": {
+      "synset": "n03804744",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "678": {
+      "synset": "n03814639",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "679": {
+      "synset": "n03814906",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "680": {
+      "synset": "n03825788",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "681": {
+      "synset": "n03832673",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "682": {
+      "synset": "n03837869",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "683": {
+      "synset": "n03838899",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "684": {
+      "synset": "n03840681",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "685": {
+      "synset": "n03841143",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "686": {
+      "synset": "n03843555",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "687": {
+      "synset": "n03854065",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "688": {
+      "synset": "n03857828",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "689": {
+      "synset": "n03866082",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "690": {
+      "synset": "n03868242",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "691": {
+      "synset": "n03868863",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "692": {
+      "synset": "n03871628",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "693": {
+      "synset": "n03873416",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "694": {
+      "synset": "n03874293",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "695": {
+      "synset": "n03874599",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "696": {
+      "synset": "n03876231",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "697": {
+      "synset": "n03877472",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "698": {
+      "synset": "n03877845",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "699": {
+      "synset": "n03884397",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "700": {
+      "synset": "n03887697",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "701": {
+      "synset": "n03888257",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "702": {
+      "synset": "n03888605",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "703": {
+      "synset": "n03891251",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "704": {
+      "synset": "n03891332",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "705": {
+      "synset": "n03895866",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "706": {
+      "synset": "n03899768",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "707": {
+      "synset": "n03902125",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "708": {
+      "synset": "n03903868",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "709": {
+      "synset": "n03908618",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "710": {
+      "synset": "n03908714",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "711": {
+      "synset": "n03916031",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "712": {
+      "synset": "n03920288",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "713": {
+      "synset": "n03924679",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "714": {
+      "synset": "n03929660",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "715": {
+      "synset": "n03929855",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "716": {
+      "synset": "n03930313",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "717": {
+      "synset": "n03930630",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "718": {
+      "synset": "n03933933",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "719": {
+      "synset": "n03935335",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "720": {
+      "synset": "n03937543",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "721": {
+      "synset": "n03938244",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "722": {
+      "synset": "n03942813",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "723": {
+      "synset": "n03944341",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "724": {
+      "synset": "n03947888",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "725": {
+      "synset": "n03950228",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "726": {
+      "synset": "n03954731",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "727": {
+      "synset": "n03956157",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "728": {
+      "synset": "n03958227",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "729": {
+      "synset": "n03961711",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "730": {
+      "synset": "n03967562",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "731": {
+      "synset": "n03970156",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "732": {
+      "synset": "n03976467",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "733": {
+      "synset": "n03976657",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "734": {
+      "synset": "n03977966",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "735": {
+      "synset": "n03980874",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "736": {
+      "synset": "n03982430",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "737": {
+      "synset": "n03983396",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "738": {
+      "synset": "n03991062",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "739": {
+      "synset": "n03992509",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "740": {
+      "synset": "n03995372",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "741": {
+      "synset": "n03998194",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "742": {
+      "synset": "n04004767",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "743": {
+      "synset": "n04005630",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "744": {
+      "synset": "n04008634",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "745": {
+      "synset": "n04009552",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "746": {
+      "synset": "n04019541",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "747": {
+      "synset": "n04023962",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "748": {
+      "synset": "n04026417",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "749": {
+      "synset": "n04033901",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "750": {
+      "synset": "n04033995",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "751": {
+      "synset": "n04037443",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "752": {
+      "synset": "n04039381",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "753": {
+      "synset": "n04040759",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "754": {
+      "synset": "n04041544",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "755": {
+      "synset": "n04044716",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "756": {
+      "synset": "n04049303",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "757": {
+      "synset": "n04065272",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "758": {
+      "synset": "n04067472",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "759": {
+      "synset": "n04069434",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "760": {
+      "synset": "n04070727",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "761": {
+      "synset": "n04074963",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "762": {
+      "synset": "n04081281",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "763": {
+      "synset": "n04086273",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "764": {
+      "synset": "n04090263",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "765": {
+      "synset": "n04099969",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "766": {
+      "synset": "n04111531",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "767": {
+      "synset": "n04116512",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "768": {
+      "synset": "n04118538",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "769": {
+      "synset": "n04118776",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "770": {
+      "synset": "n04120489",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "771": {
+      "synset": "n04125021",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "772": {
+      "synset": "n04127249",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "773": {
+      "synset": "n04131690",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "774": {
+      "synset": "n04133789",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "775": {
+      "synset": "n04136333",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "776": {
+      "synset": "n04141076",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "777": {
+      "synset": "n04141327",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "778": {
+      "synset": "n04141975",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "779": {
+      "synset": "n04146614",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "780": {
+      "synset": "n04147183",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "781": {
+      "synset": "n04149813",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "782": {
+      "synset": "n04152593",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "783": {
+      "synset": "n04153751",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "784": {
+      "synset": "n04154565",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "785": {
+      "synset": "n04162706",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "786": {
+      "synset": "n04179913",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "787": {
+      "synset": "n04192698",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "788": {
+      "synset": "n04200800",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "789": {
+      "synset": "n04201297",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "790": {
+      "synset": "n04204238",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "791": {
+      "synset": "n04204347",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "792": {
+      "synset": "n04208210",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "793": {
+      "synset": "n04209133",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "794": {
+      "synset": "n04209239",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "795": {
+      "synset": "n04228054",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "796": {
+      "synset": "n04229816",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "797": {
+      "synset": "n04235860",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "798": {
+      "synset": "n04238763",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "799": {
+      "synset": "n04239074",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "800": {
+      "synset": "n04243546",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "801": {
+      "synset": "n04251144",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "802": {
+      "synset": "n04252077",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "803": {
+      "synset": "n04252225",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "804": {
+      "synset": "n04254120",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "805": {
+      "synset": "n04254680",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "806": {
+      "synset": "n04254777",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "807": {
+      "synset": "n04258138",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "808": {
+      "synset": "n04259630",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "809": {
+      "synset": "n04263257",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "810": {
+      "synset": "n04264628",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "811": {
+      "synset": "n04265275",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "812": {
+      "synset": "n04266014",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "813": {
+      "synset": "n04270147",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "814": {
+      "synset": "n04273569",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "815": {
+      "synset": "n04275548",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "816": {
+      "synset": "n04277352",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "817": {
+      "synset": "n04285008",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "818": {
+      "synset": "n04286575",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "819": {
+      "synset": "n04296562",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "820": {
+      "synset": "n04310018",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "821": {
+      "synset": "n04311004",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "822": {
+      "synset": "n04311174",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "823": {
+      "synset": "n04317175",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "824": {
+      "synset": "n04325704",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "825": {
+      "synset": "n04326547",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "826": {
+      "synset": "n04328186",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "827": {
+      "synset": "n04330267",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "828": {
+      "synset": "n04332243",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "829": {
+      "synset": "n04335435",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "830": {
+      "synset": "n04336792",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "831": {
+      "synset": "n04344873",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "832": {
+      "synset": "n04346328",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "833": {
+      "synset": "n04347754",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "834": {
+      "synset": "n04350905",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "835": {
+      "synset": "n04355338",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "836": {
+      "synset": "n04355933",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "837": {
+      "synset": "n04356056",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "838": {
+      "synset": "n04357314",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "839": {
+      "synset": "n04366367",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "840": {
+      "synset": "n04367480",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "841": {
+      "synset": "n04370456",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "842": {
+      "synset": "n04371430",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "843": {
+      "synset": "n04371774",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "844": {
+      "synset": "n04372370",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "845": {
+      "synset": "n04376876",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "846": {
+      "synset": "n04380533",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "847": {
+      "synset": "n04389033",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "848": {
+      "synset": "n04392985",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "849": {
+      "synset": "n04398044",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "850": {
+      "synset": "n04399382",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "851": {
+      "synset": "n04404412",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "852": {
+      "synset": "n04409515",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "853": {
+      "synset": "n04417672",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "854": {
+      "synset": "n04418357",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "855": {
+      "synset": "n04423845",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "856": {
+      "synset": "n04428191",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "857": {
+      "synset": "n04429376",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "858": {
+      "synset": "n04435653",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "859": {
+      "synset": "n04442312",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "860": {
+      "synset": "n04443257",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "861": {
+      "synset": "n04447861",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "862": {
+      "synset": "n04456115",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "863": {
+      "synset": "n04458633",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "864": {
+      "synset": "n04461696",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "865": {
+      "synset": "n04462240",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "866": {
+      "synset": "n04465501",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "867": {
+      "synset": "n04467665",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "868": {
+      "synset": "n04476259",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "869": {
+      "synset": "n04479046",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "870": {
+      "synset": "n04482393",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "871": {
+      "synset": "n04483307",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "872": {
+      "synset": "n04485082",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "873": {
+      "synset": "n04486054",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "874": {
+      "synset": "n04487081",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "875": {
+      "synset": "n04487394",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "876": {
+      "synset": "n04493381",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "877": {
+      "synset": "n04501370",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "878": {
+      "synset": "n04505470",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "879": {
+      "synset": "n04507155",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "880": {
+      "synset": "n04509417",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "881": {
+      "synset": "n04515003",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "882": {
+      "synset": "n04517823",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "883": {
+      "synset": "n04522168",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "884": {
+      "synset": "n04523525",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "885": {
+      "synset": "n04525038",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "886": {
+      "synset": "n04525305",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "887": {
+      "synset": "n04532106",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "888": {
+      "synset": "n04532670",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "889": {
+      "synset": "n04536866",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 1,
+      "food_binary": 0
+    },
+    "890": {
+      "synset": "n04540053",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "891": {
+      "synset": "n04542943",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "892": {
+      "synset": "n04548280",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "893": {
+      "synset": "n04548362",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "894": {
+      "synset": "n04550184",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "895": {
+      "synset": "n04552348",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "896": {
+      "synset": "n04553703",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "897": {
+      "synset": "n04554684",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "898": {
+      "synset": "n04557648",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "899": {
+      "synset": "n04560804",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "900": {
+      "synset": "n04562935",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "901": {
+      "synset": "n04579145",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "902": {
+      "synset": "n04579432",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "903": {
+      "synset": "n04584207",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "904": {
+      "synset": "n04589890",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "905": {
+      "synset": "n04590129",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "906": {
+      "synset": "n04591157",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "907": {
+      "synset": "n04591713",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "908": {
+      "synset": "n04592741",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "909": {
+      "synset": "n04596742",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "910": {
+      "synset": "n04597913",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "911": {
+      "synset": "n04599235",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "912": {
+      "synset": "n04604644",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "913": {
+      "synset": "n04606251",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "914": {
+      "synset": "n04612504",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 1,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "915": {
+      "synset": "n04613696",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "916": {
+      "synset": "n06359193",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "917": {
+      "synset": "n06596364",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "918": {
+      "synset": "n06785654",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "919": {
+      "synset": "n06794110",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "920": {
+      "synset": "n06874185",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "921": {
+      "synset": "n07248320",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "922": {
+      "synset": "n07565083",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "923": {
+      "synset": "n07579787",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "924": {
+      "synset": "n07583066",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "925": {
+      "synset": "n07584110",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "926": {
+      "synset": "n07590611",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "927": {
+      "synset": "n07613480",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "928": {
+      "synset": "n07614500",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "929": {
+      "synset": "n07615774",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "930": {
+      "synset": "n07684084",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "931": {
+      "synset": "n07693725",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "932": {
+      "synset": "n07695742",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "933": {
+      "synset": "n07697313",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "934": {
+      "synset": "n07697537",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "935": {
+      "synset": "n07711569",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "936": {
+      "synset": "n07714571",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "937": {
+      "synset": "n07714990",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "938": {
+      "synset": "n07715103",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "939": {
+      "synset": "n07716358",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "940": {
+      "synset": "n07716906",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "941": {
+      "synset": "n07717410",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "942": {
+      "synset": "n07717556",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "943": {
+      "synset": "n07718472",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "944": {
+      "synset": "n07718747",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "945": {
+      "synset": "n07720875",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "946": {
+      "synset": "n07730033",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "947": {
+      "synset": "n07734744",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "948": {
+      "synset": "n07742313",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "949": {
+      "synset": "n07745940",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "950": {
+      "synset": "n07747607",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "951": {
+      "synset": "n07749582",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "952": {
+      "synset": "n07753113",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "953": {
+      "synset": "n07753275",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "954": {
+      "synset": "n07753592",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "955": {
+      "synset": "n07754684",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "956": {
+      "synset": "n07760859",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "957": {
+      "synset": "n07768694",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "958": {
+      "synset": "n07802026",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "959": {
+      "synset": "n07831146",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "960": {
+      "synset": "n07836838",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "961": {
+      "synset": "n07860988",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "962": {
+      "synset": "n07871810",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "963": {
+      "synset": "n07873807",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "964": {
+      "synset": "n07875152",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "965": {
+      "synset": "n07880968",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "966": {
+      "synset": "n07892512",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "967": {
+      "synset": "n07920052",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "968": {
+      "synset": "n07930864",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "969": {
+      "synset": "n07932039",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 1
+    },
+    "970": {
+      "synset": "n09193705",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "971": {
+      "synset": "n09229709",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "972": {
+      "synset": "n09246464",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "973": {
+      "synset": "n09256479",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "974": {
+      "synset": "n09288635",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "975": {
+      "synset": "n09332890",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "976": {
+      "synset": "n09399592",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "977": {
+      "synset": "n09421951",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "978": {
+      "synset": "n09428293",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "979": {
+      "synset": "n09468604",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "980": {
+      "synset": "n09472597",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "981": {
+      "synset": "n09835506",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "982": {
+      "synset": "n10148035",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "983": {
+      "synset": "n10565667",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "984": {
+      "synset": "n11879895",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "985": {
+      "synset": "n11939491",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "986": {
+      "synset": "n12057211",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "987": {
+      "synset": "n12144580",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "988": {
+      "synset": "n12267677",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "989": {
+      "synset": "n12620546",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "990": {
+      "synset": "n12768682",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "991": {
+      "synset": "n12985857",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "992": {
+      "synset": "n12998815",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "993": {
+      "synset": "n13037406",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "994": {
+      "synset": "n13040303",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "995": {
+      "synset": "n13044778",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "996": {
+      "synset": "n13052670",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "997": {
+      "synset": "n13054560",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "998": {
+      "synset": "n13133613",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    },
+    "999": {
+      "synset": "n15075141",
+      "animal_binary": 0,
+      "broad_8": 7,
+      "vehicle_binary": 0,
+      "instrument_binary": 0,
+      "food_binary": 0
+    }
+  }
+}

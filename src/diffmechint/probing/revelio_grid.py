@@ -12,8 +12,8 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import h5py
 import numpy as np
+import torch
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
@@ -21,8 +21,6 @@ from diffmechint.hooks.activation_buffer import ActivationBuffer
 from diffmechint.utils import info, ok, warn
 
 from .concepts import ConceptAxis, expand_labels_for_tokens, pool_tokens
-
-import torch  # noqa: E402  (after sklearn to keep import errors clear)
 
 
 @dataclass
@@ -107,24 +105,52 @@ def train_probe(
 def probe_one_cell(
     shard_path: Path | str,
     *,
+    concept: ConceptAxis | None = None,
     pool: str = "tokens",
     max_samples: int = 50_000,
     seed: int = 0,
+    labels_override: np.ndarray | None = None,
 ) -> CellResult | None:
     """Load one HDF5 cell, train a probe, return its result.
 
     The shard file name is expected to follow the
     `<layer>_<tbin>.h5` convention from `ActivationBuffer`.
-    Returns `None` when the cell has no labels (Phase 4 SAE-only shards).
+
+    Returns `None` when no labels are available — neither in HDF5 nor via
+    `labels_override`. The val activation shards produced by Phase 3
+    (`activations_val/...`) skipped label storage at extraction time; for
+    those, pass a resolved `(N,)` label array via `labels_override`
+    (typically constructed from the sibling `manifest.json` + the source
+    latent shards' label fields).
+
+    When `concept` is given and its `label_fn` is not the identity, each
+    raw ImageNet class index is remapped to the concept's label space
+    before training the probe. This is how the WordNet-derived axes
+    (`animal_binary`, `broad_8`, `vehicle_binary`, ...) reuse the same
+    activation shards as `object`.
     """
     p = Path(shard_path)
     layer, t_bin = (int(x) for x in p.stem.split("_"))
     acts, labels = ActivationBuffer.load_cell_with_labels(p)
-    if labels is None:
-        warn(f"{p.name}: no labels in HDF5 — skipping probe.")
+    if labels is None and labels_override is None:
+        warn(f"{p.name}: no labels in HDF5 and no labels_override — skipping probe.")
         return None
+    if labels is None:
+        labels = labels_override
+    elif labels_override is not None:
+        # Both present — sanity-check sizes; trust the explicit override.
+        if labels_override.shape[0] != labels.shape[0]:
+            warn(
+                f"{p.name}: labels_override length {labels_override.shape[0]} != "
+                f"HDF5 labels {labels.shape[0]}; using HDF5."
+            )
+        else:
+            labels = labels_override
     acts_t = torch.from_numpy(acts.astype(np.float32))
-    labels_t = torch.from_numpy(labels.astype(np.int64))
+    labels_raw = labels.astype(np.int64)
+    if concept is not None and concept.label_fn is not _identity_label_passthrough:
+        labels_raw = _remap_labels(labels_raw, concept.label_fn)
+    labels_t = torch.from_numpy(labels_raw)
     pooled = pool_tokens(acts_t, mode=pool)
     if pool == "tokens":
         labels_expanded = expand_labels_for_tokens(labels_t, acts_t.shape[1])
@@ -145,6 +171,24 @@ def probe_one_cell(
     )
 
 
+def _identity_label_passthrough(x: int) -> int:
+    return int(x)
+
+
+def _remap_labels(
+    labels: np.ndarray,
+    label_fn: object,
+) -> np.ndarray:
+    """Apply `label_fn` to every entry of `labels`. Cached per unique value
+    so we never call into `label_fn` 1.28M times for a single shard."""
+    unique = np.unique(labels)
+    mapping = {int(v): int(label_fn(int(v))) for v in unique.tolist()}
+    out = np.empty_like(labels)
+    for v, lab in mapping.items():
+        out[labels == v] = lab
+    return out
+
+
 def evaluate_grid(
     shard_dir: Path | str,
     *,
@@ -154,8 +198,15 @@ def evaluate_grid(
     pool: str = "tokens",
     max_samples: int = 50_000,
     seed: int = 0,
+    labels_override: np.ndarray | None = None,
 ) -> GridResult:
-    """Sweep over `(layer, t_bin)` cells under `shard_dir` and probe each."""
+    """Sweep over `(layer, t_bin)` cells under `shard_dir` and probe each.
+
+    `labels_override`: per-cell labels broadcast to every cell — used when
+    the activation shards skipped label storage at extraction time (see
+    Phase 3 val activations). Same `(N,)` array applies to every cell
+    because the extraction pass used the same sample-order across cells.
+    """
     shard_dir = Path(shard_dir)
     out = GridResult(concept=concept.name)
     for layer in layers:
@@ -164,7 +215,10 @@ def evaluate_grid(
             if not shard.exists():
                 warn(f"missing cell {shard.name} — skipping.")
                 continue
-            result = probe_one_cell(shard, pool=pool, max_samples=max_samples, seed=seed)
+            result = probe_one_cell(
+                shard, concept=concept, pool=pool, max_samples=max_samples,
+                seed=seed, labels_override=labels_override,
+            )
             if result is not None:
                 info(
                     f"  cell ({layer}, {t_bin}): acc={result.accuracy:.4f} "

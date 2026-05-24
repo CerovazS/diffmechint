@@ -17,6 +17,7 @@ set -euo pipefail
 #   LAYERS / T_BINS: idem
 #   BASE_SAMPLES / WARM_SAMPLES: per-stage token budget
 #   ONLY: single-chain smoke, format "sd_vae/L6/T1"
+#   SEED: optional replicate seed
 CONDITIONS="${CONDITIONS:-sd_vae repa_e eq_vae}"
 LAYERS="${LAYERS:-3 6 9}"
 T_BINS="${T_BINS:-0 1 2}"
@@ -46,6 +47,8 @@ VAL_ACTIVATIONS_ROOT="${VAL_ACTIVATIONS_ROOT:-/leonardo_scratch/large/userextern
 VAL_EVERY_N_STEPS="${VAL_EVERY_N_STEPS:-1500}"
 VAL_MAX_TOKENS="${VAL_MAX_TOKENS:-200000}"
 NO_VAL="${NO_VAL:-0}"
+SEED="${SEED:-}"
+FAIL_IF_CHAIN_EXISTS="${FAIL_IF_CHAIN_EXISTS:-0}"
 
 REPO=/leonardo_work/IscrC_PDR/lcerovaz/diffmechint
 module load cuda/12.2 || true
@@ -57,6 +60,18 @@ if ! nvidia-smi --query-gpu=index,name,memory.total --format=csv 2>&1 | grep -q 
     exit 6
 fi
 nvidia-smi --query-gpu=index,name,memory.total --format=csv
+
+if ! ./.venv/bin/python - <<'PY'
+import sys
+import torch
+if not torch.cuda.is_available():
+    sys.exit(1)
+print(torch.cuda.get_device_name(0))
+PY
+then
+    echo "ERROR: torch.cuda.is_available() is false on $(hostname). Re-submit; node unhealthy." >&2
+    exit 7
+fi
 
 # wandb: ~/.netrc is sourced automatically; entity = ar_spectra by default.
 export WANDB_ENTITY="${WANDB_ENTITY:-ar_spectra}"
@@ -76,6 +91,14 @@ fi
 if [[ "$NO_VAL" == "1" ]]; then
     EXTRA_ARGS+=("--no_val")
     echo "NO_VAL=1 → inline validation disabled"
+fi
+if [[ -n "$SEED" ]]; then
+    EXTRA_ARGS+=("--seed" "$SEED")
+    echo "SEED=$SEED"
+fi
+if [[ "$FAIL_IF_CHAIN_EXISTS" == "1" ]]; then
+    EXTRA_ARGS+=("--fail_if_chain_exists")
+    echo "FAIL_IF_CHAIN_EXISTS=1 → refuse non-empty chain outputs"
 fi
 if [[ -n "$MATRYOSHKA_WIDTHS" ]]; then
     # word-split intentionally — pass widths as separate argv tokens.

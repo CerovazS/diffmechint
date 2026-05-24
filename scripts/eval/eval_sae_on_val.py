@@ -25,7 +25,6 @@ import os
 import re
 import sys
 import time
-from collections.abc import Iterator
 from pathlib import Path
 
 # HF offline (the SAE load shouldn't touch HF, but be defensive).
@@ -47,6 +46,51 @@ STEP_RE = re.compile(r"step_(\d{6})")
 STAGE_FINAL_RE = re.compile(r"final_\d+")
 
 
+def _entry_from_ckpt_dir(sae_root: Path, ckpt_dir: Path) -> dict | None:
+    """Return metadata for one SAE checkpoint directory, or None if invalid."""
+    cfg_path = ckpt_dir / "cfg.json"
+    weights_path = ckpt_dir / "sae_weights.safetensors"
+    if not weights_path.exists():
+        warn(f"  [skip] {ckpt_dir} — no sae_weights.safetensors")
+        return None
+    if not cfg_path.exists():
+        warn(f"  [skip] {ckpt_dir} — no sibling cfg.json")
+        return None
+    try:
+        cfg = json.loads(cfg_path.read_text())
+    except json.JSONDecodeError as exc:
+        warn(f"  [skip] {cfg_path} — invalid cfg.json: {exc}")
+        return None
+
+    md = cfg.get("metadata", {})
+    try:
+        rel = weights_path.relative_to(sae_root)
+    except ValueError:
+        rel = weights_path
+
+    step_match = None
+    for part in rel.parts:
+        m = STEP_RE.fullmatch(part)
+        if m:
+            step_match = int(m.group(1))
+            break
+    if step_match is None:
+        warn(f"  [skip] {weights_path} — no step_NNNNNN in path")
+        return None
+
+    stage = "final" if STAGE_FINAL_RE.fullmatch(ckpt_dir.name) else "mid"
+    sweep_id = rel.parts[0]
+    return {
+        "ckpt_dir": ckpt_dir,
+        "rel_path": str(rel),
+        "sweep_id": sweep_id,
+        "dit_step": step_match,
+        "stage": stage,
+        "cfg": cfg,
+        "metadata": md,
+    }
+
+
 def discover_saes(sae_root: Path) -> list[dict]:
     """Walk sae_root and return one dict per sae_weights.safetensors found.
 
@@ -55,35 +99,34 @@ def discover_saes(sae_root: Path) -> list[dict]:
     """
     found = []
     for w in sae_root.rglob("sae_weights.safetensors"):
-        ckpt_dir = w.parent
-        cfg_path = ckpt_dir / "cfg.json"
-        if not cfg_path.exists():
-            warn(f"  [skip] {w.relative_to(sae_root)} — no sibling cfg.json")
+        if any("__failed_" in part for part in w.relative_to(sae_root).parts):
             continue
-        cfg = json.loads(cfg_path.read_text())
-        md = cfg.get("metadata", {})
-        rel = w.relative_to(sae_root)
-        # dit_step from the parent path component matching step_NNNNNN.
-        step_match = None
-        for part in rel.parts:
-            m = STEP_RE.fullmatch(part)
-            if m:
-                step_match = int(m.group(1))
-                break
-        if step_match is None:
-            warn(f"  [skip] {rel} — no step_NNNNNN in path")
+        entry = _entry_from_ckpt_dir(sae_root, w.parent)
+        if entry is not None:
+            found.append(entry)
+    return sorted(found, key=lambda d: (d["sweep_id"], d["metadata"].get("condition", ""),
+                                        d["metadata"].get("layer", -1),
+                                        d["metadata"].get("t_bin", -1),
+                                        d["dit_step"], d["stage"]))
+
+
+def discover_saes_from_file(sae_root: Path, ckpt_dirs_file: Path) -> list[dict]:
+    """Read one checkpoint directory per line instead of recursively scanning.
+
+    This is useful on parallel filesystems where a broad `rglob` can fail on a
+    transient stat error even though the desired checkpoint paths are healthy.
+    Lines may point either at checkpoint directories or at sae_weights files.
+    """
+    found = []
+    for raw in ckpt_dirs_file.read_text().splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
             continue
-        stage = "final" if STAGE_FINAL_RE.fullmatch(ckpt_dir.name) else "mid"
-        sweep_id = rel.parts[0]  # top-level under sae_root
-        found.append({
-            "ckpt_dir": ckpt_dir,
-            "rel_path": str(rel),
-            "sweep_id": sweep_id,
-            "dit_step": step_match,
-            "stage": stage,
-            "cfg": cfg,
-            "metadata": md,
-        })
+        path = Path(line)
+        ckpt_dir = path.parent if path.name == "sae_weights.safetensors" else path
+        entry = _entry_from_ckpt_dir(sae_root, ckpt_dir)
+        if entry is not None:
+            found.append(entry)
     return sorted(found, key=lambda d: (d["sweep_id"], d["metadata"].get("condition", ""),
                                         d["metadata"].get("layer", -1),
                                         d["metadata"].get("t_bin", -1),
@@ -182,6 +225,9 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--sae_root", type=Path, required=True,
                    help="Root dir under which to discover sae_weights.safetensors.")
+    p.add_argument("--ckpt_dirs_file", type=Path, default=None,
+                   help="Optional file with one SAE checkpoint directory per line. "
+                        "When set, avoids recursive discovery under --sae_root.")
     p.add_argument("--val_root", type=Path,
                    default=Path("/leonardo_scratch/large/userexternal/lcerovaz/"
                                 "diffmechint/activations_val"),
@@ -196,12 +242,21 @@ def main() -> int:
                    help="Token batch size during eval forward passes.")
     p.add_argument("--max_tokens", type=int, default=None,
                    help="Cap evaluated tokens per SAE (default: all tokens "
-                        "in the shard, ~1.28M for 5/class × 256 tok).")
+                        "in the shard, ~1.28M for 5/class x 256 tok).")
     p.add_argument("--dry_run", action="store_true",
                    help="Print the planned (sae_ckpt, val_shard) pairs and exit. "
                         "Used by the coherence-check subagents.")
     p.add_argument("--limit", type=int, default=None,
                    help="Evaluate at most this many SAEs (for smoke tests).")
+    p.add_argument("--only_dit_step", type=int, default=None,
+                   help="Restrict to SAEs trained on activations from this DiT "
+                        "checkpoint step (e.g. 200000). Useful when val shards "
+                        "only exist for a single ckpt (e.g. y_null re-extraction).")
+    p.add_argument("--skip_existing", action="store_true",
+                   help="If aggregate.jsonl already has a row for a planned "
+                        "(sweep_id, condition, layer, t_bin, dit_step, stage) "
+                        "tuple, skip re-evaluating that SAE. Used to resume "
+                        "after wallclock-timeout.")
     args = p.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -215,12 +270,19 @@ def main() -> int:
         error(f"val_root does not exist: {args.val_root}")
         return 1
 
-    info(f"Discovering SAE checkpoints under {args.sae_root} …")
-    saes = discover_saes(args.sae_root)
+    if args.ckpt_dirs_file is not None:
+        info(f"Reading SAE checkpoint list from {args.ckpt_dirs_file} …")
+        saes = discover_saes_from_file(args.sae_root, args.ckpt_dirs_file)
+    else:
+        info(f"Discovering SAE checkpoints under {args.sae_root} …")
+        saes = discover_saes(args.sae_root)
     info(f"  found {len(saes)} sae_weights.safetensors")
     if not args.include_mid:
         saes = [s for s in saes if s["stage"] == "final"]
         info(f"  after filtering to stage=final: {len(saes)}")
+    if args.only_dit_step is not None:
+        saes = [s for s in saes if s["dit_step"] == args.only_dit_step]
+        info(f"  after filtering to dit_step={args.only_dit_step}: {len(saes)}")
     if args.limit is not None:
         saes = saes[: args.limit]
         info(f"  limited to first {len(saes)} (smoke-test mode)")
@@ -228,6 +290,21 @@ def main() -> int:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     aggregate_jsonl = args.output_dir / "aggregate.jsonl"
     aggregate_csv = args.output_dir / "aggregate.csv"
+
+    # Resume support: collect (sweep_id, cond, L, T, dit_step, stage) of rows
+    # already in aggregate.jsonl so we can skip them.
+    done_keys: set[tuple] = set()
+    if args.skip_existing and aggregate_jsonl.exists():
+        for ln in aggregate_jsonl.read_text().splitlines():
+            if not ln.strip():
+                continue
+            try:
+                d = json.loads(ln)
+                done_keys.add((d["sweep_id"], d["condition"], int(d["layer"]),
+                               int(d["t_bin"]), int(d["dit_step"]), d["stage"]))
+            except Exception:
+                continue
+        info(f"  --skip_existing: found {len(done_keys)} previously-evaluated SAEs in aggregate.jsonl")
 
     # Pre-pass: planned pairs (printed for both dry-run and real runs so logs
     # are self-documenting; subagents can grep this).
@@ -266,6 +343,13 @@ def main() -> int:
         k = int(md.get("k"))
         d_sae = int(md.get("d_sae"))
         ckpt_dir = s["ckpt_dir"]
+
+        key = (s["sweep_id"], cond, layer, t_bin, s["dit_step"], s["stage"])
+        if key in done_keys:
+            info(f"[{i + 1:3d}/{len(plan)}] [skip] already done: {cond} L{layer}_T{t_bin} "
+                 f"step={s['dit_step']} stage={s['stage']}")
+            continue
+
         t0 = time.perf_counter()
         info(f"[{i + 1:3d}/{len(plan)}] sweep={s['sweep_id']} cond={cond} "
              f"L{layer}_T{t_bin} step={s['dit_step']} stage={s['stage']} k={k}")
@@ -323,15 +407,26 @@ def main() -> int:
            f"l0={m['l0_mean']:.1f} dead={m['dead_pct']*100:.2f}% "
            f"  ({time.perf_counter() - t0:.1f}s)")
 
-    # Master CSV.
-    if rows:
+    # Master CSV — rebuild from the full aggregate.jsonl (includes any rows
+    # carried over from a previous --skip_existing run).
+    all_rows: list[dict] = []
+    if aggregate_jsonl.exists():
+        for ln in aggregate_jsonl.read_text().splitlines():
+            if not ln.strip():
+                continue
+            try:
+                all_rows.append(json.loads(ln))
+            except Exception:
+                continue
+    if all_rows:
         with aggregate_csv.open("w", newline="") as fh:
-            cols = list(rows[0].keys())
+            cols = list(all_rows[0].keys())
             w = csv.DictWriter(fh, fieldnames=cols)
             w.writeheader()
-            for r in rows:
+            for r in all_rows:
                 w.writerow(r)
-        ok(f"Wrote {len(rows)} rows to {aggregate_csv}")
+        ok(f"Wrote {len(all_rows)} rows to {aggregate_csv} "
+           f"({len(rows)} new this run, {len(all_rows) - len(rows)} from prior run)")
     else:
         warn("No rows produced — check earlier errors.")
 

@@ -21,6 +21,7 @@ set -euo pipefail
 #   BATCH_SIZE  (default 4096)
 #   MAX_TOKENS  (default: all)
 #   LIMIT       (default: all)
+#   CKPT_DIRS_FILE (default: unset; one SAE checkpoint directory per line)
 SAE_ROOT="${SAE_ROOT:?must export SAE_ROOT before sbatch}"
 OUTPUT_DIR="${OUTPUT_DIR:?must export OUTPUT_DIR before sbatch}"
 VAL_ROOT="${VAL_ROOT:-/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/activations_val}"
@@ -49,6 +50,16 @@ if [[ -n "$MAX_TOKENS" ]]; then
 fi
 if [[ -n "$LIMIT" ]]; then
     EXTRA_ARGS+=("--limit" "$LIMIT")
+fi
+if [[ -n "${ONLY_DIT_STEP:-}" ]]; then
+    EXTRA_ARGS+=("--only_dit_step" "$ONLY_DIT_STEP")
+fi
+if [[ -n "${CKPT_DIRS_FILE:-}" ]]; then
+    EXTRA_ARGS+=("--ckpt_dirs_file" "$CKPT_DIRS_FILE")
+fi
+if [[ "${SKIP_EXISTING:-false}" == "true" ]]; then
+    EXTRA_ARGS+=("--skip_existing")
+    echo "SKIP_EXISTING=true → passing --skip_existing (resume from prior aggregate.jsonl)"
 fi
 
 uv run python scripts/eval/eval_sae_on_val.py \

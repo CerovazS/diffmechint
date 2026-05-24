@@ -141,6 +141,7 @@ def _extract_one_ckpt(
     seed: int,
     device: torch.device,
     stratified_per_class: int | None = None,
+    y_null: bool = False,
 ) -> None:
     """Forward `n_samples` clean latents through `model` at each `t_bin` and
     flush the captured per-cell activations to HDF5."""
@@ -176,13 +177,19 @@ def _extract_one_ckpt(
             y = torch.tensor(
                 [int(dataset[int(i)]["label"]) for i in idxs], dtype=torch.long, device=device
             )
+            # When y_null is set, swap the class label with the null token used during
+            # CFG-dropout (id = NUM_CLASSES). This removes the y_embedder contribution
+            # from the residual stream while keeping x_t / sample order / manifest
+            # labels untouched — downstream probing/SAE can still resolve true labels
+            # from `manifest.sample_idx`.
+            y_for_forward = torch.full_like(y, NUM_CLASSES) if y_null else y
             for t_val in bins:
                 eps = torch.randn_like(x1)
                 t = torch.full((x1.shape[0],), float(t_val), device=device)
                 # Linear FM-OT path: x_t = (1-t)*eps + t*x_1 (matches conf/transport/fm_ot.yaml).
                 x_t = (1.0 - t_val) * eps + t_val * x1
                 with timestep_context(t_val):
-                    _ = model(x_t, t, y)
+                    _ = model(x_t, t, y_for_forward)
                 # Hooks captured one record per (layer × batch). Re-write labels
                 # so the first call ends up labelled (the buffer enforces consistency).
                 # Workaround: write a no-op labelled batch via direct API path —
@@ -211,6 +218,7 @@ def _extract_one_ckpt(
         "store_dtype": "float16",
         "sampling_mode": "stratified" if stratified_per_class else "random",
         "stratified_per_class": int(stratified_per_class) if stratified_per_class else None,
+        "y_null": bool(y_null),
         "format_version": "1",
     }
     (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
@@ -246,6 +254,10 @@ def main() -> int:
                    help="Skip z-score on cached latents — use for runs trained with +data.normalize=false.")
     p.add_argument("--only_step", type=int, default=None,
                    help="If set, extract only this single ckpt step (for smoke tests).")
+    p.add_argument("--y_null", action="store_true",
+                   help="Replace the class label with the null token (= NUM_CLASSES) during "
+                        "forward — removes the y_embedder contribution from the residual "
+                        "stream. Manifest labels (sample_idx) remain the true labels.")
     args = p.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -325,6 +337,7 @@ def main() -> int:
             seed=args.seed + step,
             device=device,
             stratified_per_class=args.stratified,
+            y_null=args.y_null,
         )
         ok(f"  step {step}: extracted to {out_dir}  ({(time.perf_counter() - t0)/60:.2f} min)")
 

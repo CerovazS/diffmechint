@@ -1,10 +1,16 @@
 # Revelio-style probe grid: per (layer, t_bin) cell train one logistic-regression
 # probe per concept axis. Reads activation HDF5s produced by Phase 3.
 
-# Concept axes — only those marked `available=True` in concepts.py work today
-# without an extra labelling pass.
+# Concept axes — all 6 listed run on the existing K=3 production grid
+# without any extra labelling pass. `scene` / `color` / `texture` / `shape`
+# in concepts.py need a CLIP-zero-shot labelling pass and are off by default.
 concepts:
   - object
+  - animal_binary
+  - broad_8
+  - vehicle_binary
+  - food_binary
+  - instrument_binary
 
 # Sweep grid (matches `default_tap_layers` for SiT-B).
 layers: [3, 6, 9]

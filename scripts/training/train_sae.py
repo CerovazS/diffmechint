@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import random
 import sys
 import time
 from pathlib import Path
@@ -89,9 +90,15 @@ def train_one_chain(
     val_every_n_steps: int = 1500,
     val_max_tokens: int = 200_000,
     matryoshka_widths: tuple[int, ...] | None = None,
+    seed: int | None = None,
+    fail_if_chain_exists: bool = False,
 ) -> list[Path]:
     """Train the 7-ckpt warm-started SAE chain for a single (cond, layer, t_bin) cell."""
     out_dir = out_root / condition / f"L{layer}_T{t_bin}"
+    if fail_if_chain_exists and out_dir.exists() and any(out_dir.iterdir()):
+        raise FileExistsError(
+            f"refusing to write into non-empty chain directory: {out_dir}"
+        )
     out_dir.mkdir(parents=True, exist_ok=True)
 
     # Build the (label, shards) sequence in DiT-checkpoint order.
@@ -116,6 +123,7 @@ def train_one_chain(
                 "k": k,
                 "variant": variant,
                 "matryoshka_widths": list(matryoshka_widths) if matryoshka_widths else None,
+                "seed": seed,
             },
         )
 
@@ -123,6 +131,7 @@ def train_one_chain(
         return hdf5_provider(
             shards, batch_size=batch_size, device=device,
             flatten_tokens=True, loop_forever=True, shuffle=True,
+            seed=seed,
         )
 
     val_shards: list[Path] | None = None
@@ -200,6 +209,13 @@ def main() -> int:
     p.add_argument("--variant_tag", type=str, default="",
                    help="Suffix added to wandb group and run names to disambiguate "
                         "ablation runs on the same cell (e.g. 'd7680', 'k64', 'long').")
+    p.add_argument("--seed", type=int, default=None,
+                   help="Seed torch/random and the HDF5 activation shuffler. Use a new "
+                        "seed for independent replicate SAE sweeps.")
+    p.add_argument("--fail_if_chain_exists", action="store_true",
+                   help="Refuse to train a chain if its output directory already "
+                        "contains files. Use for new replicate sweeps to prevent "
+                        "accidental checkpoint overwrite.")
     p.add_argument("--lr_warm_up_steps", type=int, default=200,
                    help="LR warmup steps at the FIRST stage (always cold) and at every "
                         "stage when warm_mode=cold.")
@@ -217,6 +233,12 @@ def main() -> int:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if device == "cpu":
         warn("CUDA not available — SAE training will be slow.")
+    if args.seed is not None:
+        random.seed(args.seed)
+        torch.manual_seed(args.seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(args.seed)
+        info(f"seed = {args.seed}")
 
     args.out_root.mkdir(parents=True, exist_ok=True)
     info(f"out_root = {args.out_root}")
@@ -275,6 +297,8 @@ def main() -> int:
                 val_every_n_steps=args.val_every_n_steps,
                 val_max_tokens=args.val_max_tokens,
                 matryoshka_widths=tuple(args.matryoshka_widths) if args.matryoshka_widths else None,
+                seed=args.seed,
+                fail_if_chain_exists=args.fail_if_chain_exists,
             )
         except Exception as e:  # noqa: BLE001
             error(f"chain {cond}/L{lay}/T{tb} failed: {type(e).__name__}: {e}")
