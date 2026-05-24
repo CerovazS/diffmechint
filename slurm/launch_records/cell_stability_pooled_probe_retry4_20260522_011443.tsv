@@ -1,0 +1,2 @@
+kind	job_id	out_dir	launched_at	note
+pooled-probes	42226153	outputs/phase4_9_seed_stability/pooled_probes_ynull_seed0_vs_seed3407_23cells_20260522_011443_retry4_direct_topvar	2026-05-22T01:14:43+02:00	direct safetensors encoder plus top-variance 4096 feature columns

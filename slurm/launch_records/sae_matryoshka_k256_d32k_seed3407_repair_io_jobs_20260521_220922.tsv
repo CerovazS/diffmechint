@@ -1,0 +1,5 @@
+job_id	condition	layer	t_bin	out_root	repair_of
+42217601	sd_vae	6	0	/leonardo_scratch/fast/IscrC_PDR/lcerovaz/diffmechint/sae_matryoshka_k256_d32k_seed3407	42148783
+42217602	sd_vae	6	2	/leonardo_scratch/fast/IscrC_PDR/lcerovaz/diffmechint/sae_matryoshka_k256_d32k_seed3407	42148787
+42217603	sd_vae	9	0	/leonardo_scratch/fast/IscrC_PDR/lcerovaz/diffmechint/sae_matryoshka_k256_d32k_seed3407	42148789
+42217604	eq_vae	9	2	/leonardo_scratch/fast/IscrC_PDR/lcerovaz/diffmechint/sae_matryoshka_k256_d32k_seed3407	42148829

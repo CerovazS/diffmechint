@@ -1,0 +1,2 @@
+kind	job_id	out_dir	launched_at	note
+pooled-probes	42225880	outputs/phase4_9_seed_stability/pooled_probes_ynull_seed0_vs_seed3407_23cells_20260522_010645_retry3_direct_weights	2026-05-22T01:06:45+02:00	direct safetensors encoder avoids SAELens cfg.json reads

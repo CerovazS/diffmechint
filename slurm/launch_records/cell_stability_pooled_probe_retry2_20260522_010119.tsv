@@ -1,0 +1,2 @@
+kind	job_id	out_dir	launched_at	note
+pooled-probes	42225732	outputs/phase4_9_seed_stability/pooled_probes_ynull_seed0_vs_seed3407_23cells_20260522_010119_retry2	2026-05-22T01:01:19+02:00	retry after SAELens cfg I/O retry patch
