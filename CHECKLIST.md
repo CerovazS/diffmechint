@@ -87,6 +87,18 @@ with a `~~...~~` line plus a `# DONE: ...` postmortem.
 - [x] (4.5a.6) E06 Flywheel node (`mute-band-0440`) with 9 artifacts + tags experiment + phase-4. — claude — DONE.
 - [x] (4.5a.7) **Acceptance gate**: 27 / 27 cells below ΔFID = 2.0 → Phase 5 green-lit on the full grid. — claude — DONE: mean ΔFID +0.59, max +1.80 (sd_vae L6/T2), min −0.10 (eq_vae L9/T0).
 
+## Phase 4.10 — Cross-tokenizer dictionary validation
+
+- [x] ~~(4.10a) Implement probe transfer, residual CKA/RSA, activation proxy, and cross-SAE FID drivers~~ — codex — DONE: added Phase 4.10 program, analysis/FID CLIs, SLURM template, synthetic tests, and small real y-null smoke outputs.
+
+## Phase 4.11 — Feature-level activation patching
+
+- [x] ~~(4.11a) Implement feature bank, cross-tokenizer matching, activation patching, sampling hook, and SLURM driver~~ — codex — DONE: added `program_feature_activation_patching.md`, `sae_feature_patching.py`, `cross_tokenizer_feature_patching.py`, `feature_activation_patching.slurm`, and synthetic tests.
+- [x] ~~(4.11b) Smoke feature-level activation patching on `sd_vae <-> eq_vae`, `L3_T1`, five feature pairs~~ — codex — DONE: bank/match/activation smoke completed, plus `eq_vae` sampling smoke at N=16 with hook stats active=2.
+- [x] ~~(4.11c) Bounded final activation subset and sampling screen~~ — codex — DONE: full atlas bank (2423 features), 1036 Hungarian directed matches, 122-pair activation subset on A100, and N=128 `repa_e->eq_vae` sampling screen with `NORMALIZE=false`.
+- [x] ~~(4.11d) Align Phase 4.11 implementation to recovered long plan~~ — codex — DONE: extended bank/match/activation/group/sampling modes per `outputs/phase4_11_feature_activation_patching/recovered_long_plan_20260522.md`; GPU smoke `longplan_smoke_20260522_175514` completed with 16 Hungarian rows, 6 feature-family groups, 4-pair calibrated activation patching, and N=16 sampling hook active=2.
+- [ ] (4.11e) Complete recovered long-plan causal gaps — codex — IN PROGRESS: implement group-to-group feature-family patching, run GPU smoke/full jobs, then slope-gated source-dependent sampling and Phase 6 EAP handoff.
+
 ## Phase 5 — Linear probes (Revelio grid)
 
 - [x] (5.1) `probing/concepts.py` — 5 attribute axes — claude — DONE: ConceptAxis registry; `object` available via existing HDF5 labels; `scene/color/texture/shape` stubbed with explicit NotImplementedError + docstring TODO

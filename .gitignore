@@ -72,3 +72,7 @@ flywheel/
 
 # Stray screenshots / temp images at repo root
 /image.png
+
+# SLURM long-plan interactive logs and precompute output dirs
+slurm/longplan_*.log
+slurm/precompute_*/
