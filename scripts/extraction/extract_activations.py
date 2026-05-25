@@ -1,4 +1,4 @@
-"""Extract residual-stream activations from a single (condition × ckpt) pair.
+"""Extract residual-stream activations from a single (condition x ckpt) pair.
 
 For each EMA checkpoint of a SiT run, build x_t = (1-t)*eps + t*x_1 at the
 3 Revelio bins {0.025, 0.20, 0.50} on a held-out subset of the cached
@@ -45,10 +45,19 @@ from diffmechint.hooks import ActivationBuffer, ResidualStreamTap  # noqa: E402
 from diffmechint.hooks.timestep_router import timestep_context  # noqa: E402
 from diffmechint.sit import SiT_models  # noqa: E402
 from diffmechint.training.data import CachedLatentDataset  # noqa: E402
-from diffmechint.utils import error, info, ok, warn  # noqa: E402
+from diffmechint.utils import (  # noqa: E402
+    error,
+    info,
+    model_subdir,
+    model_variant_spec,
+    ok,
+    parse_layers,
+    warn,
+)
 
-LATENTS_BASE = Path("/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/latents")
-ACTIVATIONS_BASE = Path("/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/activations")
+SCRATCH_PROJECT_ROOT = Path("/leonardo_scratch/large/userexternal/lcerovaz/diffmechint")
+LATENTS_BASE = SCRATCH_PROJECT_ROOT / "latents"
+ACTIVATIONS_BASE = SCRATCH_PROJECT_ROOT / "activations"
 NUM_CLASSES = 1000
 
 
@@ -82,7 +91,7 @@ def _build_sample_indices(
     Two modes:
       - `stratified_per_class is None` → draw `n_samples` uniformly from val.
       - `stratified_per_class > 0` → for each class label observed in val,
-        draw exactly that many indices. Total = (#classes) × stratified_per_class.
+        draw exactly that many indices. Total = (#classes) x stratified_per_class.
         Classes with fewer val samples than requested raise (we want balanced
         coverage; silently truncating would produce uneven cells).
     """
@@ -142,6 +151,7 @@ def _extract_one_ckpt(
     device: torch.device,
     stratified_per_class: int | None = None,
     y_null: bool = False,
+    metadata: dict | None = None,
 ) -> None:
     """Forward `n_samples` clean latents through `model` at each `t_bin` and
     flush the captured per-cell activations to HDF5."""
@@ -162,12 +172,11 @@ def _extract_one_ckpt(
     )
     n_samples = len(sample_idx)
 
-    info(f"  {n_samples} samples × {len(bins)} t_bins × {len(layers)} layers; "
+    info(f"  {n_samples} samples x {len(bins)} t_bins x {len(layers)} layers; "
          f"batch_size={batch_size}")
 
     tap.attach()
     try:
-        n_done = 0
         for batch_start in range(0, n_samples, batch_size):
             batch_end = min(batch_start + batch_size, n_samples)
             idxs = sample_idx[batch_start:batch_end]
@@ -190,11 +199,10 @@ def _extract_one_ckpt(
                 x_t = (1.0 - t_val) * eps + t_val * x1
                 with timestep_context(t_val):
                     _ = model(x_t, t, y_for_forward)
-                # Hooks captured one record per (layer × batch). Re-write labels
+                # Hooks captured one record per (layer x batch). Re-write labels
                 # so the first call ends up labelled (the buffer enforces consistency).
                 # Workaround: write a no-op labelled batch via direct API path —
                 # since the tap doesn't pass labels, we patch them after the fact.
-            n_done = batch_end
         # Inject labels by re-writing — we need Phase 5 probes to find them.
         # Implementation detail: we re-run the loop *with* explicit labels through
         # a manual write. To keep things simple for v1, we skip label storage at
@@ -221,6 +229,8 @@ def _extract_one_ckpt(
         "y_null": bool(y_null),
         "format_version": "1",
     }
+    if metadata:
+        manifest.update(metadata)
     (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
 
 
@@ -233,14 +243,17 @@ def main() -> int:
     p.add_argument("--model_name", type=str, default="SiT-B/2")
     p.add_argument("--n_samples", type=int, default=2000)
     p.add_argument("--batch_size", type=int, default=64)
-    p.add_argument("--layers", type=int, nargs="+", default=[3, 6, 9])
+    p.add_argument("--layers", nargs="+", default=["auto"],
+                   help="Layer indices to tap, or 'auto' for model-aware quartile taps.")
     p.add_argument("--bins", type=float, nargs="+", default=[0.025, 0.20, 0.50])
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--stratified", type=int, default=None,
                    help="Stratified sampling: draw exactly this many val samples per class. "
-                        "Overrides --n_samples. Total = #classes × this value.")
-    p.add_argument("--out_root", type=Path, default=ACTIVATIONS_BASE,
-                   help="Activation root; per-ckpt subdirs are <out_root>/<condition>/step_<NNNNNN>/")
+                        "Overrides --n_samples. Total = #classes x this value.")
+    p.add_argument("--out_root", type=Path, default=None,
+                   help="Activation root; defaults to "
+                        "$SCRATCH/diffmechint/by_model/<model_variant>/activations. "
+                        "Per-ckpt subdirs are <out_root>/<condition>/step_<NNNNNN>/")
     p.add_argument("--latents_root", type=Path, default=LATENTS_BASE,
                    help="Latent shard root; reads from <latents_root>/<condition>/. "
                         "Override to use a parallel tree like 'latents_val/'.")
@@ -293,11 +306,14 @@ def main() -> int:
     info(f"Adapter={args.condition} latent_shape={stats['latent_shape']} "
          f"in_ch={in_channels} input_size={input_size}")
 
-    info(f"Building model {args.model_name} (in_ch={in_channels}, input_size={input_size})")
-    model = _build_model(args.model_name, in_channels, input_size, device)
+    spec = model_variant_spec(args.model_name)
+    layers = parse_layers(args.layers, spec)
+
+    info(f"Building model {spec.model_name} (in_ch={in_channels}, input_size={input_size})")
+    model = _build_model(spec.model_name, in_channels, input_size, device)
     n_blocks = len(model.blocks)
-    info(f"  model has {n_blocks} blocks; tapping {args.layers}")
-    bad = [i for i in args.layers if not (0 <= i < n_blocks)]
+    info(f"  model has {n_blocks} blocks; tapping {layers}")
+    bad = [i for i in layers if not (0 <= i < n_blocks)]
     if bad:
         error(f"layer indices {bad} out of range for {n_blocks}-block model")
         return 1
@@ -311,8 +327,18 @@ def main() -> int:
     info(f"Found {len(ckpts)} EMA checkpoints to extract from "
          f"({args.run_dir.name})")
 
-    cond_root = args.out_root / args.condition
+    out_root = args.out_root or model_subdir(SCRATCH_PROJECT_ROOT, spec.variant_id, "activations")
+    cond_root = out_root / args.condition
     cond_root.mkdir(parents=True, exist_ok=True)
+    run_metadata = {
+        "model_name": spec.model_name,
+        "model_variant": spec.variant_id,
+        "depth": spec.depth,
+        "hidden_size": spec.hidden_size,
+        "patch_size": spec.patch_size,
+        "tap_layers": list(spec.tap_layers),
+        "source_run": str(args.run_dir),
+    }
     for step, ema_path in ckpts:
         out_dir = cond_root / f"step_{step:06d}"
         if (out_dir / "manifest.json").exists():
@@ -329,7 +355,7 @@ def main() -> int:
         _extract_one_ckpt(
             model=model,
             dataset=dataset,
-            layers=args.layers,
+            layers=layers,
             bins=tuple(args.bins),
             n_samples=args.n_samples,
             batch_size=args.batch_size,
@@ -338,6 +364,7 @@ def main() -> int:
             device=device,
             stratified_per_class=args.stratified,
             y_null=args.y_null,
+            metadata=run_metadata,
         )
         ok(f"  step {step}: extracted to {out_dir}  ({(time.perf_counter() - t0)/60:.2f} min)")
 

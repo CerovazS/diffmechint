@@ -20,6 +20,7 @@ set -euo pipefail
 #   activation-patch       activation-space feature replacement controls
 #   group-features         Hungarian matches -> feature family components
 #   group-activation-patch feature-family group replacement controls
+#   concept-eap            SAE feature attribution to concept-margin probes
 #   sampling-feature-fid   sampling-time feature patching FID
 
 REPO=/leonardo_work/IscrC_PDR/lcerovaz/diffmechint
@@ -210,6 +211,33 @@ elif [[ "$ANALYSIS" == "group-activation-patch" ]]; then
         --min_active_tokens "${MIN_ACTIVE_TOKENS:-32}" \
         --device "${DEVICE:-cuda}" \
         "${GROUP_ARGS[@]}" \
+        "${RESUME_ARGS[@]}" \
+        "${CELL_ARGS[@]}"
+elif [[ "$ANALYSIS" == "concept-eap" ]]; then
+    EAP_ARGS=()
+    if [[ -n "${FEATURE_BANK:-}" ]]; then
+        EAP_ARGS+=("--feature_bank" "$FEATURE_BANK")
+    fi
+    if [[ -n "${SAE_ROOT:-}" ]]; then
+        EAP_ARGS+=("--sae_root" "$SAE_ROOT")
+    fi
+    uv run python scripts/analysis/sae_concept_eap.py \
+        --conditions $CONDITIONS \
+        --layers $LAYERS \
+        --t_bins $T_BINS \
+        --concepts ${CONCEPTS:-animal_binary vehicle_binary food_binary instrument_binary} \
+        --dit_step "$DIT_STEP" \
+        --out_root "$OUT_ROOT" \
+        --run_id "$RUN_ID" \
+        --max_images "${MAX_IMAGES:-1024}" \
+        --max_probe_tokens "${MAX_PROBE_TOKENS:-100000}" \
+        --max_eval_tokens "${MAX_EVAL_TOKENS:-16384}" \
+        --max_features_per_cell "${MAX_FEATURES_PER_CELL:-512}" \
+        --max_circuit_features "${MAX_CIRCUIT_FEATURES:-100}" \
+        --sae_batch_size "${SAE_BATCH_SIZE:-256}" \
+        --ridge_probe_alpha "${RIDGE_PROBE_ALPHA:-10.0}" \
+        --device "${DEVICE:-cuda}" \
+        "${EAP_ARGS[@]}" \
         "${RESUME_ARGS[@]}" \
         "${CELL_ARGS[@]}"
 elif [[ "$ANALYSIS" == "sampling-feature-fid" ]]; then

@@ -26,15 +26,15 @@ from sklearn.model_selection import train_test_split
 from sklearn.neighbors import NearestNeighbors
 
 from diffmechint.probing.concepts import get_concept
-from diffmechint.utils import info, ok
+from diffmechint.utils import info, model_subdir, model_variant_spec, ok, parse_layers
 
-ACTIVATIONS_YNULL = Path(
-    "/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/activations_ynull"
-)
+SCRATCH_PROJECT_ROOT = Path("/leonardo_scratch/large/userexternal/lcerovaz/diffmechint")
+ACTIVATIONS_YNULL = SCRATCH_PROJECT_ROOT / "activations_ynull"
 LATENTS_VAL = Path("/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/latents_val")
 SAE_ROOT = Path(
     "/leonardo_scratch/fast/IscrC_PDR/lcerovaz/diffmechint/sae_matryoshka_k256_d32k"
 )
+OUTPUT_ROOT = Path("outputs")
 DEFAULT_OUT_ROOT = Path("outputs/phase4_10_tokenizer_dictionary_validation")
 DEFAULT_CONDITIONS = ("sd_vae", "repa_e", "eq_vae")
 DEFAULT_CONCEPTS = (
@@ -331,7 +331,7 @@ def _plot_pair_heatmap(
     vmax: float | None = None,
 ) -> None:
     labels = sorted({f"{r['source']}->{r['target']}" for r in rows})
-    cells = [(layer, t_bin) for layer in LAYERS for t_bin in T_BINS]
+    cells = sorted({(int(r["layer"]), int(r["t_bin"])) for r in rows})
     arr = np.full((len(labels), len(cells)), np.nan)
     label_idx = {v: i for i, v in enumerate(labels)}
     cell_idx = {v: i for i, v in enumerate(cells)}
@@ -887,12 +887,14 @@ def run_aggregate_runs(args: argparse.Namespace) -> int:
 
 def _add_common_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--conditions", nargs="+", default=list(DEFAULT_CONDITIONS))
-    p.add_argument("--layers", nargs="+", type=int, default=list(LAYERS))
+    p.add_argument("--model_variant", type=str, default="sit_b_2",
+                   help="SiT variant id or model name; used for auto layers and namespaced roots.")
+    p.add_argument("--layers", nargs="+", default=["auto"])
     p.add_argument("--t_bins", nargs="+", type=int, default=list(T_BINS))
     p.add_argument("--dit_step", type=int, default=200_000)
-    p.add_argument("--activations_root", type=Path, default=ACTIVATIONS_YNULL)
+    p.add_argument("--activations_root", type=Path, default=None)
     p.add_argument("--latents_root", type=Path, default=LATENTS_VAL)
-    p.add_argument("--out_root", type=Path, default=DEFAULT_OUT_ROOT)
+    p.add_argument("--out_root", type=Path, default=None)
     p.add_argument("--run_id", type=str, default=None)
     p.add_argument("--resume", action="store_true", help="Resume into an existing run directory.")
     p.add_argument("--max_images", type=int, default=512)
@@ -959,9 +961,27 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
+def _normalize_common_args(args: argparse.Namespace) -> None:
+    if not hasattr(args, "model_variant"):
+        return
+    spec = model_variant_spec(args.model_variant)
+    args.model_variant = spec.variant_id
+    args.layers = parse_layers(args.layers, spec)
+    if args.activations_root is None:
+        namespaced = model_subdir(SCRATCH_PROJECT_ROOT, spec.variant_id, "activations_ynull")
+        args.activations_root = (
+            namespaced if namespaced.exists() or spec.variant_id != "sit_b_2" else ACTIVATIONS_YNULL
+        )
+    if args.out_root is None:
+        args.out_root = model_subdir(
+            OUTPUT_ROOT, spec.variant_id, "analysis", "tokenizer_dictionary_validation"
+        )
+
+
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
+    _normalize_common_args(args)
     if hasattr(args, "t_bins") and any(t not in T_CENTERS for t in args.t_bins):
         parser.error(f"--t_bins must be drawn from {sorted(T_CENTERS)}")
     if hasattr(args, "max_images") and args.max_images < 2:

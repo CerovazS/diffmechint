@@ -18,6 +18,8 @@ TOK="${TOK:?must export TOK before sbatch (the tokenizer name)}"
 MODEL="${MODEL:-sit_b_2}"  # default sit_b_2; export MODEL=sit_b_1 for DC-AE patch=1
 # Optional: RESUME_FROM=<path/to/step_NNNNNNNN.safetensors>
 # Pair with EMA_RESUME_FROM=<path/to/step_NNNNNNNN_ema.safetensors>
+RUN_TIMESTAMP="${RUN_TIMESTAMP:-$(date +%Y%m%d_%H%M%S)}"
+export RUN_TIMESTAMP
 
 # Extend NCCL collective-op watchdog timeout from 30 min → 1h. Required for
 # CALLBACKS=full because rank 0 spends ~5-8 min inside MiniFIDCallback while

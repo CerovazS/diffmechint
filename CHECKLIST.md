@@ -97,7 +97,7 @@ with a `~~...~~` line plus a `# DONE: ...` postmortem.
 - [x] ~~(4.11b) Smoke feature-level activation patching on `sd_vae <-> eq_vae`, `L3_T1`, five feature pairs~~ — codex — DONE: bank/match/activation smoke completed, plus `eq_vae` sampling smoke at N=16 with hook stats active=2.
 - [x] ~~(4.11c) Bounded final activation subset and sampling screen~~ — codex — DONE: full atlas bank (2423 features), 1036 Hungarian directed matches, 122-pair activation subset on A100, and N=128 `repa_e->eq_vae` sampling screen with `NORMALIZE=false`.
 - [x] ~~(4.11d) Align Phase 4.11 implementation to recovered long plan~~ — codex — DONE: extended bank/match/activation/group/sampling modes per `outputs/phase4_11_feature_activation_patching/recovered_long_plan_20260522.md`; GPU smoke `longplan_smoke_20260522_175514` completed with 16 Hungarian rows, 6 feature-family groups, 4-pair calibrated activation patching, and N=16 sampling hook active=2.
-- [ ] (4.11e) Complete recovered long-plan causal gaps — codex — IN PROGRESS: implement group-to-group feature-family patching, run GPU smoke/full jobs, then slope-gated source-dependent sampling and Phase 6 EAP handoff.
+- [ ] (4.11e) Complete recovered long-plan causal gaps — codex — IN PROGRESS: group-to-group feature-family patching is implemented, GPU-smoked, fully run, aggregated, and logged to Flywheel as E21; slope-gated N=5000 sampling was verified as the corrected source-dependent sampling bundle; Phase 6 concept-EAP candidate discovery is implemented, GPU-smoked, fully run on 36 circuits, aggregated, and logged to Flywheel as E22. Remaining: final taxonomy synthesis against the recovered long plan.
 
 ## Phase 5 — Linear probes (Revelio grid)
 

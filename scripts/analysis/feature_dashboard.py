@@ -51,7 +51,7 @@ import numpy as np  # noqa: E402
 import torch  # noqa: E402
 from PIL import Image  # noqa: E402
 
-from diffmechint.utils import error, info, ok, warn  # noqa: E402
+from diffmechint.utils import error, info, model_subdir, model_variant_spec, ok, warn  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Constants — paths on Leonardo + Palette B
@@ -62,6 +62,9 @@ SAE_ROOT_DEFAULT = Path(
 ACTIVATIONS_VAL_ROOT = Path(
     "/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/activations_val"
 )
+SCRATCH_PROJECT_ROOT = ACTIVATIONS_VAL_ROOT.parent
+FAST_PROJECT_ROOT = SAE_ROOT_DEFAULT.parent
+OUTPUT_ROOT = Path("outputs")
 IMAGEFOLDER_ROOT = Path(
     "/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/imagenet_val_imagefolder"
 )
@@ -923,13 +926,14 @@ def main() -> int:
                    help="Cell dir: re-emit features.html from existing per-feature JSONs "
                         "and exit (no GPU needed).")
     p.add_argument("--condition", required=True, choices=["sd_vae", "eq_vae", "repa_e"])
+    p.add_argument("--model_variant", type=str, default="sit_b_2",
+                   help="SiT variant id or model name; used for namespaced default roots.")
     p.add_argument("--layer", required=True, type=int)
     p.add_argument("--t_bin", required=True, type=int, choices=[0, 1, 2])
     p.add_argument("--dit_step", type=int, default=200_000)
-    p.add_argument("--sae_root", type=Path, default=SAE_ROOT_DEFAULT)
-    p.add_argument("--act_root", type=Path, default=ACTIVATIONS_VAL_ROOT)
-    p.add_argument("--out_root", type=Path,
-                   default=Path("outputs/phase4_5b_feature_viz"))
+    p.add_argument("--sae_root", type=Path, default=None)
+    p.add_argument("--act_root", type=Path, default=None)
+    p.add_argument("--out_root", type=Path, default=None)
     p.add_argument("--batch_images", type=int, default=64,
                    help="Images per SAE forward (each → 256 tokens).")
     p.add_argument("--thumb_size", type=int, default=256)
@@ -939,6 +943,17 @@ def main() -> int:
                         "are still written.")
     p.add_argument("--density_threshold", type=float, default=DENSITY_THRESHOLD)
     args = p.parse_args()
+    spec = model_variant_spec(args.model_variant)
+    if args.sae_root is None:
+        args.sae_root = (
+            SAE_ROOT_DEFAULT if spec.variant_id == "sit_b_2"
+            else model_subdir(FAST_PROJECT_ROOT, spec.variant_id, "sae")
+        )
+    if args.act_root is None:
+        namespaced = model_subdir(SCRATCH_PROJECT_ROOT, spec.variant_id, "activations_val")
+        args.act_root = namespaced if namespaced.exists() or spec.variant_id != "sit_b_2" else ACTIVATIONS_VAL_ROOT
+    if args.out_root is None:
+        args.out_root = model_subdir(OUTPUT_ROOT, spec.variant_id, "dashboards", "feature_viz")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if device.type == "cpu":

@@ -45,11 +45,14 @@ import h5py  # noqa: E402
 import numpy as np  # noqa: E402
 import torch  # noqa: E402
 
-from diffmechint.utils import error, info, ok, warn  # noqa: E402
+from diffmechint.utils import error, info, model_subdir, model_variant_spec, ok, warn  # noqa: E402
 
 SAE_ROOT_DEFAULT = Path(
     "/leonardo_scratch/fast/IscrC_PDR/lcerovaz/diffmechint/sae_matryoshka_k256_d32k"
 )
+SCRATCH_PROJECT_ROOT = Path("/leonardo_scratch/large/userexternal/lcerovaz/diffmechint")
+ACTIVATIONS_VAL_ROOT = SCRATCH_PROJECT_ROOT / "activations_val"
+FAST_PROJECT_ROOT = SAE_ROOT_DEFAULT.parent
 N_BINS = 30
 
 
@@ -141,11 +144,13 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--cell_dir", type=Path, required=True)
     p.add_argument("--condition", required=True, choices=["sd_vae", "eq_vae", "repa_e"])
+    p.add_argument("--model_variant", type=str, default="sit_b_2",
+                   help="SiT variant id or model name; used for namespaced default roots.")
     p.add_argument("--layer", required=True, type=int)
     p.add_argument("--t_bin", required=True, type=int, choices=[0, 1, 2])
     p.add_argument("--dit_step", type=int, default=200_000)
-    p.add_argument("--sae_root", type=Path, default=SAE_ROOT_DEFAULT)
-    p.add_argument("--act_root", type=Path, required=True,
+    p.add_argument("--sae_root", type=Path, default=None)
+    p.add_argument("--act_root", type=Path, default=None,
                    help="e.g. .../activations_val or .../activations_ynull")
     p.add_argument("--batch_images", type=int, default=64)
     p.add_argument("--n_bins", type=int, default=N_BINS)
@@ -154,6 +159,15 @@ def main() -> int:
     p.add_argument("--force", action="store_true",
                    help="Overwrite existing activation_histogram entries.")
     args = p.parse_args()
+    spec = model_variant_spec(args.model_variant)
+    if args.sae_root is None:
+        args.sae_root = (
+            SAE_ROOT_DEFAULT if spec.variant_id == "sit_b_2"
+            else model_subdir(FAST_PROJECT_ROOT, spec.variant_id, "sae")
+        )
+    if args.act_root is None:
+        namespaced = model_subdir(SCRATCH_PROJECT_ROOT, spec.variant_id, "activations_val")
+        args.act_root = namespaced if namespaced.exists() or spec.variant_id != "sit_b_2" else ACTIVATIONS_VAL_ROOT
 
     cell_dir: Path = args.cell_dir
     feat_dir = cell_dir / "features"

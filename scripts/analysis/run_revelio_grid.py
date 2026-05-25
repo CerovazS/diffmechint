@@ -28,14 +28,14 @@ import numpy as np
 
 from diffmechint.probing.concepts import CONCEPTS, get_concept
 from diffmechint.probing.revelio_grid import evaluate_grid, write_grid_result
-from diffmechint.utils import error, info, ok
+from diffmechint.utils import error, info, model_subdir, model_variant_spec, ok, parse_layers
 
-ACTIVATIONS_VAL = Path(
-    "/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/activations_val"
-)
+SCRATCH_PROJECT_ROOT = Path("/leonardo_scratch/large/userexternal/lcerovaz/diffmechint")
+ACTIVATIONS_VAL = SCRATCH_PROJECT_ROOT / "activations_val"
 LATENTS_VAL = Path(
     "/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/latents_val"
 )
+OUTPUT_ROOT = Path("outputs")
 DEFAULT_CONCEPTS = (
     "object",
     "animal_binary",
@@ -84,8 +84,9 @@ def _resolve_val_labels(
 
 
 def _plot_heatmap(matrix: np.ndarray, *, title: str, num_classes: int,
-                  baseline_acc: float, out_path: Path) -> None:
-    """Render a 3×3 (layer × t_bin) accuracy heatmap with Palette B."""
+                  baseline_acc: float, out_path: Path,
+                  layers: list[int], t_bins: list[int]) -> None:
+    """Render a layer x t_bin accuracy heatmap with Palette B."""
     from matplotlib.colors import LinearSegmentedColormap
     cmap = LinearSegmentedColormap.from_list(
         "pb_seq",
@@ -94,14 +95,14 @@ def _plot_heatmap(matrix: np.ndarray, *, title: str, num_classes: int,
     )
     fig, ax = plt.subplots(figsize=(4.6, 4.2))
     im = ax.imshow(matrix, cmap=cmap, vmin=baseline_acc, vmax=1.0, aspect="equal")
-    ax.set_xticks(range(len(T_BINS)),
-                  [f"T{t}\n{T_CENTERS[t]:.3f}" for t in T_BINS])
-    ax.set_yticks(range(len(LAYERS)), [f"L{l}" for l in LAYERS])
+    ax.set_xticks(range(len(t_bins)),
+                  [f"T{t}\n{T_CENTERS[t]:.3f}" for t in t_bins])
+    ax.set_yticks(range(len(layers)), [f"L{layer}" for layer in layers])
     for i in range(matrix.shape[0]):
         for j in range(matrix.shape[1]):
             v = matrix[i, j]
             if np.isnan(v):
-                ax.text(j, i, "–", ha="center", va="center",
+                ax.text(j, i, "-", ha="center", va="center",
                         color="#444", fontsize=14)
                 continue
             txtcolor = "#fafafa" if v > 0.7 else "#202020"
@@ -126,15 +127,27 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--condition", type=str, required=True,
                    choices=["sd_vae", "repa_e", "eq_vae"])
+    p.add_argument("--model_variant", type=str, default="sit_b_2",
+                   help="SiT variant id or model name; used for auto layers and namespaced roots.")
     p.add_argument("--dit_step", type=int, default=200_000)
     p.add_argument("--concepts", nargs="+", default=list(DEFAULT_CONCEPTS),
                    help="Concept axis names from CONCEPTS registry.")
+    p.add_argument("--layers", nargs="+", default=["auto"],
+                   help="Layer indices, or 'auto' for model-aware quartile taps.")
+    p.add_argument("--t_bins", type=int, nargs="+", default=list(T_BINS))
     p.add_argument("--pool", type=str, default="tokens", choices=["tokens", "mean"])
     p.add_argument("--max_samples", type=int, default=50_000)
     p.add_argument("--seed", type=int, default=42)
-    p.add_argument("--out_root", type=Path, required=True)
-    p.add_argument("--activations_root", type=Path, default=ACTIVATIONS_VAL)
+    p.add_argument("--out_root", type=Path, default=None)
+    p.add_argument("--activations_root", type=Path, default=None)
     args = p.parse_args()
+    spec = model_variant_spec(args.model_variant)
+    layers = parse_layers(args.layers, spec)
+    activations_root = args.activations_root
+    if activations_root is None:
+        namespaced = model_subdir(SCRATCH_PROJECT_ROOT, spec.variant_id, "activations_val")
+        activations_root = namespaced if namespaced.exists() or spec.variant_id != "sit_b_2" else ACTIVATIONS_VAL
+    out_root = args.out_root or model_subdir(OUTPUT_ROOT, spec.variant_id, "probes", "revelio_grid")
 
     # Validate concept axes
     for name in args.concepts:
@@ -146,7 +159,7 @@ def main() -> int:
             error(f"concept {name!r} marked unavailable (no labels). Skip or fix.")
             return 2
 
-    shard_dir = args.activations_root / args.condition / f"step_{args.dit_step:06d}"
+    shard_dir = activations_root / args.condition / f"step_{args.dit_step:06d}"
     if not shard_dir.exists():
         error(f"activation shard dir missing: {shard_dir}")
         return 3
@@ -158,7 +171,7 @@ def main() -> int:
     val_labels = _resolve_val_labels(shard_dir, LATENTS_VAL, args.condition)
     info(f"  resolved {val_labels.shape[0]} labels  unique={len(np.unique(val_labels))}")
 
-    out_dir = args.out_root / f"{args.condition}__step_{args.dit_step:06d}"
+    out_dir = out_root / f"{args.condition}__step_{args.dit_step:06d}"
     out_dir.mkdir(parents=True, exist_ok=True)
     plots_dir = out_dir / "plots"
     plots_dir.mkdir(exist_ok=True)
@@ -172,8 +185,8 @@ def main() -> int:
         grid = evaluate_grid(
             shard_dir,
             concept=concept,
-            layers=list(LAYERS),
-            t_bins=list(T_BINS),
+            layers=layers,
+            t_bins=list(args.t_bins),
             pool=args.pool,
             max_samples=args.max_samples,
             seed=args.seed,
@@ -187,18 +200,21 @@ def main() -> int:
         write_grid_result(grid, json_path)
 
         # Heatmap
-        mat = grid.matrix(list(LAYERS), list(T_BINS))
+        mat = grid.matrix(layers, list(args.t_bins))
         chance = 1.0 / concept.num_classes
         title = (f"{args.condition}  step={args.dit_step//1000}k  •  "
                  f"{cname}  ({concept.num_classes}-way, chance {chance*100:.1f}%)")
         _plot_heatmap(mat, title=title, num_classes=concept.num_classes,
                       baseline_acc=chance,
-                      out_path=plots_dir / f"{cname}.png")
+                      out_path=plots_dir / f"{cname}.png",
+                      layers=layers,
+                      t_bins=list(args.t_bins))
 
         # Aggregate
         for cell in grid.cells:
             all_rows.append({
                 "condition": args.condition,
+                "model_variant": spec.variant_id,
                 "dit_step": args.dit_step,
                 "concept": cname,
                 "num_classes": concept.num_classes,
@@ -230,10 +246,11 @@ def main() -> int:
     # Summary JSON
     summary = {
         "condition": args.condition,
+        "model_variant": spec.variant_id,
         "dit_step": args.dit_step,
         "concepts": args.concepts,
-        "layers": list(LAYERS),
-        "t_bins": list(T_BINS),
+        "layers": layers,
+        "t_bins": list(args.t_bins),
         "t_centers": T_CENTERS,
         "pool": args.pool,
         "max_samples": args.max_samples,

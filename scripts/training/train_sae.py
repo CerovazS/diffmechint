@@ -1,6 +1,6 @@
-"""Phase 4 driver: train SAELens TopK SAEs per (condition × layer × t_bin) chain.
+"""Phase 4 driver: train SAELens TopK SAEs per (condition x layer x t_bin) chain.
 
-For each of the 27 chains (3 conditions × 3 layers × 3 t_bins), iterate the 7
+For each of the 27 chains (3 conditions x 3 layers x 3 t_bins), iterate the 7
 fractional DiT EMA checkpoints in order, training one SAE per checkpoint and
 warm-starting from the previous one (Xu et al. 2412.17626).
 
@@ -34,22 +34,33 @@ from pathlib import Path
 os.environ.setdefault("WANDB_ENTITY", "ar_spectra")
 os.environ.setdefault("WANDB_PROJECT", "diffmechint")
 
-import torch  # noqa: E402
+import torch
 
-from diffmechint.sae import build_sae, hdf5_provider  # noqa: E402
-from diffmechint.sae.trainer import warm_started_sweep  # noqa: E402
-from diffmechint.utils import error, info, ok, warn  # noqa: E402
+from diffmechint.sae import build_sae, hdf5_provider
+from diffmechint.sae.trainer import warm_started_sweep
+from diffmechint.utils import (
+    error,
+    first_hdf5_d_in,
+    info,
+    model_subdir,
+    model_variant_spec,
+    ok,
+    parse_layers,
+    warn,
+)
 
-ACTIVATIONS_BASE = Path("/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/activations")
-VAL_ACTIVATIONS_BASE = Path("/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/activations_val")
-SAE_BASE = Path("/leonardo_scratch/fast/IscrC_YENDRI/lcerovaz/diffmechint/sae")
+SCRATCH_PROJECT_ROOT = Path("/leonardo_scratch/large/userexternal/lcerovaz/diffmechint")
+FAST_PROJECT_ROOT = Path("/leonardo_scratch/fast/IscrC_YENDRI/lcerovaz/diffmechint")
+ACTIVATIONS_BASE = SCRATCH_PROJECT_ROOT / "activations"
+VAL_ACTIVATIONS_BASE = SCRATCH_PROJECT_ROOT / "activations_val"
+SAE_BASE = FAST_PROJECT_ROOT / "sae"
 # Default DiT fractional steps (set by FractionalCheckpoint callback in training).
 DEFAULT_DIT_STEPS = [4000, 10000, 20000, 50000, 100000, 150000, 200000]
 
 
 def _cell_shards(condition: str, dit_step: int, layer: int, t_bin: int,
                  activations_root: Path = ACTIVATIONS_BASE) -> list[Path]:
-    """Return the single Phase 3 HDF5 shard for one (cond × ckpt × layer × t_bin) cell."""
+    """Return the single Phase 3 HDF5 shard for one (cond x ckpt x layer x t_bin) cell."""
     p = activations_root / condition / f"step_{dit_step:06d}" / f"{layer}_{t_bin}.h5"
     if not p.is_file():
         raise FileNotFoundError(f"cell shard not found: {p}")
@@ -62,6 +73,24 @@ def _val_shard(condition: str, dit_step: int, layer: int, t_bin: int,
     if not p.is_file():
         raise FileNotFoundError(f"val shard not found: {p}")
     return p
+
+
+def _default_model_root(kind: str, model_variant: str, legacy_root: Path) -> Path:
+    """Prefer model-namespaced roots; keep legacy B/2 reads working."""
+    namespaced = model_subdir(SCRATCH_PROJECT_ROOT, model_variant, kind)
+    if namespaced.exists() or model_variant != "sit_b_2":
+        return namespaced
+    return legacy_root
+
+
+def _default_sae_variant(args: argparse.Namespace) -> str:
+    name = f"{args.variant}_k{args.k}_d{args.d_sae}"
+    if args.matryoshka_widths:
+        widths = "-".join(str(w) for w in args.matryoshka_widths)
+        name += f"_w{widths}"
+    if args.variant_tag:
+        name += f"_{args.variant_tag}"
+    return name
 
 
 def train_one_chain(
@@ -168,11 +197,14 @@ def train_one_chain(
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--conditions", nargs="+", default=["sd_vae", "repa_e", "eq_vae"])
-    p.add_argument("--layers", type=int, nargs="+", default=[3, 6, 9])
+    p.add_argument("--model_variant", type=str, default="sit_b_2",
+                   help="SiT variant id or model name; used for auto layers and namespaced roots.")
+    p.add_argument("--layers", nargs="+", default=["auto"],
+                   help="Layer indices, or 'auto' for model-aware quartile taps.")
     p.add_argument("--t_bins", type=int, nargs="+", default=[0, 1, 2])
     p.add_argument("--dit_steps", type=int, nargs="+", default=DEFAULT_DIT_STEPS)
-    p.add_argument("--d_in", type=int, default=768,
-                   help="SiT-B/2 hidden size; override for other backbones.")
+    p.add_argument("--d_in", type=str, default="auto",
+                   help="Residual width, or 'auto' to infer from the first HDF5 shard.")
     p.add_argument("--d_sae", type=int, default=16384)
     p.add_argument("--k", type=int, default=32)
     p.add_argument("--variant", type=str, default="topk",
@@ -187,12 +219,15 @@ def main() -> int:
                    help="Tokens per warm-started ckpt (≥2nd in chain).")
     p.add_argument("--batch_size", type=int, default=4096)
     p.add_argument("--lr", type=float, default=3e-4)
-    p.add_argument("--out_root", type=Path, default=SAE_BASE)
-    p.add_argument("--activations_root", type=Path, default=ACTIVATIONS_BASE,
+    p.add_argument("--out_root", type=Path, default=None)
+    p.add_argument("--sae_variant", type=str, default=None,
+                   help="Subdirectory name under by_model/<model>/sae. Defaults to a "
+                        "variant/k/d_sae-derived name.")
+    p.add_argument("--activations_root", type=Path, default=None,
                    help="Root dir containing <condition>/step_NNNNNN/<L>_<T>.h5. "
                         "Default = canonical Phase 3 path (7/class). Override for "
                         "alternate dataset like 20/class.")
-    p.add_argument("--val_activations_root", type=Path, default=VAL_ACTIVATIONS_BASE,
+    p.add_argument("--val_activations_root", type=Path, default=None,
                    help="Root dir for held-out val activations "
                         "(<root>/<cond>/step_<N>/<L>_<T>.h5). Set to empty string "
                         "to disable inline validation.")
@@ -229,6 +264,15 @@ def main() -> int:
                         "weights_only = load weights only (diagnostic baseline — replicates "
                         "Xu et al. 2412.17626 and our 94%% dead-feature failure mode).")
     args = p.parse_args()
+    spec = model_variant_spec(args.model_variant)
+    layers = parse_layers(args.layers, spec)
+    activations_root = args.activations_root or _default_model_root(
+        "activations", spec.variant_id, ACTIVATIONS_BASE
+    )
+    default_val_root = _default_model_root("activations_val", spec.variant_id, VAL_ACTIVATIONS_BASE)
+    val_activations_root = args.val_activations_root or default_val_root
+    sae_variant = args.sae_variant or _default_sae_variant(args)
+    out_root = args.out_root or model_subdir(FAST_PROJECT_ROOT, spec.variant_id, "sae", sae_variant)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if device == "cpu":
@@ -240,8 +284,10 @@ def main() -> int:
             torch.cuda.manual_seed_all(args.seed)
         info(f"seed = {args.seed}")
 
-    args.out_root.mkdir(parents=True, exist_ok=True)
-    info(f"out_root = {args.out_root}")
+    out_root.mkdir(parents=True, exist_ok=True)
+    info(f"model_variant = {spec.variant_id} ({spec.model_name}); layers={layers}")
+    info(f"activations_root = {activations_root}")
+    info(f"out_root = {out_root}")
     info(f"wandb entity/project = {os.environ.get('WANDB_ENTITY', '?')}/{args.wandb_project}")
 
     # Build the (cond, layer, t_bin) chain list.
@@ -250,28 +296,38 @@ def main() -> int:
         try:
             cond, lay, tb = args.only.split("/")
             chains = [(cond, int(lay.removeprefix("L")), int(tb.removeprefix("T")))]
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             error(f"--only must look like 'sd_vae/L6/T1', got {args.only!r}: {e}")
             return 1
     else:
         for c in args.conditions:
-            for lay in args.layers:
+            for lay in layers:
                 for tb in args.t_bins:
                     chains.append((c, lay, tb))
-    info(f"{len(chains)} chains × {len(args.dit_steps)} DiT ckpts = "
+    info(f"{len(chains)} chains x {len(args.dit_steps)} DiT ckpts = "
          f"{len(chains) * len(args.dit_steps)} SAE trainings")
 
     val_root: Path | None = None
     if not args.no_val:
-        if args.val_activations_root and Path(args.val_activations_root).is_dir():
-            val_root = Path(args.val_activations_root)
+        if val_activations_root and Path(val_activations_root).is_dir():
+            val_root = Path(val_activations_root)
             info(f"validation enabled: val_root={val_root} every {args.val_every_n_steps} steps "
                  f"max_tokens={args.val_max_tokens}")
         else:
-            warn(f"val_activations_root not found: {args.val_activations_root!r} — "
+            warn(f"val_activations_root not found: {val_activations_root!r} — "
                  f"validation disabled. Pass --no_val to silence this.")
     else:
         info("validation disabled (--no_val)")
+
+    if args.d_in.lower() == "auto":
+        first_cond, first_layer, first_t = chains[0]
+        first_step = args.dit_steps[0]
+        d_in = first_hdf5_d_in(
+            _cell_shards(first_cond, first_step, first_layer, first_t, activations_root)
+        )
+    else:
+        d_in = int(args.d_in)
+    info(f"d_in = {d_in}")
 
     t0 = time.perf_counter()
     for i, (cond, lay, tb) in enumerate(chains, start=1):
@@ -280,7 +336,7 @@ def main() -> int:
             train_one_chain(
                 condition=cond, layer=lay, t_bin=tb,
                 dit_steps=args.dit_steps,
-                d_in=args.d_in, d_sae=args.d_sae, k=args.k,
+                d_in=d_in, d_sae=args.d_sae, k=args.k,
                 variant=args.variant,
                 base_total_samples=args.base_total_samples,
                 warm_total_samples=args.warm_total_samples,
@@ -289,10 +345,10 @@ def main() -> int:
                 warm_lr_warm_up_steps=args.warm_lr_warm_up_steps,
                 warm_mode=args.warm_mode,
                 device=device,
-                out_root=args.out_root,
+                out_root=out_root,
                 wandb_project=args.wandb_project,
                 variant_tag=args.variant_tag,
-                activations_root=args.activations_root,
+                activations_root=activations_root,
                 val_root=val_root,
                 val_every_n_steps=args.val_every_n_steps,
                 val_max_tokens=args.val_max_tokens,
@@ -300,7 +356,7 @@ def main() -> int:
                 seed=args.seed,
                 fail_if_chain_exists=args.fail_if_chain_exists,
             )
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             error(f"chain {cond}/L{lay}/T{tb} failed: {type(e).__name__}: {e}")
             if args.only:
                 raise

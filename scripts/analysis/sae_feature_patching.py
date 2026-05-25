@@ -23,7 +23,14 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from diffmechint.utils import info, ok, warn  # noqa: E402
+from diffmechint.utils import (  # noqa: E402
+    info,
+    model_subdir,
+    model_variant_spec,
+    ok,
+    parse_layers,
+    warn,
+)
 from scripts.analysis.tokenizer_dictionary_validation import (  # noqa: E402
     ACTIVATIONS_YNULL,
     SAE_ROOT,
@@ -37,6 +44,8 @@ from scripts.analysis.tokenizer_dictionary_validation import (  # noqa: E402
 
 DEFAULT_DASHBOARD_ROOT = Path("outputs/phase4_5b_feature_viz_ynull")
 DEFAULT_OUT_ROOT = Path("outputs/phase4_11_feature_activation_patching")
+SCRATCH_PROJECT_ROOT = ACTIVATIONS_YNULL.parent
+OUTPUT_ROOT = Path("outputs")
 DEFAULT_CONDITIONS = ("sd_vae", "repa_e", "eq_vae")
 LAYERS = (3, 6, 9)
 T_BINS = (0, 1, 2)
@@ -1332,6 +1341,7 @@ def run_group_activation_patch(args: argparse.Namespace) -> int:
         coeff_source: list[np.ndarray] = []
         coeff_target: list[np.ndarray] = []
         coeff_calibrated: list[np.ndarray] = []
+        patched_token_count = 0
         weight_t = torch.from_numpy(np.asarray(calib["weight"])).to(device=device, dtype=sae_dtype)
         bias_t = torch.from_numpy(np.asarray(calib["bias"])).to(device=device, dtype=sae_dtype)
         clamp_t = torch.from_numpy(clamp_values).to(device=device, dtype=sae_dtype)
@@ -1363,6 +1373,7 @@ def run_group_activation_patch(args: argparse.Namespace) -> int:
             )
             if not bool(mask.any()):
                 continue
+            patched_token_count += int(mask.sum().item())
             target_masked = xb[mask]
             native_masked = native_recon[mask]
             err_masked = recon_err[mask]
@@ -1393,13 +1404,15 @@ def run_group_activation_patch(args: argparse.Namespace) -> int:
             random_control[:, control_idx] = calibrated_masked
             accums["random_group_control"].update(target_sae.decode(random_control) + err_masked, target_masked)
 
-        native_metrics = accums["reconstruction_only"].finalize()
+        reconstruction_metrics = accums["reconstruction_only"].finalize()
+        native_decode_metrics = accums["native_reconstruction"].finalize()
         source_all = np.concatenate(coeff_source, axis=0)
         target_all = np.concatenate(coeff_target, axis=0)
         calibrated_all = np.concatenate(coeff_calibrated, axis=0)
         group_corrs = [_corr(calibrated_all[:, j], target_all[:, j]) for j in range(target_all.shape[1])]
         group_r2s = [_r2_np(calibrated_all[:, j], target_all[:, j]) for j in range(target_all.shape[1])]
-        active_frac = float(np.mean(np.max(source_all, axis=1) > active_threshold))
+        threshold_active_frac = float(np.mean(np.max(source_all, axis=1) > active_threshold))
+        patched_token_frac = float(patched_token_count / max(target_tensor.shape[0], 1))
         for mode in modes:
             metrics = accums[mode].finalize()
             result_rows.append(
@@ -1421,19 +1434,21 @@ def run_group_activation_patch(args: argparse.Namespace) -> int:
                     "group_calibrated_r2": float(np.nanmean(group_r2s)) if any(np.isfinite(r) for r in group_r2s) else float("nan"),
                     "calibration_corr": calib["mean_corr"],
                     "calibration_r2": calib["mean_r2"],
-                    "patch_active_frac": active_frac,
+                    "patch_active_frac": patched_token_frac,
+                    "threshold_active_frac": threshold_active_frac,
+                    "patched_token_count": patched_token_count,
                     "active_threshold": active_threshold,
                     "n_fit_tokens": int(src_fit.shape[0]),
                     "n_eval_tokens": int(tgt_eval.shape[0]),
                     "mse": metrics["mse"],
                     "cosine": metrics["cosine"],
                     "ev": metrics["ev"],
-                    "delta_mse_vs_reconstruction_only": metrics["mse"] - native_metrics["mse"],
-                    "delta_cosine_vs_reconstruction_only": metrics["cosine"] - native_metrics["cosine"],
-                    "delta_ev_vs_reconstruction_only": metrics["ev"] - native_metrics["ev"],
-                    "delta_mse_vs_native": metrics["mse"] - native_metrics["mse"],
-                    "delta_cosine_vs_native": metrics["cosine"] - native_metrics["cosine"],
-                    "delta_ev_vs_native": metrics["ev"] - native_metrics["ev"],
+                    "delta_mse_vs_reconstruction_only": metrics["mse"] - reconstruction_metrics["mse"],
+                    "delta_cosine_vs_reconstruction_only": metrics["cosine"] - reconstruction_metrics["cosine"],
+                    "delta_ev_vs_reconstruction_only": metrics["ev"] - reconstruction_metrics["ev"],
+                    "delta_mse_vs_native": metrics["mse"] - native_decode_metrics["mse"],
+                    "delta_cosine_vs_native": metrics["cosine"] - native_decode_metrics["cosine"],
+                    "delta_ev_vs_native": metrics["ev"] - native_decode_metrics["ev"],
                 }
             )
         del target_sae, source_sae
@@ -2324,6 +2339,401 @@ def run_summarize_sampling(args: argparse.Namespace) -> int:
     return 0
 
 
+def _nan_float(raw: object) -> float:
+    value = _optional_float(raw)
+    return float(value) if value is not None else float("nan")
+
+
+def _finite_mean(values: list[float]) -> float:
+    finite = [float(value) for value in values if np.isfinite(float(value))]
+    return float(np.mean(finite)) if finite else float("nan")
+
+
+def _finite_median(values: list[float]) -> float:
+    finite = [float(value) for value in values if np.isfinite(float(value))]
+    return float(np.median(finite)) if finite else float("nan")
+
+
+def _load_group_patch_result_rows(args: argparse.Namespace) -> list[dict]:
+    paths: list[Path] = []
+    for run_dir in args.run_dirs:
+        paths.append(run_dir / "metrics" / "group_activation_patching.csv")
+    paths.extend(args.patch_csvs)
+    rows: list[dict] = []
+    for path in paths:
+        if not path.exists():
+            raise FileNotFoundError(f"group activation CSV missing: {path}")
+        for row in read_csv(path):
+            row["source_patch_csv"] = str(path)
+            row["source_run_dir"] = str(path.parents[1]) if len(path.parents) >= 2 else str(path.parent)
+            rows.append(row)
+    return rows
+
+
+def _group_task_key(row: dict) -> tuple[str, str, str, int, int]:
+    return (
+        str(row["group_id"]),
+        str(row["source"]),
+        str(row["target"]),
+        int(row["layer"]),
+        int(row["t_bin"]),
+    )
+
+
+def _metric_delta(mode_rows: dict[str, dict], mode: str, baseline: str, field: str) -> float:
+    if mode not in mode_rows or baseline not in mode_rows:
+        return float("nan")
+    return _nan_float(mode_rows[mode].get(field)) - _nan_float(mode_rows[baseline].get(field))
+
+
+def _group_task_summary(rows: list[dict]) -> list[dict]:
+    grouped: dict[tuple[str, str, str, int, int], dict[str, dict]] = defaultdict(dict)
+    for row in rows:
+        grouped[_group_task_key(row)][str(row["mode"])] = row
+
+    summary_rows = []
+    for key, mode_rows in sorted(grouped.items()):
+        group_id, source, target, layer, t_bin = key
+        first = mode_rows.get("group_transfer_replace") or next(iter(mode_rows.values()))
+        transfer_delta_ev = _metric_delta(mode_rows, "group_transfer_replace", "reconstruction_only", "ev")
+        random_delta_ev = _metric_delta(mode_rows, "random_group_control", "reconstruction_only", "ev")
+        shuffled_delta_ev = _metric_delta(mode_rows, "shuffled_group_control", "reconstruction_only", "ev")
+        ablate_delta_ev = _metric_delta(mode_rows, "group_native_ablate", "reconstruction_only", "ev")
+        clamp_delta_ev = _metric_delta(mode_rows, "group_native_clamp", "reconstruction_only", "ev")
+        transfer_minus_random = transfer_delta_ev - random_delta_ev
+        transfer_minus_shuffled = transfer_delta_ev - shuffled_delta_ev
+        patch_active_frac = _nan_float(first.get("patch_active_frac"))
+        threshold_active_frac = _nan_float(first.get("threshold_active_frac"))
+        status = "ok"
+        if "group_transfer_replace" not in mode_rows:
+            status = "missing_transfer"
+        elif not np.isfinite(patch_active_frac) or patch_active_frac <= 0.0:
+            status = "no_active_tokens"
+        elif np.isfinite(transfer_minus_random) and np.isfinite(transfer_minus_shuffled):
+            if transfer_minus_random < 0.0 and transfer_minus_shuffled < 0.0:
+                status = "transfer_more_disruptive_than_random_and_shuffled"
+            elif abs(transfer_minus_shuffled) <= 1e-8:
+                status = "transfer_matches_shuffled_pairing"
+            elif transfer_minus_random < 0.0:
+                status = "transfer_more_disruptive_than_random_only"
+            elif transfer_minus_shuffled < 0.0:
+                status = "transfer_more_disruptive_than_shuffled_only"
+            else:
+                status = "transfer_not_stronger_than_controls"
+        summary_rows.append(
+            {
+                "task_id": f"{group_id}:{source}->{target}:L{layer}:T{t_bin}",
+                "group_id": group_id,
+                "family_label": first.get("family_label", ""),
+                "source": source,
+                "target": target,
+                "layer": layer,
+                "t_bin": t_bin,
+                "t_center": first.get("t_center", ""),
+                "source_feature_ids": first.get("source_feature_ids", ""),
+                "target_feature_ids": first.get("target_feature_ids", ""),
+                "n_source_features": first.get("n_source_features", ""),
+                "n_target_features": first.get("n_target_features", ""),
+                "group_calibrated_corr": _nan_float(first.get("group_calibrated_corr")),
+                "group_calibrated_r2": _nan_float(first.get("group_calibrated_r2")),
+                "calibration_corr": _nan_float(first.get("calibration_corr")),
+                "calibration_r2": _nan_float(first.get("calibration_r2")),
+                "patch_active_frac": patch_active_frac,
+                "threshold_active_frac": threshold_active_frac,
+                "patched_token_count": first.get("patched_token_count", ""),
+                "n_fit_tokens": first.get("n_fit_tokens", ""),
+                "n_eval_tokens": first.get("n_eval_tokens", ""),
+                "native_reconstruction_delta_ev": _metric_delta(
+                    mode_rows, "native_reconstruction", "reconstruction_only", "ev"
+                ),
+                "transfer_delta_ev": transfer_delta_ev,
+                "random_control_delta_ev": random_delta_ev,
+                "shuffled_control_delta_ev": shuffled_delta_ev,
+                "native_ablate_delta_ev": ablate_delta_ev,
+                "native_clamp_delta_ev": clamp_delta_ev,
+                "transfer_minus_random_delta_ev": transfer_minus_random,
+                "transfer_minus_shuffled_delta_ev": transfer_minus_shuffled,
+                "transfer_delta_mse": _metric_delta(
+                    mode_rows, "group_transfer_replace", "reconstruction_only", "mse"
+                ),
+                "random_control_delta_mse": _metric_delta(
+                    mode_rows, "random_group_control", "reconstruction_only", "mse"
+                ),
+                "shuffled_control_delta_mse": _metric_delta(
+                    mode_rows, "shuffled_group_control", "reconstruction_only", "mse"
+                ),
+                "n_modes_present": len(mode_rows),
+                "present_modes": sorted(mode_rows),
+                "status": status,
+            }
+        )
+    return summary_rows
+
+
+def _group_pair_cell_summary(task_rows: list[dict]) -> list[dict]:
+    grouped: dict[tuple[str, str, int, int], list[dict]] = defaultdict(list)
+    for row in task_rows:
+        grouped[(str(row["source"]), str(row["target"]), int(row["layer"]), int(row["t_bin"]))].append(row)
+    summary_rows = []
+    for (source, target, layer, t_bin), vals in sorted(grouped.items()):
+        summary_rows.append(
+            {
+                "source": source,
+                "target": target,
+                "layer": layer,
+                "t_bin": t_bin,
+                "n_tasks": len(vals),
+                "n_groups": len({str(row["group_id"]) for row in vals}),
+                "mean_group_calibrated_corr": _finite_mean(
+                    [_nan_float(row["group_calibrated_corr"]) for row in vals]
+                ),
+                "mean_group_calibrated_r2": _finite_mean([_nan_float(row["group_calibrated_r2"]) for row in vals]),
+                "mean_patch_active_frac": _finite_mean([_nan_float(row["patch_active_frac"]) for row in vals]),
+                "mean_threshold_active_frac": _finite_mean(
+                    [_nan_float(row["threshold_active_frac"]) for row in vals]
+                ),
+                "mean_transfer_delta_ev": _finite_mean([_nan_float(row["transfer_delta_ev"]) for row in vals]),
+                "median_transfer_delta_ev": _finite_median([_nan_float(row["transfer_delta_ev"]) for row in vals]),
+                "mean_random_control_delta_ev": _finite_mean(
+                    [_nan_float(row["random_control_delta_ev"]) for row in vals]
+                ),
+                "mean_shuffled_control_delta_ev": _finite_mean(
+                    [_nan_float(row["shuffled_control_delta_ev"]) for row in vals]
+                ),
+                "mean_native_ablate_delta_ev": _finite_mean(
+                    [_nan_float(row["native_ablate_delta_ev"]) for row in vals]
+                ),
+                "mean_native_clamp_delta_ev": _finite_mean([_nan_float(row["native_clamp_delta_ev"]) for row in vals]),
+                "mean_transfer_minus_random_delta_ev": _finite_mean(
+                    [_nan_float(row["transfer_minus_random_delta_ev"]) for row in vals]
+                ),
+                "mean_transfer_minus_shuffled_delta_ev": _finite_mean(
+                    [_nan_float(row["transfer_minus_shuffled_delta_ev"]) for row in vals]
+                ),
+                "n_transfer_more_disruptive_than_random": sum(
+                    _nan_float(row["transfer_minus_random_delta_ev"]) < 0.0 for row in vals
+                ),
+                "n_transfer_more_disruptive_than_shuffled": sum(
+                    _nan_float(row["transfer_minus_shuffled_delta_ev"]) < 0.0 for row in vals
+                ),
+                "status_counts": dict(Counter(str(row["status"]) for row in vals)),
+            }
+        )
+    return summary_rows
+
+
+def _group_pair_summary(task_rows: list[dict]) -> list[dict]:
+    grouped: dict[tuple[str, str], list[dict]] = defaultdict(list)
+    for row in task_rows:
+        grouped[(str(row["source"]), str(row["target"]))].append(row)
+    summary_rows = []
+    for (source, target), vals in sorted(grouped.items()):
+        summary_rows.append(
+            {
+                "source": source,
+                "target": target,
+                "n_tasks": len(vals),
+                "n_groups": len({str(row["group_id"]) for row in vals}),
+                "mean_group_calibrated_corr": _finite_mean(
+                    [_nan_float(row["group_calibrated_corr"]) for row in vals]
+                ),
+                "mean_group_calibrated_r2": _finite_mean([_nan_float(row["group_calibrated_r2"]) for row in vals]),
+                "mean_patch_active_frac": _finite_mean([_nan_float(row["patch_active_frac"]) for row in vals]),
+                "mean_threshold_active_frac": _finite_mean(
+                    [_nan_float(row["threshold_active_frac"]) for row in vals]
+                ),
+                "mean_transfer_delta_ev": _finite_mean([_nan_float(row["transfer_delta_ev"]) for row in vals]),
+                "mean_random_control_delta_ev": _finite_mean(
+                    [_nan_float(row["random_control_delta_ev"]) for row in vals]
+                ),
+                "mean_shuffled_control_delta_ev": _finite_mean(
+                    [_nan_float(row["shuffled_control_delta_ev"]) for row in vals]
+                ),
+                "mean_transfer_minus_random_delta_ev": _finite_mean(
+                    [_nan_float(row["transfer_minus_random_delta_ev"]) for row in vals]
+                ),
+                "mean_transfer_minus_shuffled_delta_ev": _finite_mean(
+                    [_nan_float(row["transfer_minus_shuffled_delta_ev"]) for row in vals]
+                ),
+                "status_counts": dict(Counter(str(row["status"]) for row in vals)),
+            }
+        )
+    return summary_rows
+
+
+def _plot_group_transfer_bars(pair_rows: list[dict], out_path: Path) -> None:
+    if not pair_rows:
+        return
+    labels = [f"{row['source']}->{row['target']}" for row in pair_rows]
+    x = np.arange(len(pair_rows), dtype=np.float32)
+    fields = [
+        ("mean_transfer_delta_ev", "transfer", PB["blue"]),
+        ("mean_random_control_delta_ev", "random", PB["gold"]),
+        ("mean_shuffled_control_delta_ev", "shuffled", PB["red"]),
+    ]
+    width = 0.24
+    fig, ax = plt.subplots(figsize=(max(8.0, 0.8 * len(pair_rows)), 4.4))
+    ax.axhline(0.0, color=PB["dark"], linewidth=1.0)
+    for i, (field, label, color) in enumerate(fields):
+        vals = [_nan_float(row[field]) for row in pair_rows]
+        ax.bar(x + (i - 1) * width, vals, width=width, color=color, label=label)
+    ax.set_xticks(x, labels, rotation=35, ha="right")
+    ax.set_ylabel("mean delta EV vs reconstruction-only")
+    ax.set_title("Group patch residual effect by directed pair")
+    ax.legend(frameon=False)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=170, bbox_inches="tight")
+    plt.close(fig)
+
+
+def _plot_group_calibration_heatmap(pair_cell_rows: list[dict], out_path: Path) -> None:
+    if not pair_cell_rows:
+        return
+    pairs = sorted({(str(row["source"]), str(row["target"])) for row in pair_cell_rows})
+    cells = sorted({(int(row["layer"]), int(row["t_bin"])) for row in pair_cell_rows})
+    arr = np.full((len(pairs), len(cells)), np.nan, dtype=np.float32)
+    for i, pair in enumerate(pairs):
+        for j, cell in enumerate(cells):
+            vals = [
+                _nan_float(row["mean_group_calibrated_corr"])
+                for row in pair_cell_rows
+                if (str(row["source"]), str(row["target"])) == pair
+                and (int(row["layer"]), int(row["t_bin"])) == cell
+            ]
+            arr[i, j] = _finite_mean(vals)
+    fig, ax = plt.subplots(figsize=(max(6.5, 0.8 * len(cells)), max(3.8, 0.45 * len(pairs))))
+    im = ax.imshow(arr, cmap="viridis", vmin=0.0, vmax=1.0, aspect="auto")
+    ax.set_xticks(range(len(cells)), [f"L{layer}/T{t_bin}" for layer, t_bin in cells], rotation=35, ha="right")
+    ax.set_yticks(range(len(pairs)), [f"{source}->{target}" for source, target in pairs])
+    ax.set_title("Mean group coefficient calibration correlation")
+    fig.colorbar(im, ax=ax, label="corr")
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=170, bbox_inches="tight")
+    plt.close(fig)
+
+
+def _plot_group_transfer_vs_controls(task_rows: list[dict], out_path: Path) -> None:
+    vals = [
+        (
+            _nan_float(row["random_control_delta_ev"]),
+            _nan_float(row["shuffled_control_delta_ev"]),
+            _nan_float(row["transfer_delta_ev"]),
+        )
+        for row in task_rows
+        if np.isfinite(_nan_float(row["transfer_delta_ev"]))
+    ]
+    vals = [row for row in vals if np.isfinite(row[0]) and np.isfinite(row[1]) and np.isfinite(row[2])]
+    if not vals:
+        return
+    random_vals = np.asarray([row[0] for row in vals], dtype=np.float64)
+    shuffled_vals = np.asarray([row[1] for row in vals], dtype=np.float64)
+    transfer_vals = np.asarray([row[2] for row in vals], dtype=np.float64)
+    lo = float(np.nanmin([random_vals.min(), shuffled_vals.min(), transfer_vals.min()]))
+    hi = float(np.nanmax([random_vals.max(), shuffled_vals.max(), transfer_vals.max()]))
+    pad = max((hi - lo) * 0.08, 1e-8)
+    fig, ax = plt.subplots(figsize=(5.8, 5.2))
+    ax.plot([lo - pad, hi + pad], [lo - pad, hi + pad], color=PB["dark"], linewidth=1.0)
+    ax.scatter(random_vals, transfer_vals, s=28, color=PB["blue"], alpha=0.75, label="random")
+    ax.scatter(shuffled_vals, transfer_vals, s=28, color=PB["red"], alpha=0.75, label="shuffled")
+    ax.set_xlabel("control delta EV")
+    ax.set_ylabel("transfer delta EV")
+    ax.set_title("Transfer effect versus controls")
+    ax.legend(frameon=False)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=170, bbox_inches="tight")
+    plt.close(fig)
+
+
+def _group_summary_payload(rows: list[dict], task_rows: list[dict], pair_rows: list[dict]) -> dict:
+    transfer_minus_random = [_nan_float(row["transfer_minus_random_delta_ev"]) for row in task_rows]
+    transfer_minus_shuffled = [_nan_float(row["transfer_minus_shuffled_delta_ev"]) for row in task_rows]
+    top_abs = sorted(
+        task_rows,
+        key=lambda row: abs(_nan_float(row["transfer_delta_ev"]))
+        if np.isfinite(_nan_float(row["transfer_delta_ev"]))
+        else -1.0,
+        reverse=True,
+    )[:10]
+    return {
+        "analysis": "group-activation-patching-aggregate",
+        "n_raw_rows": len(rows),
+        "n_group_tasks": len(task_rows),
+        "n_directed_pairs": len(pair_rows),
+        "n_unique_groups": len({str(row["group_id"]) for row in task_rows}),
+        "mean_group_calibrated_corr": _finite_mean([_nan_float(row["group_calibrated_corr"]) for row in task_rows]),
+        "mean_group_calibrated_r2": _finite_mean([_nan_float(row["group_calibrated_r2"]) for row in task_rows]),
+        "mean_patch_active_frac": _finite_mean([_nan_float(row["patch_active_frac"]) for row in task_rows]),
+        "mean_threshold_active_frac": _finite_mean([_nan_float(row["threshold_active_frac"]) for row in task_rows]),
+        "mean_transfer_delta_ev": _finite_mean([_nan_float(row["transfer_delta_ev"]) for row in task_rows]),
+        "mean_random_control_delta_ev": _finite_mean([_nan_float(row["random_control_delta_ev"]) for row in task_rows]),
+        "mean_shuffled_control_delta_ev": _finite_mean(
+            [_nan_float(row["shuffled_control_delta_ev"]) for row in task_rows]
+        ),
+        "mean_transfer_minus_random_delta_ev": _finite_mean(transfer_minus_random),
+        "mean_transfer_minus_shuffled_delta_ev": _finite_mean(transfer_minus_shuffled),
+        "n_transfer_more_disruptive_than_random": sum(value < 0.0 for value in transfer_minus_random),
+        "n_transfer_more_disruptive_than_shuffled": sum(value < 0.0 for value in transfer_minus_shuffled),
+        "status_counts": dict(Counter(str(row["status"]) for row in task_rows)),
+        "top_abs_transfer_delta_ev": [
+            {
+                "task_id": row["task_id"],
+                "family_label": row["family_label"],
+                "source": row["source"],
+                "target": row["target"],
+                "layer": row["layer"],
+                "t_bin": row["t_bin"],
+                "transfer_delta_ev": row["transfer_delta_ev"],
+                "transfer_minus_random_delta_ev": row["transfer_minus_random_delta_ev"],
+                "transfer_minus_shuffled_delta_ev": row["transfer_minus_shuffled_delta_ev"],
+                "group_calibrated_corr": row["group_calibrated_corr"],
+            }
+            for row in top_abs
+        ],
+    }
+
+
+def _write_group_summary_md(out_dir: Path, payload: dict) -> None:
+    lines = [
+        f"**Group-level activation patching** aggregated =={payload['n_group_tasks']}== directed feature-family tasks.",
+        (
+            f"Mean source-to-target coefficient correlation is =={payload['mean_group_calibrated_corr']:.3f}== "
+            f"with mean R2 =={payload['mean_group_calibrated_r2']:.3f}==."
+        ),
+        (
+            f"Mean transfer delta EV is =={payload['mean_transfer_delta_ev']:.2e}==; "
+            f"transfer minus shuffled is =={payload['mean_transfer_minus_shuffled_delta_ev']:.2e}==."
+        ),
+        "This is activation-space residual evidence; concept-margin/EAP and sampling-time validation are still required.",
+    ]
+    _write_summary_md(out_dir, "Group-Level Activation Patching Aggregate", lines)
+
+
+def run_summarize_group_patching(args: argparse.Namespace) -> int:
+    out_dir = make_run_dir(args.out_root, args.run_id, resume=args.resume)
+    rows = _load_group_patch_result_rows(args)
+    if not rows:
+        raise ValueError("no group activation patching rows selected")
+    task_rows = _group_task_summary(rows)
+    pair_cell_rows = _group_pair_cell_summary(task_rows)
+    pair_rows = _group_pair_summary(task_rows)
+    write_csv(out_dir / "metrics" / "group_activation_patching_all.csv", rows)
+    write_csv(out_dir / "metrics" / "group_activation_task_summary.csv", task_rows)
+    write_csv(out_dir / "metrics" / "group_activation_pair_cell_summary.csv", pair_cell_rows)
+    write_csv(out_dir / "metrics" / "group_activation_pair_summary.csv", pair_rows)
+    _plot_group_transfer_bars(pair_rows, out_dir / "plots" / "group_transfer_delta_ev_by_pair.png")
+    _plot_group_calibration_heatmap(pair_cell_rows, out_dir / "plots" / "group_calibration_corr_heatmap.png")
+    _plot_group_transfer_vs_controls(task_rows, out_dir / "plots" / "group_transfer_vs_controls.png")
+    payload = _group_summary_payload(rows, task_rows, pair_rows)
+    (out_dir / "summary.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    (out_dir / "metrics" / "group_activation_aggregate_summary.json").write_text(
+        json.dumps(payload, indent=2),
+        encoding="utf-8",
+    )
+    _write_group_summary_md(out_dir, payload)
+    ok(f"group activation aggregate summary complete: {out_dir}")
+    return 0
+
+
 class _UnionFind:
     def __init__(self) -> None:
         self.parent: dict[str, str] = {}
@@ -2533,17 +2943,27 @@ def build_parser() -> argparse.ArgumentParser:
     sampling.add_argument("--target_csv", type=Path, default=None)
     sampling.add_argument("--out_dir", type=Path, default=None)
     sampling.set_defaults(func=run_summarize_sampling)
+
+    group_summary = sub.add_parser("summarize-group-patching")
+    group_summary.add_argument("--run_dirs", nargs="*", type=Path, default=[])
+    group_summary.add_argument("--patch_csvs", nargs="*", type=Path, default=[])
+    group_summary.add_argument("--out_root", type=Path, default=DEFAULT_OUT_ROOT)
+    group_summary.add_argument("--run_id", type=str, default=None)
+    group_summary.add_argument("--resume", action="store_true")
+    group_summary.set_defaults(func=run_summarize_group_patching)
     return p
 
 
 def _add_common_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--conditions", nargs="+", default=list(DEFAULT_CONDITIONS))
-    p.add_argument("--layers", nargs="+", type=int, default=list(LAYERS))
+    p.add_argument("--model_variant", type=str, default="sit_b_2",
+                   help="SiT variant id or model name; used for auto layers and namespaced roots.")
+    p.add_argument("--layers", nargs="+", default=["auto"])
     p.add_argument("--t_bins", nargs="+", type=int, default=list(T_BINS))
     p.add_argument("--cells", nargs="+", default=None)
     p.add_argument("--dit_step", type=int, default=200_000)
-    p.add_argument("--activations_root", type=Path, default=ACTIVATIONS_YNULL)
-    p.add_argument("--out_root", type=Path, default=DEFAULT_OUT_ROOT)
+    p.add_argument("--activations_root", type=Path, default=None)
+    p.add_argument("--out_root", type=Path, default=None)
     p.add_argument("--run_id", type=str, default=None)
     p.add_argument("--resume", action="store_true")
     p.add_argument("--max_images", type=int, default=512)
@@ -2553,6 +2973,17 @@ def _add_common_args(p: argparse.ArgumentParser) -> None:
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
+    if hasattr(args, "model_variant"):
+        spec = model_variant_spec(args.model_variant)
+        args.model_variant = spec.variant_id
+        args.layers = parse_layers(args.layers, spec)
+        if args.activations_root is None:
+            namespaced = model_subdir(SCRATCH_PROJECT_ROOT, spec.variant_id, "activations_ynull")
+            args.activations_root = (
+                namespaced if namespaced.exists() or spec.variant_id != "sit_b_2" else ACTIVATIONS_YNULL
+            )
+        if args.out_root is None:
+            args.out_root = model_subdir(OUTPUT_ROOT, spec.variant_id, "patching")
     if hasattr(args, "t_bins") and any(t not in T_CENTERS for t in args.t_bins):
         parser.error(f"--t_bins must be drawn from {sorted(T_CENTERS)}")
     return int(args.func(args))
