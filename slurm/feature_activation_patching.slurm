@@ -26,6 +26,7 @@ set -euo pipefail
 REPO=/leonardo_work/IscrC_PDR/lcerovaz/diffmechint
 ANALYSIS="${ANALYSIS:?export ANALYSIS before sbatch}"
 CONDITIONS="${CONDITIONS:-sd_vae repa_e eq_vae}"
+MODEL_VARIANT="${MODEL_VARIANT:-sit_b_2}"
 LAYERS="${LAYERS:-3 6 9}"
 T_BINS="${T_BINS:-0 1 2}"
 DIT_STEP="${DIT_STEP:-200000}"
@@ -36,8 +37,17 @@ module load cuda/12.2 || true
 cd "$REPO"
 
 echo "=== feature_activation_patching ANALYSIS=$ANALYSIS RUN_ID=$RUN_ID ==="
-echo "CONDITIONS=$CONDITIONS LAYERS=$LAYERS T_BINS=$T_BINS DIT_STEP=$DIT_STEP"
+echo "CONDITIONS=$CONDITIONS MODEL_VARIANT=$MODEL_VARIANT LAYERS=$LAYERS T_BINS=$T_BINS DIT_STEP=$DIT_STEP"
+echo "OUT_ROOT=$OUT_ROOT"
+[[ -n "${ACTIVATIONS_ROOT:-}" ]] && echo "ACTIVATIONS_ROOT=$ACTIVATIONS_ROOT"
+[[ -n "${DASHBOARD_ROOT:-}" ]] && echo "DASHBOARD_ROOT=$DASHBOARD_ROOT"
+[[ -n "${SAE_ROOT:-}" ]] && echo "SAE_ROOT=$SAE_ROOT"
 nvidia-smi --query-gpu=index,name,memory.total --format=csv || true
+
+ROOT_ARGS=()
+if [[ -n "${ACTIVATIONS_ROOT:-}" ]]; then
+    ROOT_ARGS+=("--activations_root" "$ACTIVATIONS_ROOT")
+fi
 
 CELL_ARGS=()
 if [[ -n "${CELLS:-}" ]]; then
@@ -64,6 +74,9 @@ if [[ "$ANALYSIS" == "build-bank" ]]; then
     if [[ -n "${ATLAS_CSV:-}" ]]; then
         EXTRA+=("--atlas_csv" "$ATLAS_CSV")
     fi
+    if [[ -n "${DASHBOARD_ROOT:-}" ]]; then
+        EXTRA+=("--dashboard_root" "$DASHBOARD_ROOT")
+    fi
     if [[ -n "${SAE_ROOT:-}" ]]; then
         EXTRA+=("--sae_root" "$SAE_ROOT")
     fi
@@ -72,6 +85,7 @@ if [[ "$ANALYSIS" == "build-bank" ]]; then
     fi
     uv run python scripts/analysis/sae_feature_patching.py build-bank \
         --conditions $CONDITIONS \
+        --model_variant "$MODEL_VARIANT" \
         --layers $LAYERS \
         --t_bins $T_BINS \
         --dit_step "$DIT_STEP" \
@@ -82,6 +96,7 @@ if [[ "$ANALYSIS" == "build-bank" ]]; then
         --max_entropy "${MAX_ENTROPY:-2.5}" \
         --max_features_per_cell "${MAX_FEATURES_PER_CELL:-0}" \
         "${EXTRA[@]}" \
+        "${ROOT_ARGS[@]}" \
         "${RESUME_ARGS[@]}" \
         "${CELL_ARGS[@]}"
 elif [[ "$ANALYSIS" == "match" ]]; then
@@ -101,6 +116,7 @@ elif [[ "$ANALYSIS" == "match" ]]; then
     fi
     uv run python scripts/analysis/sae_feature_patching.py match \
         --conditions $CONDITIONS \
+        --model_variant "$MODEL_VARIANT" \
         --layers $LAYERS \
         --t_bins $T_BINS \
         --dit_step "$DIT_STEP" \
@@ -114,6 +130,7 @@ elif [[ "$ANALYSIS" == "match" ]]; then
         --profile_batch_images "${PROFILE_BATCH_IMAGES:-2}" \
         --device "${DEVICE:-cuda}" \
         "${EXTRA[@]}" \
+        "${ROOT_ARGS[@]}" \
         "${RESUME_ARGS[@]}" \
         "${CELL_ARGS[@]}"
 elif [[ "$ANALYSIS" == "activation-patch" ]]; then
@@ -133,6 +150,7 @@ elif [[ "$ANALYSIS" == "activation-patch" ]]; then
     fi
     uv run python scripts/analysis/sae_feature_patching.py activation-patch \
         --conditions $CONDITIONS \
+        --model_variant "$MODEL_VARIANT" \
         --layers $LAYERS \
         --t_bins $T_BINS \
         --dit_step "$DIT_STEP" \
@@ -150,12 +168,14 @@ elif [[ "$ANALYSIS" == "activation-patch" ]]; then
         --min_active_tokens "${MIN_ACTIVE_TOKENS:-32}" \
         --device "${DEVICE:-cuda}" \
         "${PAIR_ARGS[@]}" \
+        "${ROOT_ARGS[@]}" \
         "${RESUME_ARGS[@]}" \
         "${CELL_ARGS[@]}"
 elif [[ "$ANALYSIS" == "group-features" ]]; then
     MATCH_CSV="${MATCH_CSV:?export MATCH_CSV for group-features}"
     uv run python scripts/analysis/sae_feature_patching.py group-features \
         --conditions $CONDITIONS \
+        --model_variant "$MODEL_VARIANT" \
         --layers $LAYERS \
         --t_bins $T_BINS \
         --dit_step "$DIT_STEP" \
@@ -165,6 +185,7 @@ elif [[ "$ANALYSIS" == "group-features" ]]; then
         --min_group_score "${MIN_GROUP_SCORE:-0.65}" \
         --min_group_activation_corr "${MIN_GROUP_ACTIVATION_CORR:-0.40}" \
         --min_group_class_jaccard "${MIN_GROUP_CLASS_JACCARD:-0.30}" \
+        "${ROOT_ARGS[@]}" \
         "${RESUME_ARGS[@]}" \
         "${CELL_ARGS[@]}"
 elif [[ "$ANALYSIS" == "group-activation-patch" ]]; then
@@ -190,6 +211,7 @@ elif [[ "$ANALYSIS" == "group-activation-patch" ]]; then
     fi
     uv run python scripts/analysis/sae_feature_patching.py group-activation-patch \
         --conditions $CONDITIONS \
+        --model_variant "$MODEL_VARIANT" \
         --layers $LAYERS \
         --t_bins $T_BINS \
         --dit_step "$DIT_STEP" \
@@ -211,6 +233,7 @@ elif [[ "$ANALYSIS" == "group-activation-patch" ]]; then
         --min_active_tokens "${MIN_ACTIVE_TOKENS:-32}" \
         --device "${DEVICE:-cuda}" \
         "${GROUP_ARGS[@]}" \
+        "${ROOT_ARGS[@]}" \
         "${RESUME_ARGS[@]}" \
         "${CELL_ARGS[@]}"
 elif [[ "$ANALYSIS" == "concept-eap" ]]; then
@@ -238,6 +261,7 @@ elif [[ "$ANALYSIS" == "concept-eap" ]]; then
         --ridge_probe_alpha "${RIDGE_PROBE_ALPHA:-10.0}" \
         --device "${DEVICE:-cuda}" \
         "${EAP_ARGS[@]}" \
+        "${ROOT_ARGS[@]}" \
         "${RESUME_ARGS[@]}" \
         "${CELL_ARGS[@]}"
 elif [[ "$ANALYSIS" == "sampling-feature-fid" ]]; then
@@ -287,12 +311,12 @@ elif [[ "$ANALYSIS" == "sampling-feature-fid" ]]; then
     if [[ -n "${SAE_ROOT:-}" ]]; then
         EXTRA+=("--sae_root" "$SAE_ROOT")
     fi
+    if [[ -n "${ACTIVATIONS_ROOT:-}" ]]; then
+        EXTRA+=("--activations_root" "$ACTIVATIONS_ROOT")
+    fi
     if [[ -n "${SLOPE_GATE_EPSILON:-}" ]]; then
         EXTRA+=("--slope_gate_epsilon" "$SLOPE_GATE_EPSILON")
     fi
-    echo "=== DEBUG SAE_ROOT env=${SAE_ROOT:-<unset>} ==="
-    echo "=== DEBUG ls SAE_ROOT/eq_vae/L9_T2/step_200000 ==="
-    ls -la "${SAE_ROOT:-/leonardo_scratch/fast/IscrC_PDR/lcerovaz/diffmechint/sae_matryoshka_k256_d32k}/eq_vae/L9_T2/step_200000/" 2>&1 | head -5
     echo "=== DEBUG EXTRA argv ==="
     printf '  %s\n' "${EXTRA[@]}"
     uv run python scripts/eval/cross_tokenizer_feature_patching.py \
@@ -301,6 +325,7 @@ elif [[ "$ANALYSIS" == "sampling-feature-fid" ]]; then
         --target_condition "$TARGET_CONDITION" \
         --mode "$MODE" \
         --dit_step "$DIT_STEP" \
+        --model_name "${MODEL_NAME:-SiT-B/2}" \
         --out_root "$OUT_ROOT/$RUN_ID" \
         --n_samples "${N_SAMPLES:-1000}" \
         --batch_size "${BATCH_SIZE:-32}" \

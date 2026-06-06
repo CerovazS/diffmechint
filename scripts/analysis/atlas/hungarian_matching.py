@@ -21,9 +21,10 @@ Outputs:
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
-from itertools import combinations
+from itertools import combinations, pairwise
 from pathlib import Path
 
 import matplotlib as mpl
@@ -32,7 +33,8 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import linear_sum_assignment
 
-ATLAS = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_8_atlas")
+ATLAS_DEFAULT = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_8_atlas")
+ATLAS = ATLAS_DEFAULT
 TOP9 = ATLAS / "top9"
 PLOTS = ATLAS / "plots"
 
@@ -109,12 +111,12 @@ def curated_pairs() -> list[tuple[str, str, str]]:
         for T in TBIN_ORDER:
             for c1, c2 in combinations(COND_ORDER, 2):
                 pairs.append((f"{c1}_L{L}_T{T}", f"{c2}_L{L}_T{T}", "cross_cond_same_LT"))
-    # 2. Within-condition cross-layer same-t: 9 pairs (3 conds x 3 timesteps,
-    #    L=3 vs L=6 only)
+    # 2. Within-condition cross-layer same-t: adjacent layer pairs.
     for c in COND_ORDER:
         for T in TBIN_ORDER:
-            pairs.append((f"{c}_L3_T{T}", f"{c}_L6_T{T}", "within_cond_cross_layer"))
-            pairs.append((f"{c}_L6_T{T}", f"{c}_L9_T{T}", "within_cond_cross_layer"))
+            for l_a, l_b in pairwise(LAYER_ORDER):
+                pairs.append((f"{c}_L{l_a}_T{T}", f"{c}_L{l_b}_T{T}",
+                              "within_cond_cross_layer"))
     # 3. Within-condition cross-timestep same-L: T1 vs T2 only
     #    (T0 has too few mono features to be informative)
     for c in COND_ORDER:
@@ -181,7 +183,7 @@ def plot_h1(df: pd.DataFrame) -> None:
                         fontsize=6,
                         color="white" if v > 0.78 else PB["ink"])
     cbar = plt.colorbar(im, ax=ax, shrink=0.7)
-    cbar.set_label("mean Hungarian match cost (1 − Jaccard on top-9 images)",
+    cbar.set_label("mean Hungarian match cost (1 - Jaccard on top-9 images)",
                    rotation=270, labelpad=14)
     ax.set_title("H1 — Hungarian match cost between cell pairs\n"
                  "(lower = more shared concept structure; 0.9-1.0 = essentially no overlap)",
@@ -200,13 +202,13 @@ def plot_h2(headline_pair: dict) -> None:
     _, bins, patches = ax.hist(costs, bins=30, color=PB["amber"],
                                 edgecolor=PB["ink"], lw=0.5)
     # Color the "good match" bin in teal
-    for patch, bin_low in zip(patches, bins[:-1]):
+    for patch, bin_low in zip(patches, bins[:-1], strict=False):
         if bin_low < 0.7:
             patch.set_facecolor(PB["teal"])
         elif bin_low > 0.9:
             patch.set_facecolor(PB["wine"])
     ax.axvline(0.7, color=PB["teal"], lw=1.5, ls="--", alpha=0.6, label="good match threshold")
-    ax.set_xlabel("Hungarian match cost (1 − Jaccard)")
+    ax.set_xlabel("Hungarian match cost (1 - Jaccard)")
     ax.set_ylabel("# matched feature pairs")
     ax.set_title(f"H2 — Cost distribution for headline pair: "
                  f"{headline_pair['cell_a']}  ↔  {headline_pair['cell_b']}\n"
@@ -287,6 +289,21 @@ def plot_h3(headline_pair: dict, df_captions: pd.DataFrame) -> pd.DataFrame:
 
 
 def main() -> int:
+    global ATLAS, TOP9, PLOTS, LAYER_ORDER, ALL_CELLS
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dashboard_root", type=Path, default=None,
+                        help=argparse.SUPPRESS)
+    parser.add_argument("--atlas_root", type=Path, default=ATLAS_DEFAULT)
+    parser.add_argument("--layers", type=int, nargs="+", default=[3, 6, 9])
+    args = parser.parse_args()
+    ATLAS = args.atlas_root
+    TOP9 = ATLAS / "top9"
+    PLOTS = ATLAS / "plots"
+    PLOTS.mkdir(parents=True, exist_ok=True)
+    LAYER_ORDER = list(args.layers)
+    ALL_CELLS = [f"{c}_L{L}_T{T}"
+                 for c in COND_ORDER for L in LAYER_ORDER for T in TBIN_ORDER]
+
     pairs = curated_pairs()
     print(f"Computing Hungarian matching on {len(pairs)} curated pairs...")
     results = []

@@ -2,7 +2,7 @@
 
 Produces (under outputs/phase4_8_atlas/plots/):
 
-    b0_concept_emergence.png   — top-30 concepts × 27 cells heatmap
+    b0_concept_emergence.png   — top-30 concepts x 27 cells heatmap
     b1_concept_categories.png  — 5-category bar chart, 3 cond facets
     b2_wordclouds.png          — 3 panels, top-50 concepts per condition
     b3_jaccard.png             — Jaccard similarity matrix of concept sets
@@ -13,6 +13,7 @@ All plots use Palette B + a CSV-derived dataframe — no GPU, no extra downloads
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from collections import Counter
@@ -23,7 +24,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-ATLAS = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_8_atlas")
+ATLAS_DEFAULT = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_8_atlas")
+ATLAS = ATLAS_DEFAULT
 PLOTS = ATLAS / "plots"
 
 PB = {
@@ -141,7 +143,7 @@ def normalize_caption(c: str | None) -> str:
 
 
 def plot_b0(df_mono: pd.DataFrame) -> None:
-    """Heatmap: top-30 concepts × 27 cells.  Cell value = # mono features with
+    """Heatmap: top-30 concepts x 27 cells.  Cell value = # mono features with
     that concept (after normalization)."""
     df = df_mono.copy()
     df["concept"] = df["vlm_interpretation"].map(normalize_caption)
@@ -185,7 +187,7 @@ def plot_b0(df_mono: pd.DataFrame) -> None:
                         fontsize=6)
     cbar = plt.colorbar(im, ax=ax, shrink=0.6)
     cbar.set_label("# mono features (gamma=0.6)", rotation=270, labelpad=15)
-    ax.set_title("B0 — Concept emergence: top-30 concepts × 27 cells\n"
+    ax.set_title("B0 — Concept emergence: top-30 concepts x 27 cells\n"
                  "(rows = concept stem; columns grouped by condition / layer / timestep)",
                  fontsize=12, color=PB["ink"], pad=10)
     fig.tight_layout()
@@ -257,8 +259,9 @@ def plot_b2(df_mono: pd.DataFrame) -> None:
 
 
 def plot_b3(df_mono: pd.DataFrame) -> None:
-    """Jaccard similarity matrix between concept sets, 9×9 (3 cond × 3 t_bin), fixed L=6."""
-    df = df_mono[df_mono["layer"] == 6].copy()  # mid layer
+    """Jaccard similarity matrix between concept sets at the middle layer."""
+    mid_layer = LAYER_ORDER[len(LAYER_ORDER) // 2]
+    df = df_mono[df_mono["layer"] == mid_layer].copy()
     df["concept"] = df["vlm_interpretation"].map(normalize_caption)
     df = df[df["concept"] != ""]
     cells = []
@@ -300,7 +303,7 @@ def plot_b3(df_mono: pd.DataFrame) -> None:
                     color="white" if v > 0.3 else PB["ink"])
     cbar = plt.colorbar(im, ax=ax, shrink=0.7)
     cbar.set_label("Jaccard similarity", rotation=270, labelpad=14)
-    ax.set_title("B3 — Concept-set Jaccard similarity at L=6\n"
+    ax.set_title(f"B3 — Concept-set Jaccard similarity at L={mid_layer}\n"
                  "(diagonal blocks = within-condition; off-diagonal = across-condition)",
                  fontsize=11, color=PB["ink"], pad=10)
     fig.tight_layout()
@@ -340,6 +343,18 @@ def plot_b5(df_mono: pd.DataFrame) -> None:
 
 
 def main() -> int:
+    global ATLAS, PLOTS, LAYER_ORDER
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dashboard_root", type=Path, default=None,
+                        help=argparse.SUPPRESS)
+    parser.add_argument("--atlas_root", type=Path, default=ATLAS_DEFAULT)
+    parser.add_argument("--layers", type=int, nargs="+", default=[3, 6, 9])
+    args = parser.parse_args()
+    ATLAS = args.atlas_root
+    PLOTS = ATLAS / "plots"
+    PLOTS.mkdir(parents=True, exist_ok=True)
+    LAYER_ORDER = list(args.layers)
+
     df_mono = pd.read_csv(ATLAS / "atlas_mono_features.csv")
     df_mono = df_mono[df_mono["vlm_interpretation"].notna()]
     print(f"loaded atlas_mono_features.csv  ({len(df_mono)} rows with VLM)")

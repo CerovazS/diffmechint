@@ -175,6 +175,25 @@ CONCEPTS: dict[str, ConceptAxis] = {
 
 
 def get_concept(name: str) -> ConceptAxis:
+    if name.startswith("class:"):
+        raw_idx = name.split(":", 1)[1]
+        try:
+            class_idx = int(raw_idx)
+        except ValueError as exc:
+            raise KeyError("Dynamic class concepts must be written as class:<0-999>.") from exc
+        if class_idx < 0 or class_idx >= 1000:
+            raise KeyError(f"ImageNet class concept index out of range: {class_idx}")
+
+        def label_fn(x: int, target_idx: int = class_idx) -> int:
+            return int(int(x) == target_idx)
+
+        return ConceptAxis(
+            name=name,
+            num_classes=2,
+            description=f"Dynamic ImageNet binary concept: class {class_idx} vs all other classes.",
+            available=True,
+            label_fn=label_fn,
+        )
     if name not in CONCEPTS:
         raise KeyError(f"Unknown concept {name!r}. Known: {sorted(CONCEPTS)}.")
     return CONCEPTS[name]

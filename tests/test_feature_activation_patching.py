@@ -18,7 +18,10 @@ from scripts.analysis.sae_feature_patching import (
     feature_match_score,
     is_monosemantic,
 )
-from scripts.eval.cross_tokenizer_feature_patching import make_feature_patch_hook
+from scripts.eval.cross_tokenizer_feature_patching import (
+    build_class_schedule,
+    make_feature_patch_hook,
+)
 
 
 def _feature(feature_id: int, top: int, top9: tuple[int, ...], entropy: float = 1.0) -> FeatureRow:
@@ -263,3 +266,71 @@ def test_zero_scale_source_hook_uses_bias_without_source_sae() -> None:
     assert y is not None
     assert y[0, 0, 1].item() == pytest.approx(7.0)
     assert stats["active"] == 1
+
+
+def test_error_only_hook_keeps_only_reconstruction_error() -> None:
+    sae = _ToySae()
+    stats = {"active": 0, "skipped": 0, "no_t": 0}
+    hook = make_feature_patch_hook(
+        sae,
+        None,
+        None,
+        mode="native_ablate",
+        target_feature_id=1,
+        source_feature_id=None,
+        random_source_feature_id=None,
+        source_to_target_scale=1.0,
+        t_center=0.20,
+        t_tol=0.01,
+        stats=stats,
+        error_mode="only",
+    )
+    x = torch.tensor([[[1.0, 2.0], [3.0, 4.0]]])
+    with timestep_context(0.20):
+        y = hook(None, (), x)
+    assert y is not None
+    assert torch.equal(y, torch.zeros_like(x))
+    assert stats["active"] == 1
+
+
+def test_class_schedule_target_and_mixed_are_deterministic() -> None:
+    target, target_seeds = build_class_schedule(
+        "target",
+        n_samples=4,
+        target_class_idx=407,
+        seed=11,
+    )
+    mixed_a, mixed_seeds_a = build_class_schedule(
+        "mixed",
+        n_samples=6,
+        target_class_idx=407,
+        seed=12,
+    )
+    mixed_b, mixed_seeds_b = build_class_schedule(
+        "mixed",
+        n_samples=6,
+        target_class_idx=407,
+        seed=12,
+    )
+    assert target is not None
+    assert target.tolist() == [407, 407, 407, 407]
+    assert target_seeds == [11_000_033, 11_000_034, 11_000_035, 11_000_036]
+    assert mixed_a is not None
+    assert mixed_a[::2].tolist() == [407, 407, 407]
+    assert all(cls != 407 for cls in mixed_a[1::2].tolist())
+    assert mixed_a.tolist() == mixed_b.tolist()
+    assert mixed_seeds_a == mixed_seeds_b
+
+
+def test_class_schedule_file_validates_class_column(tmp_path) -> None:
+    path = tmp_path / "schedule.tsv"
+    path.write_text("class_id\tseed\n407\t10\n734\t11\n", encoding="utf-8")
+    classes, seeds = build_class_schedule(
+        str(path),
+        n_samples=2,
+        target_class_idx=None,
+        seed=0,
+    )
+    assert classes is not None
+    assert classes.tolist() == [407, 734]
+    assert seeds == [10, 11]

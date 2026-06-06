@@ -22,9 +22,13 @@ set -euo pipefail
 #
 # Common optional inputs:
 #   CONDITIONS="sd_vae repa_e eq_vae"
+#   MODEL_VARIANT=sit_b_2
 #   LAYERS="3 6 9"
 #   T_BINS="0 1 2"
 #   DIT_STEP=200000
+#   ACTIVATIONS_ROOT=<optional explicit activation root>
+#   LATENTS_ROOT=<optional explicit latent-label root>
+#   SAE_ROOT=<optional explicit SAE root for activation-proxy / cross-sae-fid>
 #   RUN_ID=<unique name>
 #   OUT_ROOT=outputs/phase4_10_tokenizer_dictionary_validation
 #   CELLS="L3_T1 L6_T2 L9_T2"  # optional exact cell subset
@@ -33,18 +37,32 @@ set -euo pipefail
 REPO=/leonardo_work/IscrC_PDR/lcerovaz/diffmechint
 ANALYSIS="${ANALYSIS:?export ANALYSIS before sbatch}"
 CONDITIONS="${CONDITIONS:-sd_vae repa_e eq_vae}"
+MODEL_VARIANT="${MODEL_VARIANT:-sit_b_2}"
 LAYERS="${LAYERS:-3 6 9}"
 T_BINS="${T_BINS:-0 1 2}"
 DIT_STEP="${DIT_STEP:-200000}"
 RUN_ID="${RUN_ID:-${ANALYSIS}_${SLURM_JOB_ID}}"
 OUT_ROOT="${OUT_ROOT:-outputs/phase4_10_tokenizer_dictionary_validation}"
+SEED="${SEED:-0}"
 
 module load cuda/12.2 || true
 cd "$REPO"
 
 echo "=== tokenizer_dictionary_validation ANALYSIS=$ANALYSIS RUN_ID=$RUN_ID ==="
-echo "CONDITIONS=$CONDITIONS LAYERS=$LAYERS T_BINS=$T_BINS DIT_STEP=$DIT_STEP"
+echo "CONDITIONS=$CONDITIONS MODEL_VARIANT=$MODEL_VARIANT LAYERS=$LAYERS T_BINS=$T_BINS DIT_STEP=$DIT_STEP"
+echo "OUT_ROOT=$OUT_ROOT"
+[[ -n "${ACTIVATIONS_ROOT:-}" ]] && echo "ACTIVATIONS_ROOT=$ACTIVATIONS_ROOT"
+[[ -n "${LATENTS_ROOT:-}" ]] && echo "LATENTS_ROOT=$LATENTS_ROOT"
+[[ -n "${SAE_ROOT:-}" ]] && echo "SAE_ROOT=$SAE_ROOT"
 nvidia-smi --query-gpu=index,name,memory.total --format=csv || true
+
+ROOT_ARGS=()
+if [[ -n "${ACTIVATIONS_ROOT:-}" ]]; then
+    ROOT_ARGS+=("--activations_root" "$ACTIVATIONS_ROOT")
+fi
+if [[ -n "${LATENTS_ROOT:-}" ]]; then
+    ROOT_ARGS+=("--latents_root" "$LATENTS_ROOT")
+fi
 
 CELL_ARGS=()
 if [[ -n "${CELLS:-}" ]]; then
@@ -63,6 +81,7 @@ fi
 if [[ "$ANALYSIS" == "probe-transfer" ]]; then
     uv run python scripts/analysis/tokenizer_dictionary_validation.py probe-transfer \
         --conditions $CONDITIONS \
+        --model_variant "$MODEL_VARIANT" \
         --layers $LAYERS \
         --t_bins $T_BINS \
         --dit_step "$DIT_STEP" \
@@ -71,10 +90,13 @@ if [[ "$ANALYSIS" == "probe-transfer" ]]; then
         --max_images "${MAX_IMAGES:-512}" \
         --max_fit_tokens "${MAX_FIT_TOKENS:-50000}" \
         --max_eval_tokens "${MAX_EVAL_TOKENS:-50000}" \
+        --ridge_alpha "${RIDGE_ALPHA:-10.0}" \
         --pool "${POOL:-mean}" \
         --probe_model "${PROBE_MODEL:-ridge}" \
         --probe_max_iter "${PROBE_MAX_ITER:-1000}" \
         --max_probe_train "${MAX_PROBE_TRAIN:-50000}" \
+        --seed "$SEED" \
+        "${ROOT_ARGS[@]}" \
         "${RESUME_ARGS[@]}" \
         "${CELL_ARGS[@]}"
 elif [[ "$ANALYSIS" == "residual-similarity" ]]; then
@@ -88,6 +110,7 @@ elif [[ "$ANALYSIS" == "residual-similarity" ]]; then
     fi
     uv run python scripts/analysis/tokenizer_dictionary_validation.py residual-similarity \
         --conditions $CONDITIONS \
+        --model_variant "$MODEL_VARIANT" \
         --layers $LAYERS \
         --t_bins $T_BINS \
         --dit_step "$DIT_STEP" \
@@ -96,12 +119,19 @@ elif [[ "$ANALYSIS" == "residual-similarity" ]]; then
         --max_images "${MAX_IMAGES:-512}" \
         --max_tokens "${MAX_TOKENS:-50000}" \
         --knn_k "${KNN_K:-10}" \
+        --seed "$SEED" \
+        "${ROOT_ARGS[@]}" \
         "${PAIR_KIND_ARGS[@]}" \
         "${RESUME_ARGS[@]}" \
         "${CELL_ARGS[@]}"
 elif [[ "$ANALYSIS" == "activation-proxy" ]]; then
+    SAE_ARGS=()
+    if [[ -n "${SAE_ROOT:-}" ]]; then
+        SAE_ARGS+=("--sae_root" "$SAE_ROOT")
+    fi
     uv run python scripts/analysis/tokenizer_dictionary_validation.py activation-proxy \
         --conditions $CONDITIONS \
+        --model_variant "$MODEL_VARIANT" \
         --layers $LAYERS \
         --t_bins $T_BINS \
         --dit_step "$DIT_STEP" \
@@ -110,7 +140,11 @@ elif [[ "$ANALYSIS" == "activation-proxy" ]]; then
         --max_images "${MAX_IMAGES:-512}" \
         --max_fit_tokens "${MAX_FIT_TOKENS:-50000}" \
         --max_eval_tokens "${MAX_EVAL_TOKENS:-50000}" \
+        --ridge_alpha "${RIDGE_ALPHA:-10.0}" \
         --sae_batch_size "${SAE_BATCH_SIZE:-8192}" \
+        --seed "$SEED" \
+        "${ROOT_ARGS[@]}" \
+        "${SAE_ARGS[@]}" \
         "${RESUME_ARGS[@]}" \
         "${CELL_ARGS[@]}"
 elif [[ "$ANALYSIS" == "cross-sae-fid" ]]; then
@@ -119,6 +153,10 @@ elif [[ "$ANALYSIS" == "cross-sae-fid" ]]; then
     TARGET_CONDITION="${TARGET_CONDITION:?export TARGET_CONDITION for cross-sae-fid}"
     MODE="${MODE:?export MODE=baseline|native|transfer for cross-sae-fid}"
     EXTRA=()
+    FID_SAE_ARGS=()
+    if [[ -n "${SAE_ROOT:-}" ]]; then
+        FID_SAE_ARGS+=("--sae_root" "$SAE_ROOT")
+    fi
     if [[ "$MODE" != "baseline" ]]; then
         EXTRA+=("--layer" "${LAYER:?export LAYER for native/transfer}")
         EXTRA+=("--t_bin" "${T_BIN:?export T_BIN for native/transfer}")
@@ -136,6 +174,7 @@ elif [[ "$ANALYSIS" == "cross-sae-fid" ]]; then
         --mode "$MODE" \
         --dit_step "$DIT_STEP" \
         --out_root "$OUT_ROOT/$RUN_ID" \
+        "${FID_SAE_ARGS[@]}" \
         --n_samples "${N_SAMPLES:-1000}" \
         --seed "${SEED:-0}" \
         "${EXTRA[@]}"

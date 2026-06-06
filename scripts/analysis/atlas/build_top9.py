@@ -15,6 +15,7 @@ matching analyses — far smaller than the original JSONs.
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import sys
@@ -24,8 +25,8 @@ from pathlib import Path
 
 import numpy as np
 
-ATLAS_ROOT = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_5b_feature_viz_ynull")
-OUT_ROOT = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_8_atlas/top9")
+ATLAS_ROOT_DEFAULT = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_5b_feature_viz_ynull")
+OUT_ATLAS_ROOT_DEFAULT = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_8_atlas")
 
 CELL_RE = re.compile(r"^(?P<cond>[a-z_0-9]+?)_L(?P<layer>\d+)_T(?P<tbin>\d+)$")
 MONO_DENSITY_MIN = 1e-4
@@ -33,11 +34,19 @@ MONO_DENSITY_MAX = 0.10
 MONO_ENTROPY_MAX = 2.5
 
 
-def process_cell(cell_dir_str: str) -> tuple[str, int]:
+def parse_cell_name(name: str) -> tuple[str, int, int]:
+    m = CELL_RE.match(name)
+    if not m:
+        raise ValueError(f"bad cell name: {name}")
+    return m["cond"], int(m["layer"]), int(m["tbin"])
+
+
+def process_cell(cell_dir_str: str, out_root_str: str, force: bool) -> tuple[str, int]:
     cell_dir = Path(cell_dir_str)
+    out_root = Path(out_root_str)
     cell = cell_dir.name
-    out_path = OUT_ROOT / f"{cell}.npz"
-    if out_path.exists():
+    out_path = out_root / f"{cell}.npz"
+    if out_path.exists() and not force:
         return cell, 0
 
     fids: list[int] = []
@@ -79,7 +88,7 @@ def process_cell(cell_dir_str: str) -> tuple[str, int]:
     arr_cls = np.asarray(top9_class, dtype=np.int16) if fids else np.zeros((0, 9), dtype=np.int16)
     arr_ds = np.asarray(top9_data, dtype=np.int32) if fids else np.zeros((0, 9), dtype=np.int32)
 
-    OUT_ROOT.mkdir(parents=True, exist_ok=True)
+    out_root.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(out_path,
                         feature_ids=arr_fids,
                         is_mono=arr_mono,
@@ -89,14 +98,39 @@ def process_cell(cell_dir_str: str) -> tuple[str, int]:
 
 
 def main() -> int:
-    OUT_ROOT.mkdir(parents=True, exist_ok=True)
-    cell_dirs = sorted(d for d in ATLAS_ROOT.iterdir()
-                       if d.is_dir() and CELL_RE.match(d.name))
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dashboard_root", type=Path,
+                        default=ATLAS_ROOT_DEFAULT,
+                        dest="dashboard_root",
+                        help="Feature dashboard root containing <cond>_L<L>_T<T> dirs.")
+    parser.add_argument("--atlas_root", type=Path, default=OUT_ATLAS_ROOT_DEFAULT,
+                        help="Atlas root. top9 files are written under <atlas_root>/top9.")
+    parser.add_argument("--out_root", type=Path, default=None,
+                        help="Override output directory for per-cell top9 .npz files.")
+    parser.add_argument("--layers", type=int, nargs="+", default=[3, 6, 9])
+    parser.add_argument("--conditions", nargs="+", default=["sd_vae", "repa_e", "eq_vae"])
+    parser.add_argument("--force", action="store_true")
+    args = parser.parse_args()
+
+    out_root = args.out_root if args.out_root is not None else args.atlas_root / "top9"
+    out_root.mkdir(parents=True, exist_ok=True)
+    layers = set(args.layers)
+    conditions = set(args.conditions)
+    cell_dirs = []
+    for d in sorted(args.dashboard_root.iterdir()):
+        if not d.is_dir() or not CELL_RE.match(d.name):
+            continue
+        cond, layer, _tbin = parse_cell_name(d.name)
+        if cond in conditions and layer in layers:
+            cell_dirs.append(d)
     print(f"processing {len(cell_dirs)} cells (parallel workers=8)...")
     t0 = time.perf_counter()
 
     with ProcessPoolExecutor(max_workers=8) as ex:
-        fut_to_dir = {ex.submit(process_cell, str(d)): d for d in cell_dirs}
+        fut_to_dir = {
+            ex.submit(process_cell, str(d), str(out_root), args.force): d
+            for d in cell_dirs
+        }
         for i, fut in enumerate(as_completed(fut_to_dir), start=1):
             cell, n = fut.result()
             print(f"  [{i:2d}/{len(cell_dirs)}] {cell:22s}  n_live={n}")

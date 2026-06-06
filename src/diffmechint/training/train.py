@@ -15,17 +15,57 @@ Real run (cached latents):
 
 from __future__ import annotations
 
+import os
+from datetime import timedelta
 from pathlib import Path
+from typing import Any
 
 import hydra
 import lightning as L
 import torch
+from lightning.pytorch.loggers import CSVLogger
+from lightning.pytorch.strategies import DDPStrategy
+from lightning.pytorch.utilities.rank_zero import rank_zero_only
 from omegaconf import DictConfig, OmegaConf
 
 from diffmechint.training.checkpointing import FractionalCheckpoint
 from diffmechint.training.data import SyntheticLatentDataModule
-from diffmechint.training.sit_module import SiTLightningModule
-from diffmechint.utils import info, ok
+from diffmechint.utils import info, ok, warn
+
+
+class SafeCSVLogger(CSVLogger):
+    """CSV logger that treats transient filesystem write failures as degraded logging."""
+
+    @rank_zero_only
+    def log_hyperparams(self, params: Any = None) -> None:
+        try:
+            super().log_hyperparams(params)
+        except OSError as exc:
+            warn(f"CSV logger could not write hparams: {exc}")
+
+    @rank_zero_only
+    def save(self) -> None:
+        try:
+            super().save()
+        except OSError as exc:
+            warn(f"CSV logger flush failed; continuing training: {exc}")
+
+    @rank_zero_only
+    def finalize(self, status: str) -> None:
+        try:
+            super().finalize(status)
+        except OSError as exc:
+            warn(f"CSV logger finalize failed; training status={status}: {exc}")
+
+
+def _logger_version(cfg: DictConfig) -> str | None:
+    requested = cfg.get("log_version")
+    if requested:
+        return str(requested)
+    if not cfg.get("resume_from"):
+        return None
+    run_stamp = os.environ.get("SLURM_JOB_ID") or os.environ.get("RUN_TIMESTAMP") or "local"
+    return f"resume_{run_stamp}"
 
 
 @hydra.main(version_base=None, config_path="../../../conf", config_name="config")
@@ -83,7 +123,19 @@ def main(cfg: DictConfig) -> None:
     max_steps = int(trainer_cfg.get("max_steps", 1000))
     ckpt_dir = Path(cfg.get("ckpt_dir", "outputs/run/checkpoints"))
     ckpt_dir = ckpt_dir if ckpt_dir.is_absolute() else Path.cwd() / ckpt_dir
-    callbacks: list = [FractionalCheckpoint(out_dir=str(ckpt_dir), max_steps=max_steps)]
+    checkpoint_cfg = cfg.get("checkpoint", {})
+    target_steps = checkpoint_cfg.get("target_steps") if checkpoint_cfg else None
+    if target_steps is not None:
+        target_steps = tuple(int(step) for step in target_steps)
+    step_offset = int(checkpoint_cfg.get("step_offset", 0)) if checkpoint_cfg else 0
+    callbacks: list = [
+        FractionalCheckpoint(
+            out_dir=str(ckpt_dir),
+            max_steps=max_steps,
+            target_steps=target_steps,
+            step_offset=step_offset,
+        )
+    ]
     cb_cfg = cfg.get("callbacks") or {}
     for name in ("sample", "fid"):
         sub = cb_cfg.get(name)
@@ -99,11 +151,20 @@ def main(cfg: DictConfig) -> None:
         "callbacks": callbacks,
         "enable_checkpointing": False,  # the fractional callback owns saving
         "default_root_dir": str(ckpt_dir.parent),  # SampleCallback writes under here
+        "logger": SafeCSVLogger(
+            save_dir=str(ckpt_dir.parent),
+            name="lightning_logs",
+            version=_logger_version(cfg),
+        ),
     }
     if torch.cuda.is_available():
         trainer_kwargs["accelerator"] = "gpu"
-        trainer_kwargs["devices"] = trainer_cfg.get("devices", 1)
+        devices = trainer_cfg.get("devices", 1)
+        trainer_kwargs["devices"] = devices
         trainer_kwargs["precision"] = trainer_cfg.get("precision", "bf16-mixed")
+        if isinstance(devices, int) and devices > 1:
+            timeout_ms = int(os.environ.get("NCCL_TIMEOUT_MS", "1800000"))
+            trainer_kwargs["strategy"] = DDPStrategy(timeout=timedelta(milliseconds=timeout_ms))
     else:
         trainer_kwargs["accelerator"] = "cpu"
 

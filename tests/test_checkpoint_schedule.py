@@ -55,6 +55,38 @@ def test_dedup_when_two_fractions_round_to_same_step(tmp_path: Path) -> None:
     assert cb.targets == sorted(set(cb.targets))
 
 
+def test_explicit_targets_are_offset_to_local_steps(tmp_path: Path) -> None:
+    cb = FractionalCheckpoint(
+        out_dir=str(tmp_path),
+        max_steps=175_000,
+        target_steps=(200_000, 250_000, 300_000),
+        step_offset=125_000,
+    )
+    assert cb.targets == [75_000, 125_000, 175_000]
+    assert cb.save_steps == [200_000, 250_000, 300_000]
+
+
+def test_explicit_targets_before_offset_are_skipped(tmp_path: Path) -> None:
+    cb = FractionalCheckpoint(
+        out_dir=str(tmp_path),
+        max_steps=75_000,
+        target_steps=(100_000, 125_000, 200_000),
+        step_offset=125_000,
+    )
+    assert cb.targets == [75_000]
+    assert cb.save_steps == [200_000]
+
+
+def test_explicit_targets_must_extend_past_offset(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="greater than step_offset"):
+        FractionalCheckpoint(
+            out_dir=str(tmp_path),
+            max_steps=10,
+            target_steps=(100_000, 125_000),
+            step_offset=125_000,
+        )
+
+
 def test_outdir_created(tmp_path: Path) -> None:
     new_dir = tmp_path / "nested" / "ckpts"
     FractionalCheckpoint(out_dir=str(new_dir), max_steps=10)

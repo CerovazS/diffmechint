@@ -713,11 +713,20 @@ def _sae_reconstruct(sae: torch.nn.Module, x: np.ndarray, batch_size: int) -> np
 
 
 def run_activation_proxy(args: argparse.Namespace) -> int:
-    out_dir = make_run_dir(args.out_root, args.run_id)
-    rows: list[dict] = []
+    out_dir = make_run_dir(args.out_root, args.run_id, resume=args.resume)
+    proxy_path = out_dir / "metrics" / "activation_proxy.csv"
+    rows = _read_csv_rows(proxy_path) if args.resume else []
+    completed_pairs = {
+        (r["source"], r["target"], int(r["layer"]), int(r["t_bin"]))
+        for r in rows
+    }
     device = torch.device(args.device if args.device else ("cuda" if torch.cuda.is_available() else "cpu"))
     for layer, t_bin in _selected_cells(args):
         for source, target in permutations(args.conditions, 2):
+            pair_key = (source, target, int(layer), int(t_bin))
+            if pair_key in completed_pairs:
+                info(f"activation-proxy skip completed {source}->{target} L{layer}/T{t_bin}")
+                continue
             info(f"activation-proxy {source}->{target} L{layer}/T{t_bin}")
             src_pos, tgt_pos, _ = _aligned_positions(
                 args.activations_root, source, target, args.dit_step, args.max_images, args.seed
@@ -773,8 +782,10 @@ def run_activation_proxy(args: argparse.Namespace) -> int:
             del target_sae, source_sae
             if device.type == "cuda":
                 torch.cuda.empty_cache()
+            _write_csv(proxy_path, rows)
+            completed_pairs.add(pair_key)
 
-    _write_csv(out_dir / "metrics" / "activation_proxy.csv", rows)
+    _write_csv(proxy_path, rows)
     _plot_pair_heatmap(
         rows,
         "delta_ev",
@@ -868,6 +879,19 @@ def run_aggregate_runs(args: argparse.Namespace) -> int:
                 "Image-level RSA Spearman",
             )
         summary.update({"n_similarity_rows": len(sim_rows), "n_knn_rows": len(knn_rows)})
+    elif args.analysis == "activation-proxy":
+        proxy_rows: list[dict] = []
+        for run_dir in matched:
+            proxy_rows.extend(_read_csv_rows(run_dir / "metrics" / "activation_proxy.csv"))
+        _write_csv(out_dir / "metrics" / "activation_proxy.csv", proxy_rows)
+        if proxy_rows:
+            _plot_pair_heatmap(
+                proxy_rows,
+                "delta_ev",
+                out_dir / "plots" / "activation_proxy_delta_ev.png",
+                title="Transferred source SAE EV minus native target SAE EV",
+            )
+        summary.update({"n_rows": len(proxy_rows)})
     else:
         raise ValueError(f"unknown aggregate analysis {args.analysis!r}")
 
@@ -952,7 +976,11 @@ def build_parser() -> argparse.ArgumentParser:
     proxy.set_defaults(func=run_activation_proxy)
 
     agg = sub.add_parser("aggregate-runs")
-    agg.add_argument("--analysis", choices=["probe-transfer", "residual-similarity"], required=True)
+    agg.add_argument(
+        "--analysis",
+        choices=["probe-transfer", "residual-similarity", "activation-proxy"],
+        required=True,
+    )
     agg.add_argument("--run_globs", nargs="+", required=True)
     agg.add_argument("--out_root", type=Path, default=DEFAULT_OUT_ROOT)
     agg.add_argument("--run_id", type=str, default=None)

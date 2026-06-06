@@ -110,8 +110,19 @@ def make_feature_patch_hook(
     source_to_target_bias: float = 0.0,
     target_clamp_value: float | None = None,
     clamp_quantile: float = 0.99,
+    clamp_multiplier: float = 1.0,
+    error_mode: str = "preserve",
 ):
+    if error_mode not in {"preserve", "drop", "only"}:
+        raise ValueError(f"unknown error_mode {error_mode!r}")
     sae_dtype = next(target_sae.parameters()).dtype
+
+    def combine(decoded: torch.Tensor, err: torch.Tensor) -> torch.Tensor:
+        if error_mode == "preserve":
+            return decoded + err
+        if error_mode == "drop":
+            return decoded
+        return err
 
     def hook(module, inputs, output):
         t = current_t()
@@ -141,12 +152,13 @@ def make_feature_patch_hook(
                         if active_vals.numel() > 0
                         else vals.max()
                     )
+                clamp = clamp * float(clamp_multiplier)
                 z_tgt[:, target_feature_id] = clamp
             elif mode in {"matched_patch", "transfer_replace", "random_patch", "random_matched_control", "wrong_window_control"}:
                 if float(source_to_target_scale) == 0.0:
                     z_tgt[:, target_feature_id] = source_to_target_bias
                     stats["active"] += 1
-                    return (target_sae.decode(z_tgt) + err).reshape(shape).to(dtype=orig_dtype)
+                    return combine(target_sae.decode(z_tgt), err).reshape(shape).to(dtype=orig_dtype)
                 if source_sae is None or target_to_source is None:
                     raise RuntimeError("source_sae and target_to_source are required for source patch modes")
                 src_flat = target_to_source(flat)
@@ -157,11 +169,57 @@ def make_feature_patch_hook(
                 z_tgt[:, target_feature_id] = z_src[:, int(fid)] * source_to_target_scale + source_to_target_bias
             else:
                 raise ValueError(f"unknown patch mode {mode!r}")
-            recon = (target_sae.decode(z_tgt) + err).reshape(shape).to(dtype=orig_dtype)
+            recon = combine(target_sae.decode(z_tgt), err).reshape(shape).to(dtype=orig_dtype)
         stats["active"] += 1
         return recon
 
     return hook
+
+
+def build_class_schedule(
+    schedule: str,
+    *,
+    n_samples: int,
+    target_class_idx: int | None,
+    seed: int,
+    sample_seed_stride: int = 1_000_003,
+) -> tuple[np.ndarray | None, list[int] | None]:
+    if n_samples <= 0:
+        raise ValueError("n_samples must be positive")
+    if schedule == "random":
+        return None, None
+    noise_seeds = [int(seed) * sample_seed_stride + idx for idx in range(n_samples)]
+    if schedule in {"target", "mixed"}:
+        if target_class_idx is None:
+            raise ValueError(f"--target_class_idx is required for class_schedule={schedule}")
+        if target_class_idx < 0 or target_class_idx >= NUM_CLASSES:
+            raise ValueError(f"target_class_idx out of range: {target_class_idx}")
+        if schedule == "target":
+            return np.full(n_samples, int(target_class_idx), dtype=np.int64), noise_seeds
+        rng = np.random.default_rng(seed)
+        classes = np.full(n_samples, int(target_class_idx), dtype=np.int64)
+        non_target_count = n_samples // 2
+        non_target = rng.integers(0, NUM_CLASSES - 1, size=non_target_count, dtype=np.int64)
+        non_target = np.where(non_target >= int(target_class_idx), non_target + 1, non_target)
+        classes[1 : 2 * non_target_count : 2] = non_target
+        return classes, noise_seeds
+
+    path = Path(schedule)
+    if not path.exists():
+        raise FileNotFoundError(f"class schedule path does not exist: {path}")
+    delimiter = "\t" if path.suffix == ".tsv" else ","
+    with path.open(newline="", encoding="utf-8") as fh:
+        rows = list(csv.DictReader(fh, delimiter=delimiter))
+    if len(rows) < n_samples:
+        raise ValueError(f"class schedule has {len(rows)} rows, need {n_samples}")
+    if "class_id" not in rows[0]:
+        raise ValueError("class schedule file must contain a class_id column")
+    classes = np.asarray([int(row["class_id"]) for row in rows[:n_samples]], dtype=np.int64)
+    if np.any(classes < 0) or np.any(classes >= NUM_CLASSES):
+        raise ValueError("class schedule contains out-of-range ImageNet class ids")
+    if "seed" in rows[0]:
+        noise_seeds = [int(row["seed"]) for row in rows[:n_samples]]
+    return classes, noise_seeds
 
 
 @torch.no_grad()
@@ -183,6 +241,8 @@ def _sample_with_hook(
     denormalize: bool,
     hook_layer: int | None,
     hook_fn,
+    class_ids: torch.Tensor | None = None,
+    noise_seeds: list[int] | None = None,
 ) -> dict[str, int]:
     from torchvision.utils import save_image
 
@@ -199,14 +259,49 @@ def _sample_with_hook(
     if hook_layer is not None and hook_fn is not None:
         handle = model.blocks[hook_layer].register_forward_hook(hook_fn)
     gen = torch.Generator(device="cpu").manual_seed(seed)
-    all_classes = torch.randint(0, NUM_CLASSES, (n_samples,), generator=gen)
+    all_classes = (
+        class_ids.detach().cpu().long()
+        if class_ids is not None
+        else torch.randint(0, NUM_CLASSES, (n_samples,), generator=gen)
+    )
+    if all_classes.shape[0] != n_samples:
+        raise ValueError(f"class_ids length {all_classes.shape[0]} != n_samples {n_samples}")
+    if noise_seeds is not None and len(noise_seeds) != n_samples:
+        raise ValueError(f"noise_seeds length {len(noise_seeds)} != n_samples {n_samples}")
+    noise_gen = torch.Generator(device=device).manual_seed(seed)
     in_ch = int(mean_d.shape[1])
     stats = {"active": 0, "skipped": 0, "no_t": 0}
+    metadata_rows = []
     try:
         n_done = 0
         while n_done < n_samples:
             bsz = min(batch_size, n_samples - n_done)
-            noise = torch.randn(bsz, in_ch, input_size, input_size, device=device)
+            if noise_seeds is None:
+                noise = torch.randn(
+                    bsz,
+                    in_ch,
+                    input_size,
+                    input_size,
+                    device=device,
+                    generator=noise_gen,
+                )
+                batch_seeds = [seed + n_done + idx for idx in range(bsz)]
+            else:
+                batch_seeds = [int(v) for v in noise_seeds[n_done : n_done + bsz]]
+                noise = torch.cat(
+                    [
+                        torch.randn(
+                            1,
+                            in_ch,
+                            input_size,
+                            input_size,
+                            device=device,
+                            generator=torch.Generator(device=device).manual_seed(sample_seed),
+                        )
+                        for sample_seed in batch_seeds
+                    ],
+                    dim=0,
+                )
             labels = all_classes[n_done : n_done + bsz].to(device)
             null_label = torch.full_like(labels, NUM_CLASSES)
             noise_full = torch.cat([noise, noise], dim=0)
@@ -222,11 +317,25 @@ def _sample_with_hook(
                 samples = samples / std_d + mean_d
             imgs = adapter.decode(samples).clamp_(-1, 1).add(1).div(2).clamp_(0, 1)
             for idx, img in enumerate(imgs):
-                save_image(img, out_dir / f"img_{n_done + idx:06d}.png")
+                filename = f"img_{n_done + idx:06d}.png"
+                save_image(img, out_dir / filename)
+                metadata_rows.append(
+                    {
+                        "sample_id": n_done + idx,
+                        "seed": batch_seeds[idx],
+                        "class_id": int(labels[idx].detach().cpu().item()),
+                        "filename": filename,
+                    }
+                )
             n_done += bsz
     finally:
         if handle is not None:
             handle.remove()
+    if metadata_rows:
+        with (out_dir / "sample_metadata.tsv").open("w", newline="", encoding="utf-8") as fh:
+            writer = csv.DictWriter(fh, fieldnames=list(metadata_rows[0].keys()), delimiter="\t")
+            writer.writeheader()
+            writer.writerows(metadata_rows)
     if hook_fn is not None and hasattr(hook_fn, "_stats_ref"):
         stats = hook_fn._stats_ref
     return stats
@@ -269,7 +378,12 @@ def main() -> int:
     p.add_argument("--source_to_target_bias", type=float, default=0.0)
     p.add_argument("--target_clamp_value", type=float, default=None)
     p.add_argument("--clamp_quantile", type=float, default=0.99)
+    p.add_argument("--clamp_multiplier", type=float, default=1.0)
     p.add_argument("--wrong_t_bin", type=int, choices=[0, 1, 2], default=None)
+    p.add_argument("--error_mode", choices=["preserve", "drop", "only"], default="preserve")
+    p.add_argument("--class_schedule", type=str, default="random")
+    p.add_argument("--target_class_idx", type=int, default=None)
+    p.add_argument("--sample_seed_stride", type=int, default=1_000_003)
     p.add_argument("--dit_step", type=int, default=200_000)
     p.add_argument("--sae_root", type=Path, default=SAE_ROOT)
     p.add_argument("--activations_root", type=Path, default=ACTIVATIONS_YNULL)
@@ -331,6 +445,11 @@ def main() -> int:
         tag_bits.append(f"tf{args.target_feature_id}")
     if args.source_feature_id is not None:
         tag_bits.append(f"sf{args.source_feature_id}")
+    if args.mode == "native_clamp":
+        q_tag = str(args.clamp_quantile).replace(".", "p")
+        m_tag = str(args.clamp_multiplier).replace(".", "p")
+        tag_bits.append(f"q{q_tag}")
+        tag_bits.append(f"m{m_tag}")
     tag_bits.append(f"step_{args.dit_step:06d}")
     run_tag = "__".join(tag_bits)
     out_dir = args.out_root / run_tag
@@ -456,6 +575,8 @@ def main() -> int:
                 source_to_target_bias=args.source_to_target_bias,
                 target_clamp_value=args.target_clamp_value,
                 clamp_quantile=args.clamp_quantile,
+                clamp_multiplier=args.clamp_multiplier,
+                error_mode=args.error_mode,
             ),
             hook_stats,
         )
@@ -464,6 +585,14 @@ def main() -> int:
 
     transport = create_transport(path_type="Linear", prediction="velocity", loss_weight=None)
     t0 = time.perf_counter()
+    class_ids_np, noise_seeds = build_class_schedule(
+        args.class_schedule,
+        n_samples=args.n_samples,
+        target_class_idx=args.target_class_idx,
+        seed=args.seed + args.dit_step,
+        sample_seed_stride=args.sample_seed_stride,
+    )
+    class_ids = None if class_ids_np is None else torch.as_tensor(class_ids_np, dtype=torch.long)
     hook_result = _sample_with_hook(
         model,
         transport,
@@ -482,6 +611,8 @@ def main() -> int:
         not args.no_normalize,
         args.layer if args.mode != "baseline" else None,
         hook_fn,
+        class_ids,
+        noise_seeds,
     )
     gen_sec = time.perf_counter() - t0
     if args.mode != "baseline" and hook_result["active"] == 0:
@@ -503,7 +634,11 @@ def main() -> int:
         "random_source_feature_id": args.random_source_feature_id,
         "source_to_target_bias": args.source_to_target_bias,
         "target_clamp_value": args.target_clamp_value,
+        "clamp_multiplier": args.clamp_multiplier,
         "wrong_t_bin": args.wrong_t_bin,
+        "error_mode": args.error_mode,
+        "class_schedule": args.class_schedule,
+        "target_class_idx": args.target_class_idx,
         "dit_step": args.dit_step,
         "n_samples": args.n_samples,
         "cfg_scale": args.cfg,

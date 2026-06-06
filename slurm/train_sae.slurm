@@ -15,12 +15,16 @@ set -euo pipefail
 # Optional env vars:
 #   CONDITIONS=<space-separated, default "sd_vae repa_e eq_vae">
 #   LAYERS / T_BINS: idem
+#   MODEL_VARIANT: SiT variant id/model name for metadata and auto defaults
+#   DIT_STEPS: space-separated DiT checkpoint steps
 #   BASE_SAMPLES / WARM_SAMPLES: per-stage token budget
 #   ONLY: single-chain smoke, format "sd_vae/L6/T1"
 #   SEED: optional replicate seed
 CONDITIONS="${CONDITIONS:-sd_vae repa_e eq_vae}"
+MODEL_VARIANT="${MODEL_VARIANT:-sit_b_2}"
 LAYERS="${LAYERS:-3 6 9}"
 T_BINS="${T_BINS:-0 1 2}"
+DIT_STEPS="${DIT_STEPS:-}"
 BASE_SAMPLES="${BASE_SAMPLES:-20000000}"
 WARM_SAMPLES="${WARM_SAMPLES:-5000000}"
 BATCH_SIZE="${BATCH_SIZE:-4096}"
@@ -88,6 +92,11 @@ if [[ -n "$ONLY" ]]; then
     EXTRA_ARGS+=("--only" "$ONLY")
     echo "ONLY=$ONLY → single-chain smoke"
 fi
+if [[ -n "$DIT_STEPS" ]]; then
+    EXTRA_ARGS+=("--dit_steps")
+    for s in $DIT_STEPS; do EXTRA_ARGS+=("$s"); done
+    echo "DIT_STEPS=$DIT_STEPS"
+fi
 if [[ "$NO_VAL" == "1" ]]; then
     EXTRA_ARGS+=("--no_val")
     echo "NO_VAL=1 → inline validation disabled"
@@ -109,6 +118,7 @@ fi
 
 uv run python scripts/training/train_sae.py \
     --conditions $CONDITIONS \
+    --model_variant "$MODEL_VARIANT" \
     --layers $LAYERS \
     --t_bins $T_BINS \
     --variant "$VARIANT" \

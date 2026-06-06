@@ -64,6 +64,7 @@ def _feature_ids_from_bank(
     layer: int,
     t_bin: int,
     max_features: int | None,
+    required_feature_ids: set[int] | None = None,
 ) -> tuple[list[int], dict[int, dict]]:
     if feature_bank is None:
         return [], {}
@@ -78,10 +79,31 @@ def _feature_ids_from_bank(
             -_parse_float(row.get("top_activation"), default=0.0),
         )
     )
+    required_feature_ids = required_feature_ids or set()
+    rows_by_id = {int(row["feature_id"]): row for row in rows}
     if max_features:
-        rows = rows[:max_features]
+        selected = rows[:max_features]
+        selected_ids = {int(row["feature_id"]) for row in selected}
+        for feature_id in sorted(required_feature_ids):
+            if feature_id in rows_by_id and feature_id not in selected_ids:
+                selected.append(rows_by_id[feature_id])
+        rows = selected
     ids = [int(row["feature_id"]) for row in rows]
     return ids, {int(row["feature_id"]): row for row in rows}
+
+
+def _candidate_requirements(candidate_manifest: Path | None) -> tuple[dict[tuple[str, int, int], set[int]], list[dict]]:
+    if candidate_manifest is None:
+        return {}, []
+    rows = read_csv(candidate_manifest)
+    required: dict[tuple[str, int, int], set[int]] = {}
+    for row in rows:
+        layer = int(row["layer"])
+        t_bin = int(row["t_bin"])
+        for role in ("source", "target"):
+            key = (str(row[role]), layer, t_bin)
+            required.setdefault(key, set()).add(int(row[f"{role}_feature_id"]))
+    return required, rows
 
 
 def _balanced_indices(labels: np.ndarray, max_count: int, seed: int) -> np.ndarray:
@@ -104,6 +126,20 @@ def _balanced_indices(labels: np.ndarray, max_count: int, seed: int) -> np.ndarr
             out = np.concatenate([out, rng.choice(remaining, size=fill, replace=False)])
     out = np.sort(out[:max_count])
     return out.astype(np.int64)
+
+
+def _concept_image_positions(labels_all: np.ndarray, concept_name: str, max_count: int, seed: int) -> np.ndarray:
+    if labels_all.shape[0] <= max_count:
+        return np.arange(labels_all.shape[0], dtype=np.int64)
+    try:
+        concept_labels = _binary_labels(labels_all, concept_name)
+    except (KeyError, ValueError, NotImplementedError):
+        rng = np.random.default_rng(seed)
+        return np.sort(rng.choice(labels_all.shape[0], size=max_count, replace=False)).astype(np.int64)
+    if len(np.unique(concept_labels)) < 2:
+        rng = np.random.default_rng(seed)
+        return np.sort(rng.choice(labels_all.shape[0], size=max_count, replace=False)).astype(np.int64)
+    return _balanced_indices(concept_labels, max_count, seed)
 
 
 def _binary_labels(raw_labels: np.ndarray, concept_name: str) -> np.ndarray:
@@ -275,6 +311,7 @@ def _plot_faithfulness(rows: list[dict], out_path: Path, title: str) -> None:
 def run_concept_eap(args: argparse.Namespace) -> int:
     out_dir = make_run_dir(args.out_root, args.run_id, resume=args.resume)
     device = torch.device(args.device if args.device else ("cuda" if torch.cuda.is_available() else "cpu"))
+    required_by_cell, candidate_rows = _candidate_requirements(args.candidate_manifest)
     all_node_rows: list[dict] = []
     all_edge_rows: list[dict] = []
     all_faithfulness_rows: list[dict] = []
@@ -286,17 +323,13 @@ def run_concept_eap(args: argparse.Namespace) -> int:
         sample_idx_all = np.asarray(manifest["sample_idx"], dtype=np.int64)
         labels_all = _resolve_labels(args.latents_root, condition, sample_idx_all)
         for layer, t_bin in selected_cells(args):
-            image_count = min(args.max_images, sample_idx_all.shape[0])
-            rng = np.random.default_rng(args.seed + 17 * layer + t_bin)
-            img_pos = np.sort(rng.choice(sample_idx_all.shape[0], size=image_count, replace=False))
-            acts = _read_rows(_cell_path(args.activations_root, condition, args.dit_step, layer, t_bin), img_pos).astype(np.float32)
-            labels = labels_all[img_pos]
             feature_ids, bank_by_id = _feature_ids_from_bank(
                 args.feature_bank,
                 condition,
                 layer,
                 t_bin,
                 args.max_features_per_cell,
+                required_by_cell.get((condition, layer, t_bin), set()),
             )
             sae = _load_matryoshka_sae(_resolve_sae_ckpt(args.sae_root, condition, layer, t_bin, args.dit_step), device)
             if not feature_ids:
@@ -307,9 +340,20 @@ def run_concept_eap(args: argparse.Namespace) -> int:
                 warn(f"no feature bank rows for {condition} L{layer}/T{t_bin}; using first {take} SAE features")
             decoder = _decoder_weight(sae).float().detach().cpu().numpy()
             decoder_rows = decoder[np.asarray(feature_ids, dtype=np.int64)]
-            flat = acts.reshape(-1, acts.shape[-1])
             for concept_name in args.concepts:
                 info(f"concept-eap {condition} L{layer}/T{t_bin} {concept_name}")
+                img_pos = _concept_image_positions(
+                    labels_all,
+                    concept_name,
+                    min(args.max_images, sample_idx_all.shape[0]),
+                    args.seed + 17 * layer + t_bin,
+                )
+                acts = _read_rows(
+                    _cell_path(args.activations_root, condition, args.dit_step, layer, t_bin),
+                    img_pos,
+                ).astype(np.float32)
+                labels = labels_all[img_pos]
+                flat = acts.reshape(-1, acts.shape[-1])
                 concept_labels_img = _binary_labels(labels, concept_name)
                 y_tokens = np.repeat(concept_labels_img, acts.shape[1])
                 if len(np.unique(y_tokens)) < 2:
@@ -513,9 +557,9 @@ def run_concept_eap(args: argparse.Namespace) -> int:
                 scoped = f"{condition}_L{layer}_T{t_bin}_{concept_name}"
                 _plot_top_features(node_rows[:-1], out_dir / "plots" / f"{scoped}_top_features.png", scoped)
                 _plot_faithfulness(faith_rows, out_dir / "plots" / f"{scoped}_topn_faithfulness_curve.png", scoped)
-                del clf, x_eval, y_eval, x_eval_t
+                del clf, x_eval, y_eval, x_eval_t, acts
                 gc.collect()
-            del sae, acts
+            del sae
             if device.type == "cuda":
                 torch.cuda.empty_cache()
 
@@ -523,6 +567,67 @@ def run_concept_eap(args: argparse.Namespace) -> int:
     write_csv(out_dir / "metrics" / "eap_feature_edges.csv", all_edge_rows)
     write_csv(out_dir / "metrics" / "topn_faithfulness.csv", all_faithfulness_rows)
     write_csv(out_dir / "metrics" / "concept_eap_summary.csv", summary_rows)
+    error_share_rows = [
+        {
+            "condition": row["condition"],
+            "dit_step": args.dit_step,
+            "layer": row["layer"],
+            "t_bin": row["t_bin"],
+            "concept": row["concept"],
+            "clean_margin_gap": row["clean_margin_gap"],
+            "sae_reconstruction_margin_gap": row["sae_reconstruction_margin_gap"],
+            "error_node_abs_gap_fraction": row["error_node_abs_gap_fraction"],
+        }
+        for row in summary_rows
+    ]
+    if error_share_rows:
+        write_csv(out_dir / "metrics" / "eap_error_node_share.csv", error_share_rows)
+    if candidate_rows:
+        node_by_key = {
+            (
+                str(row["condition"]),
+                int(row["layer"]),
+                int(row["t_bin"]),
+                str(row["concept"]),
+                str(row["feature_id"]),
+            ): row
+            for row in all_node_rows
+        }
+        candidate_rank_rows = []
+        for candidate in candidate_rows:
+            concept = f"class:{candidate['target_top_class_idx']}"
+            layer = int(candidate["layer"])
+            t_bin = int(candidate["t_bin"])
+            for role in ("source", "target"):
+                condition = str(candidate[role])
+                feature_id = str(candidate[f"{role}_feature_id"])
+                node = node_by_key.get((condition, layer, t_bin, concept, feature_id), {})
+                rank = int(node["rank_abs"]) if node.get("rank_abs") not in {None, ""} else None
+                candidate_rank_rows.append(
+                    {
+                        "candidate_id": candidate["candidate_id"],
+                        "selection_role": candidate.get("selection_role", ""),
+                        "candidate_side": role,
+                        "condition": condition,
+                        "layer": layer,
+                        "t_bin": t_bin,
+                        "concept": concept,
+                        "feature_id": feature_id,
+                        "found_in_eap": bool(node),
+                        "rank_abs": "" if rank is None else rank,
+                        "in_top1": bool(rank is not None and rank <= 1),
+                        "in_top5": bool(rank is not None and rank <= 5),
+                        "in_top10": bool(rank is not None and rank <= 10),
+                        "in_top25": bool(rank is not None and rank <= 25),
+                        "in_top50": bool(rank is not None and rank <= 50),
+                        "in_top100": bool(rank is not None and rank <= 100),
+                        "signed_attribution": node.get("signed_attribution", ""),
+                        "absolute_attribution": node.get("absolute_attribution", ""),
+                        "top_label": node.get("top_label", ""),
+                        "vlm_interpretation": node.get("vlm_interpretation", ""),
+                    }
+                )
+        write_csv(out_dir / "metrics" / "eap_candidate_ranks.csv", candidate_rank_rows)
     payload = {
         "analysis": "sae-concept-eap",
         "conditions": list(args.conditions),
@@ -583,6 +688,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--latents_root", type=Path, default=LATENTS_VAL)
     p.add_argument("--sae_root", type=Path, default=SAE_ROOT)
     p.add_argument("--feature_bank", type=Path, default=None)
+    p.add_argument("--candidate_manifest", type=Path, default=None)
     p.add_argument("--out_root", type=Path, default=DEFAULT_OUT_ROOT)
     p.add_argument("--run_id", type=str, default=None)
     p.add_argument("--resume", action="store_true")

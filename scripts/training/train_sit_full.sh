@@ -22,6 +22,11 @@ VAL_CHECK_INTERVAL="${VAL_CHECK_INTERVAL:-}"
 NORMALIZE="${NORMALIZE:-true}"
 # Optional run-name suffix (e.g. "noz" for no-zscore ablations) to avoid collisions.
 RUN_SUFFIX="${RUN_SUFFIX:-}"
+RESUME_IN_PLACE="${RESUME_IN_PLACE:-false}"
+CHECKPOINT_TARGETS="${CHECKPOINT_TARGETS:-}"
+STEP_OFFSET="${STEP_OFFSET:-0}"
+CHECKPOINT_TARGETS_CSV="${CHECKPOINT_TARGETS//:/,}"
+CHECKPOINT_TARGETS_CSV="${CHECKPOINT_TARGETS_CSV// /,}"
 
 REPO=/leonardo_work/IscrC_PDR/lcerovaz/diffmechint
 SCRATCH_BASE=/leonardo_scratch/large/userexternal/lcerovaz
@@ -54,14 +59,46 @@ export TRANSFORMERS_OFFLINE=1
 
 cd "$REPO"
 if [[ "$RANK" == "0" ]]; then
-    if [[ -e "$OUT_DIR" ]]; then
-        echo "ERROR: refusing to reuse existing OUT_DIR=$OUT_DIR" >&2
-        exit 2
-    fi
-    mkdir -p "$OUT_DIR" "$CKPT_DIR"
     GIT_SHA="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
     GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)"
-    cat > "${OUT_DIR}/run_metadata.json" <<EOF
+    if [[ -e "$OUT_DIR" ]]; then
+        if [[ "$RESUME_IN_PLACE" != "true" ]]; then
+            echo "ERROR: refusing to reuse existing OUT_DIR=$OUT_DIR" >&2
+            exit 2
+        fi
+        if [[ ! -d "$OUT_DIR" ]]; then
+            echo "ERROR: OUT_DIR exists but is not a directory: $OUT_DIR" >&2
+            exit 2
+        fi
+        mkdir -p "$CKPT_DIR"
+        RESUME_RECORD="${OUT_DIR}/resume_metadata_${SLURM_JOB_ID:-local}.json"
+        cat > "$RESUME_RECORD" <<EOF
+{
+  "run_id": "${RUN_ID}",
+  "resume_in_place": true,
+  "resume_from": "${RESUME_FROM:-}",
+  "ema_resume_from": "${EMA_RESUME_FROM:-}",
+  "checkpoint_targets": "${CHECKPOINT_TARGETS_CSV}",
+  "step_offset": "${STEP_OFFSET}",
+  "max_steps_override": "${MAX_STEPS:-}",
+  "callbacks": "${CALLBACKS}",
+  "git_sha": "${GIT_SHA}",
+  "git_branch": "${GIT_BRANCH}",
+  "slurm_job_id": "${SLURM_JOB_ID:-local}"
+}
+EOF
+        git diff > "${OUT_DIR}/resume_code_diff_${SLURM_JOB_ID:-local}.patch" || true
+        cat >> "${OUT_DIR}/reproducibility_resumes.md" <<EOF
+
+## Resume ${SLURM_JOB_ID:-local}
+
+\`\`\`bash
+sbatch --export=ALL,TOK=${TOK},MODEL=${MODEL},NORMALIZE=${NORMALIZE},RUN_ID=${RUN_ID},RESUME_IN_PLACE=${RESUME_IN_PLACE},TRAINER_CONFIG=${TRAINER_CONFIG},BATCH_SIZE=${BATCH_SIZE},VAL_BATCH_SIZE=${VAL_BATCH_SIZE},NUM_WORKERS=${NUM_WORKERS},MAX_STEPS=${MAX_STEPS:-},CALLBACKS=${CALLBACKS},SAMPLE_EVERY=${SAMPLE_EVERY},VAL_CHECK_INTERVAL=${VAL_CHECK_INTERVAL},RESUME_FROM=${RESUME_FROM:-},EMA_RESUME_FROM=${EMA_RESUME_FROM:-},CHECKPOINT_TARGETS=${CHECKPOINT_TARGETS},STEP_OFFSET=${STEP_OFFSET} slurm/train_sit_full.slurm
+\`\`\`
+EOF
+    else
+        mkdir -p "$OUT_DIR" "$CKPT_DIR"
+        cat > "${OUT_DIR}/run_metadata.json" <<EOF
 {
   "run_id": "${RUN_ID}",
   "model_variant": "${MODEL_VARIANT}",
@@ -82,7 +119,7 @@ if [[ "$RANK" == "0" ]]; then
   "slurm_job_id": "${SLURM_JOB_ID:-local}"
 }
 EOF
-    cat > "${OUT_DIR}/reproducibility.md" <<EOF
+        cat > "${OUT_DIR}/reproducibility.md" <<EOF
 # Reproducibility
 
 - Repo: ${REPO}
@@ -112,12 +149,13 @@ export TRANSFORMERS_OFFLINE=1
 sbatch --export=ALL,TOK=${TOK},MODEL=${MODEL},NORMALIZE=${NORMALIZE},RUN_SUFFIX=${RUN_SUFFIX},TRAINER_CONFIG=${TRAINER_CONFIG},BATCH_SIZE=${BATCH_SIZE},VAL_BATCH_SIZE=${VAL_BATCH_SIZE},NUM_WORKERS=${NUM_WORKERS},MAX_STEPS=${MAX_STEPS:-},CALLBACKS=${CALLBACKS},SAMPLE_EVERY=${SAMPLE_EVERY},VAL_CHECK_INTERVAL=${VAL_CHECK_INTERVAL} slurm/train_sit_full.slurm
 \`\`\`
 EOF
-    cat > "${OUT_DIR}/commit.txt" <<EOF
+        cat > "${OUT_DIR}/commit.txt" <<EOF
 repo=${REPO}
 branch=${GIT_BRANCH}
 commit=${GIT_SHA}
 job_id=${SLURM_JOB_ID:-local}
 EOF
+    fi
 else
     for ((i = 0; i < 120; i++)); do
         [[ -f "${OUT_DIR}/run_metadata.json" ]] && break
@@ -163,6 +201,28 @@ fi
 if [[ -n "${VAL_CHECK_INTERVAL}" ]]; then
     TRAINER_ARGS+=("trainer.val_check_interval=${VAL_CHECK_INTERVAL}")
 fi
+if [[ -n "${CHECKPOINT_TARGETS_CSV}" ]]; then
+    TRAINER_ARGS+=("+checkpoint.target_steps=[${CHECKPOINT_TARGETS_CSV}]")
+fi
+if [[ "${STEP_OFFSET}" != "0" ]]; then
+    TRAINER_ARGS+=("+checkpoint.step_offset=${STEP_OFFSET}")
+fi
+
+CALLBACK_ARGS=()
+if [[ "$CALLBACKS" != "none" ]]; then
+    CALLBACK_ARGS+=(
+        "callbacks.sample.adapter_name=${TOK}"
+        "callbacks.sample.stats_path=${SAMPLE_STATS}"
+        "callbacks.sample.every_n_steps=${SAMPLE_EVERY}"
+        "callbacks.sample.n_samples=${SAMPLE_N}"
+    )
+    if [[ "$CALLBACKS" == "full" ]]; then
+        CALLBACK_ARGS+=(
+            "callbacks.fid.adapter_name=${TOK}"
+            "callbacks.fid.stats_path=${SAMPLE_STATS}"
+        )
+    fi
+fi
 
 uv run python -m diffmechint.training.train \
     tokenizer="${TOK}" \
@@ -170,10 +230,6 @@ uv run python -m diffmechint.training.train \
     transport=fm_ot \
     trainer="${TRAINER_CONFIG}" \
     callbacks="${CALLBACKS}" \
-    callbacks.sample.adapter_name="${TOK}" \
-    callbacks.sample.stats_path="${SAMPLE_STATS}" \
-    callbacks.sample.every_n_steps="${SAMPLE_EVERY}" \
-    callbacks.sample.n_samples="${SAMPLE_N}" \
     +data._target_=diffmechint.training.data.CachedLatentDataModule \
     +data.shard_dir="${LATENTS}" \
     +data.batch_size="${BATCH_SIZE}" \
@@ -183,6 +239,7 @@ uv run python -m diffmechint.training.train \
     +data.holdout_seed=42 \
     +data.val_batch_size="${VAL_BATCH_SIZE}" \
     +ckpt_dir="${CKPT_DIR}" \
+    "${CALLBACK_ARGS[@]}" \
     "${TRAINER_ARGS[@]}" \
     "${RESUME_ARGS[@]}"
 

@@ -60,9 +60,28 @@ def test_get_concept_unknown_raises() -> None:
         get_concept("doesnt_exist")
 
 
+def test_dynamic_class_concept_is_binary() -> None:
+    concept = get_concept("class:407")
+    assert concept.name == "class:407"
+    assert concept.num_classes == 2
+    assert concept.available is True
+    assert concept.label_fn(407) == 1
+    assert concept.label_fn(408) == 0
+
+
+def test_dynamic_class_concept_validates_index() -> None:
+    with pytest.raises(KeyError, match="class:<0-999>"):
+        get_concept("class:not_an_int")
+    with pytest.raises(KeyError, match="out of range"):
+        get_concept("class:1000")
+
+
 def test_concepts_count_matches_plan() -> None:
-    """PLAN §9.1 lists 5 concept axes."""
-    assert set(CONCEPTS.keys()) == {"object", "scene", "color", "texture", "shape"}
+    """PLAN §9.1 axes plus WordNet-derived runnable axes are registered."""
+    required = {"object", "scene", "color", "texture", "shape"}
+    derived = {"animal_binary", "broad_8", "vehicle_binary", "food_binary", "instrument_binary"}
+    assert required.issubset(CONCEPTS)
+    assert derived.issubset(CONCEPTS)
 
 
 # ---------------------------------------------------------------------------
@@ -205,7 +224,7 @@ def test_probe_one_cell_returns_none_without_labels(tmp_path: Path) -> None:
 
 
 def test_evaluate_grid_synthetic(tmp_path: Path) -> None:
-    """Two layers × two t_bins, all synthetic-separable; grid yields high accuracy."""
+    """Two layers x two t_bins, all synthetic-separable; grid yields high accuracy."""
     for layer in (3, 6):
         for t_bin in (0, 1):
             _make_synthetic_shard(
@@ -245,7 +264,7 @@ def test_phase3_phase5_e2e_label_propagation(tmp_path: Path) -> None:
     buf = ActivationBuffer(shard_dir=shard_dir)
     block_indices = default_tap_layers(len(model.blocks))
     with ResidualStreamTap(model, block_indices, buf):
-        for batch_idx in range(2):
+        for _batch_idx in range(2):
             x = torch.randn(4, 4, 32, 32, device=device)
             y = torch.randint(0, 10, (4,), device=device)
             for t_value in (0.025, 0.20):
@@ -257,7 +276,7 @@ def test_phase3_phase5_e2e_label_propagation(tmp_path: Path) -> None:
                 # Here we just verify the activations were captured cleanly.
     buf.flush_all()
     cells = sorted(shard_dir.glob("*.h5"))
-    # 3 layers × 2 t_bins observed
+    # 3 layers x 2 t_bins observed
     assert len(cells) == 6
     # Cells lack labels because the hook path doesn't carry them — that's expected.
     for c in cells:

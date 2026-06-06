@@ -2,7 +2,7 @@
 
 Produces (under outputs/phase4_8_atlas/plots/):
 
-    a1_mono_heatmap.png        — 3×9 heatmap of mono_count per (cond, L, T)
+    a1_mono_heatmap.png        — 3x9 heatmap of mono_count per (cond, L, T)
     a2_mono_vs_tbin.png        — mono_count vs t_bin, 3 panels (one per layer)
     a3_mono_vs_layer.png       — mono_count vs layer, 3 panels (one per t_bin)
     a4_entropy_boxplot.png     — entropy of all LIVE features, 27 boxes
@@ -10,6 +10,7 @@ Produces (under outputs/phase4_8_atlas/plots/):
 
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -18,7 +19,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-ATLAS = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_8_atlas")
+ATLAS_DEFAULT = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_8_atlas")
+ATLAS = ATLAS_DEFAULT
 PLOTS = ATLAS / "plots"
 
 PB = {
@@ -53,9 +55,9 @@ mpl.rcParams.update({
 
 
 def plot_a1(df_cell: pd.DataFrame) -> None:
-    """3×9 heatmap of mono_count.  Rows = condition; columns = 9 (layer,t_bin)."""
+    """3x9 heatmap of mono_count.  Rows = condition; columns = 9 (layer,t_bin)."""
     fig, ax = plt.subplots(figsize=(10, 4.5))
-    # 3×9 matrix
+    # 3x9 matrix
     M = np.zeros((3, 9))
     col_labels = []
     for j_layer, L in enumerate(LAYER_ORDER):
@@ -177,7 +179,7 @@ def plot_a4(df_cell: pd.DataFrame) -> None:
                         medianprops={"color": PB["ink"], "linewidth": 1.3},
                         whiskerprops={"color": PB["ink"]},
                         capprops={"color": PB["ink"]})
-        for patch, color in zip(bp["boxes"], colors):
+        for patch, color in zip(bp["boxes"], colors, strict=False):
             patch.set_facecolor(color)
             patch.set_edgecolor(PB["ink"])
         ax.axhline(2.5, ls="--", lw=1.2, color=PB["teal"], alpha=0.7,
@@ -198,6 +200,18 @@ def plot_a4(df_cell: pd.DataFrame) -> None:
 
 
 def main() -> int:
+    global ATLAS, PLOTS, LAYER_ORDER
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dashboard_root", type=Path, default=None,
+                        help=argparse.SUPPRESS)
+    parser.add_argument("--atlas_root", type=Path, default=ATLAS_DEFAULT)
+    parser.add_argument("--layers", type=int, nargs="+", default=[3, 6, 9])
+    args = parser.parse_args()
+    ATLAS = args.atlas_root
+    PLOTS = ATLAS / "plots"
+    PLOTS.mkdir(parents=True, exist_ok=True)
+    LAYER_ORDER = list(args.layers)
+
     df_cell = pd.read_csv(ATLAS / "atlas_per_cell.csv")
     print(f"loaded atlas_per_cell.csv ({len(df_cell)} rows)")
     plot_a1(df_cell)

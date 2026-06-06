@@ -1,0 +1,2 @@
+job_id	task_file	array	max_concurrent	out_root
+44579690	outputs/phase4_18_sitl2_feature_steering_eap_shift_350k_20260605_122635/metrics/steering_output_metrics_full_tasks.tsv	0-17	4	outputs/phase4_18_sitl2_feature_steering_eap_shift_350k_20260605_122635/output_metrics/full

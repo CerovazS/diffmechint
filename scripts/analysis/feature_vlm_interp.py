@@ -40,6 +40,9 @@ from PIL import Image  # noqa: E402
 from diffmechint.utils import error, info, ok, warn  # noqa: E402
 
 VLM_MODEL_DEFAULT = "Qwen/Qwen3-VL-8B-Instruct"
+IMAGEFOLDER_ROOT = Path(
+    "/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/imagenet_val_imagefolder"
+)
 
 # Prompt registry. v3 is the winner of the Phase 4.5b A/B test (see vlm_prompt_ab):
 # it pins the model to "one ImageNet category", forbids the most common hedging
@@ -82,15 +85,41 @@ def _is_monosemantic(rec: dict) -> bool:
     return (DENSITY_MIN < d < DENSITY_MAX) and (e < ENTROPY_MAX)
 
 
-def _build_grid(thumb_paths: list[Path], tile: int = GRID_TILE) -> Image.Image:
-    """3x3 composite from up to 9 thumbnail paths. Missing files → cream."""
+def _open_tile(thumb_path: Path, entry: dict | None, tile: int) -> Image.Image:
+    """Open a dashboard thumb, or reconstruct it from the ImageNet source."""
+    src = thumb_path
+    if src.exists():
+        with Image.open(src) as img:
+            return img.convert("RGB").resize((tile, tile), Image.LANCZOS)
+    if entry is None:
+        raise FileNotFoundError(str(thumb_path))
+    synset = entry.get("synset")
+    filename = entry.get("filename")
+    if not synset or not filename:
+        raise FileNotFoundError(str(thumb_path))
+    src = IMAGEFOLDER_ROOT / str(synset) / str(filename)
+    with Image.open(src) as img:
+        img = img.convert("RGB")
+        w, h = img.size
+        side = min(w, h)
+        img = img.crop(((w - side) // 2, (h - side) // 2,
+                        (w + side) // 2, (h + side) // 2))
+        return img.resize((tile, tile), Image.LANCZOS)
+
+
+def _build_grid(
+    thumb_paths: list[Path],
+    top_entries: list[dict] | None = None,
+    tile: int = GRID_TILE,
+) -> Image.Image:
+    """3x3 composite from thumbnails, falling back to cited ImageNet JPEGs."""
     side = GRID_SIDE
     canvas = Image.new("RGB", (tile * side, tile * side), (255, 243, 176))
     for i, p in enumerate(thumb_paths[: side * side]):
         try:
-            with Image.open(p) as img:
-                img = img.convert("RGB").resize((tile, tile), Image.LANCZOS)
-                canvas.paste(img, ((i % side) * tile, (i // side) * tile))
+            entry = top_entries[i] if top_entries is not None and i < len(top_entries) else None
+            img = _open_tile(p, entry, tile)
+            canvas.paste(img, ((i % side) * tile, (i // side) * tile))
         except Exception as exc:
             warn(f"thumb {p} unreadable: {exc}")
     return canvas
@@ -199,8 +228,7 @@ def main() -> int:
         error(f"feature dir missing: {feat_dir}")
         return 1
     if not thumb_dir.is_dir():
-        error(f"thumb dir missing: {thumb_dir}")
-        return 1
+        warn(f"thumb dir missing: {thumb_dir}; falling back to ImageNet files in feature JSONs")
 
     # Discover candidate features.
     candidates: list[Path] = []
@@ -229,11 +257,17 @@ def main() -> int:
             if not args.force and "vlm_interpretation" in rec:
                 continue
             candidates.append(fp)
+            if args.limit is not None and len(candidates) >= args.limit:
+                break
     info(f"  scanned in {time.perf_counter()-t0:.1f}s, {len(candidates)} features to caption")
     if args.limit is not None:
         candidates = candidates[: args.limit]
         info(f"  --limit={args.limit} → {len(candidates)} features")
     if not candidates:
+        log_path = args.log_path if args.log_path is not None else (cell_dir / "vlm_log.jsonl")
+        if not args.dry_run:
+            log_path.parent.mkdir(parents=True, exist_ok=True)
+            log_path.touch(exist_ok=True)
         ok("nothing to do")
         return 0
 
@@ -258,7 +292,7 @@ def main() -> int:
             for e in top[:9]
         ]
         try:
-            grid = _build_grid(thumbs)
+            grid = _build_grid(thumbs, top_entries=top)
             t_inf = time.perf_counter()
             cap = _caption(processor, model, grid, device, user_prompt=user_prompt)
             dt = time.perf_counter() - t_inf

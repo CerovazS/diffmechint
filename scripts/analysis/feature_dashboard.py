@@ -209,6 +209,7 @@ def _stream_encode(
     shard_path: Path,
     *,
     batch_images: int,
+    limit_images: int | None,
     device: torch.device,
     density_threshold: float,
 ) -> dict[str, np.ndarray]:
@@ -227,6 +228,8 @@ def _stream_encode(
     with h5py.File(str(shard_path), "r") as f:
         acts = f["activations"]
         n, t, d = acts.shape
+        if limit_images is not None:
+            n = min(n, int(limit_images))
         info(f"shard {shard_path.name}: N={n} T={t} D={d}")
 
         max_act = np.zeros((n, d_sae), dtype=np.float16)
@@ -936,6 +939,8 @@ def main() -> int:
     p.add_argument("--out_root", type=Path, default=None)
     p.add_argument("--batch_images", type=int, default=64,
                    help="Images per SAE forward (each → 256 tokens).")
+    p.add_argument("--limit_images", type=int, default=None,
+                   help="Smoke-test only: score at most the first N images.")
     p.add_argument("--thumb_size", type=int, default=256)
     p.add_argument("--skip_thumbnails", action="store_true",
                    help="Skip thumbnail rendering. Use for analysis-only atlas builds "
@@ -983,8 +988,10 @@ def main() -> int:
     manifest_path = shard_path.parent / "manifest.json"
     manifest = json.loads(manifest_path.read_text())
     sample_idx = np.asarray(manifest["sample_idx"], dtype=np.int64)
+    if args.limit_images is not None:
+        sample_idx = sample_idx[: int(args.limit_images)]
     info(f"manifest: n_samples={manifest['n_samples']} sampling_mode={manifest.get('sampling_mode')}")
-    if sample_idx.shape[0] != manifest["n_samples"]:
+    if args.limit_images is None and sample_idx.shape[0] != manifest["n_samples"]:
         error(f"sample_idx length {sample_idx.shape[0]} != manifest['n_samples'] {manifest['n_samples']}")
         return 1
 
@@ -1010,6 +1017,7 @@ def main() -> int:
     stats = _stream_encode(
         sae, shard_path,
         batch_images=args.batch_images,
+        limit_images=args.limit_images,
         device=device,
         density_threshold=args.density_threshold,
     )
@@ -1149,6 +1157,7 @@ def main() -> int:
         "dead_features": int(d_sae - live_count),
         "density_threshold": args.density_threshold,
         "top_k": TOP_K,
+        "limit_images": args.limit_images,
     }
     (out_dir / "meta.json").write_text(json.dumps(meta, indent=2))
     info("meta.json written")

@@ -1,0 +1,2 @@
+run_id	job_id	output_dir	sae_root	val_root	max_tokens	only_dit_step
+b2_ynull_matryoshka_max1p28m_20260602_223258	44032247	outputs/phase4_14_matched_token_deadness/b2_ynull_matryoshka_max1p28m_20260602_223258	/leonardo_scratch/fast/IscrC_PDR/lcerovaz/diffmechint/sae_matryoshka_k256_d32k	/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/activations_ynull	1280000	200000

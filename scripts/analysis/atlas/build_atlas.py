@@ -12,6 +12,7 @@ The CSV `atlas_mono_features.csv` is the canonical input for all Axis-A / Axis-B
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import sys
@@ -22,8 +23,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ATLAS_ROOT = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_5b_feature_viz_ynull")
-OUT_ROOT = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_8_atlas")
+ATLAS_ROOT_DEFAULT = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_5b_feature_viz_ynull")
+OUT_ROOT_DEFAULT = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_8_atlas")
 
 CELL_RE = re.compile(r"^(?P<cond>[a-z_0-9]+?)_L(?P<layer>\d+)_T(?P<tbin>\d+)$")
 T_VALUES = {0: 0.025, 1: 0.20, 2: 0.50}
@@ -113,13 +114,34 @@ def process_cell(cell_dir_str: str) -> tuple[dict, list[dict], np.ndarray]:
 
 
 def main() -> int:
-    OUT_ROOT.mkdir(parents=True, exist_ok=True)
-    (OUT_ROOT / "entropy_dists").mkdir(exist_ok=True)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dashboard_root", type=Path,
+                        default=ATLAS_ROOT_DEFAULT,
+                        dest="dashboard_root",
+                        help="Feature dashboard root containing <cond>_L<L>_T<T> dirs.")
+    parser.add_argument("--atlas_root", "--out_root", type=Path,
+                        default=OUT_ROOT_DEFAULT,
+                        dest="out_root",
+                        help="Output root for atlas CSVs and entropy arrays.")
+    parser.add_argument("--layers", type=int, nargs="+", default=[3, 6, 9])
+    parser.add_argument("--conditions", nargs="+", default=["sd_vae", "repa_e", "eq_vae"])
+    args = parser.parse_args()
 
-    cell_dirs = sorted(d for d in ATLAS_ROOT.iterdir()
-                       if d.is_dir() and CELL_RE.match(d.name))
-    if len(cell_dirs) != 27:
-        print(f"WARN: found {len(cell_dirs)} cells, expected 27", file=sys.stderr)
+    args.out_root.mkdir(parents=True, exist_ok=True)
+    (args.out_root / "entropy_dists").mkdir(exist_ok=True)
+
+    layers = set(args.layers)
+    conditions = set(args.conditions)
+    cell_dirs = []
+    for d in sorted(args.dashboard_root.iterdir()):
+        if not d.is_dir() or not CELL_RE.match(d.name):
+            continue
+        cond, layer, _tbin = parse_cell_name(d.name)
+        if cond in conditions and layer in layers:
+            cell_dirs.append(d)
+    expected = len(conditions) * len(layers) * 3
+    if len(cell_dirs) != expected:
+        print(f"WARN: found {len(cell_dirs)} cells, expected {expected}", file=sys.stderr)
     print(f"processing {len(cell_dirs)} cells (parallel workers=8)...")
 
     per_cell_rows: list[dict] = []
@@ -133,15 +155,15 @@ def main() -> int:
             per_cell, mono_rows, entropies = fut.result()
             per_cell_rows.append(per_cell)
             mono_rows_all.extend(mono_rows)
-            np.save(OUT_ROOT / "entropy_dists" / f"{cell_dir.name}.npy", entropies)
+            np.save(args.out_root / "entropy_dists" / f"{cell_dir.name}.npy", entropies)
             print(f"  [{i:2d}/{len(cell_dirs)}] {cell_dir.name:22s}  "
                   f"live={per_cell['live_features']:>5}  "
                   f"mono={per_cell['mono_count_recomputed']:>4}")
 
     df_cell = pd.DataFrame(per_cell_rows).sort_values(["cond", "layer", "tbin"])
     df_mono = pd.DataFrame(mono_rows_all).sort_values(["cond", "layer", "tbin", "feature_id"])
-    df_cell.to_csv(OUT_ROOT / "atlas_per_cell.csv", index=False)
-    df_mono.to_csv(OUT_ROOT / "atlas_mono_features.csv", index=False)
+    df_cell.to_csv(args.out_root / "atlas_per_cell.csv", index=False)
+    df_mono.to_csv(args.out_root / "atlas_mono_features.csv", index=False)
     print(f"wrote atlas_per_cell.csv ({len(df_cell)} rows)")
     print(f"wrote atlas_mono_features.csv ({len(df_mono)} rows)")
     print("wrote 27 entropy_dists/*.npy")

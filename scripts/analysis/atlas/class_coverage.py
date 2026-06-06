@@ -14,6 +14,7 @@ Produces:
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from pathlib import Path
@@ -23,7 +24,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-ATLAS = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_8_atlas")
+ATLAS_DEFAULT = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_8_atlas")
+ATLAS = ATLAS_DEFAULT
 TOP9 = ATLAS / "top9"
 PLOTS = ATLAS / "plots"
 TIMM_LEMMAS = Path(
@@ -111,7 +113,7 @@ def plot_c4a(M: np.ndarray, cells: list[str], labels: list[str]) -> None:
     cbar.set_label("max # class-k images in a feature's top-9 (0..9)",
                    rotation=270, labelpad=15)
     ax.set_title("C4a — Class coverage matrix: 1 000 ImageNet classes (rows, sorted by total)\n"
-                 "× 27 cells (columns). Cell value = strongest dedicated detector for that class.",
+                 "x 27 cells (columns). Cell value = strongest dedicated detector for that class.",
                  fontsize=11, pad=10)
     fig.tight_layout()
     out = PLOTS / "c4a_class_coverage_heatmap.png"
@@ -136,7 +138,9 @@ def plot_c4b(M: np.ndarray, cells: list[str]) -> None:
                 counts = [int((M[:, col] >= t).sum()) for t in thresholds]
                 # Style: solid lines for T2, dashed T1, dotted T0; color by layer.
                 styles = [":", "--", "-"]
-                colors = {3: PB["teal"], 6: PB["amber"], 9: PB["red"]}
+                palette = [PB["teal"], PB["amber"], PB["red"], PB["wine"]]
+                colors = {layer: palette[i % len(palette)]
+                          for i, layer in enumerate(LAYER_ORDER)}
                 ax.plot(thresholds, counts, ls=styles[T], color=colors[L],
                         lw=1.8, marker="o", markersize=4,
                         label=f"L{L}·T{T}" if j_panel == 0 else None)
@@ -189,14 +193,15 @@ def plot_c4c(M: np.ndarray, cells: list[str]) -> pd.DataFrame:
     axes[0].set_xticks(range(3))
     axes[0].set_xticklabels([COND_LABEL[c] for c in COND_ORDER])
     axes[0].set_ylabel(f"# ImageNet classes won (threshold ≥ {COVERAGE_THRESHOLD})")
-    axes[0].set_title(f"Total classes won (of 1 000)", fontsize=11)
+    axes[0].set_title("Total classes won (of 1 000)", fontsize=11)
     for j, v in enumerate(by_cond.values):
         axes[0].text(j, v + 5, f"{v:.0f}", ha="center", fontsize=10)
     # Panel 2: breakdown per layer
-    layer_idx = [3, 6, 9]
     bottoms = np.zeros(3)
-    layer_colors = {3: PB["teal"], 6: PB["amber"], 9: PB["red"]}
-    for L in layer_idx:
+    palette = [PB["teal"], PB["amber"], PB["red"], PB["wine"]]
+    layer_colors = {layer: palette[i % len(palette)]
+                    for i, layer in enumerate(LAYER_ORDER)}
+    for L in LAYER_ORDER:
         vals = by_layer[L].values if L in by_layer.columns else np.zeros(3)
         axes[1].bar(range(3), vals, bottom=bottoms,
                     color=layer_colors[L], label=f"L{L}", edgecolor=PB["ink"], lw=0.4)
@@ -230,6 +235,19 @@ def plot_c4c(M: np.ndarray, cells: list[str]) -> pd.DataFrame:
 
 
 def main() -> int:
+    global ATLAS, TOP9, PLOTS, LAYER_ORDER
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dashboard_root", type=Path, default=None,
+                        help=argparse.SUPPRESS)
+    parser.add_argument("--atlas_root", type=Path, default=ATLAS_DEFAULT)
+    parser.add_argument("--layers", type=int, nargs="+", default=[3, 6, 9])
+    args = parser.parse_args()
+    ATLAS = args.atlas_root
+    TOP9 = ATLAS / "top9"
+    PLOTS = ATLAS / "plots"
+    PLOTS.mkdir(parents=True, exist_ok=True)
+    LAYER_ORDER = list(args.layers)
+
     labels = load_class_names()
     cells = [f"{c}_L{L}_T{T}" for c in COND_ORDER for L in LAYER_ORDER for T in TBIN_ORDER]
     print(f"loading top9 npz for {len(cells)} cells...")

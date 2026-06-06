@@ -18,12 +18,14 @@ set -euo pipefail
 #   CELL_DIR=outputs/phase4_5b_feature_viz_ynull/<cond>_L<L>_T<T>
 # Optional:
 #   MODEL_ID=Qwen/Qwen3-VL-8B-Instruct
+#   PROMPT_VERSION=v3
 #   LIMIT=<int>       # smoke testing
 #   FORCE=1           # re-caption features that already have vlm_interpretation
 #   DRY_RUN=1         # print captions but do not write JSONs / vlm_log
 
 CELL_DIR="${CELL_DIR:?must export CELL_DIR before sbatch}"
 MODEL_ID="${MODEL_ID:-Qwen/Qwen3-VL-8B-Instruct}"
+PROMPT_VERSION="${PROMPT_VERSION:-v3}"
 
 REPO=/leonardo_work/IscrC_PDR/lcerovaz/diffmechint
 module load cuda/12.2 || true
@@ -35,7 +37,7 @@ export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 
 cd "$REPO"
-echo "=== feature_vlm_interp CELL_DIR=$CELL_DIR MODEL_ID=$MODEL_ID ==="
+echo "=== feature_vlm_interp CELL_DIR=$CELL_DIR MODEL_ID=$MODEL_ID PROMPT_VERSION=$PROMPT_VERSION ==="
 echo "host=$(hostname)  job=${SLURM_JOB_ID:-local}"
 nvidia-smi --query-gpu=index,name,memory.total --format=csv
 
@@ -47,6 +49,7 @@ if [[ "${DRY_RUN:-0}" == "1" ]]; then EXTRA+=(--dry_run); fi
 uv run python scripts/analysis/feature_vlm_interp.py \
     --cell_dir "$CELL_DIR" \
     --model_id "$MODEL_ID" \
+    --prompt_version "$PROMPT_VERSION" \
     "${EXTRA[@]}"
 
 echo

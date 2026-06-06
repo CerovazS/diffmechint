@@ -1,0 +1,8 @@
+condition	step	job_id	job_name	run	adapter	normalize	n_ref	n_samples	plot_dependency
+sd_vae	300000	43612044	dmi_hfid_sd_vae_300000_r3	/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/by_model/sit_l_2/runs/sit_l_2_sd_vae_l2_500k_v2_full_20260524_130510	sd_vae	true	5000	5000	43612102
+sd_vae	350000	43612045	dmi_hfid_sd_vae_350000_r3	/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/by_model/sit_l_2/runs/sit_l_2_sd_vae_l2_500k_v2_full_20260524_130510	sd_vae	true	5000	5000	43612102
+repa_e	300000	43612047	dmi_hfid_repa_e_300000_r3	/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/by_model/sit_l_2/runs/sit_l_2_repa_e_l2_500k_v2_full_20260524_130510	repa_e	true	5000	5000	43612102
+repa_e	350000	43612048	dmi_hfid_repa_e_350000_r3	/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/by_model/sit_l_2/runs/sit_l_2_repa_e_l2_500k_v2_full_20260524_130510	repa_e	true	5000	5000	43612102
+eq_vae_noz	300000	43612049	dmi_hfid_eq_vae_300000_r3	/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/by_model/sit_l_2/runs/sit_l_2_eq_vae_l2_noz_500k_v2_full_20260524_130510	eq_vae	false	5000	5000	43612102
+eq_vae_noz	350000	43612050	dmi_hfid_eq_vae_350000_r3	/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/by_model/sit_l_2/runs/sit_l_2_eq_vae_l2_noz_500k_v2_full_20260524_130510	eq_vae	false	5000	5000	43612102
+plot	all	43612102	dmi_hfid_plot_l2_350	/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/by_model/sit_l_2/analysis/holdout_recon_fid/plots	all	n/a	5000	5000	afterok:43612044:43612045:43612047:43612048:43612049:43612050
