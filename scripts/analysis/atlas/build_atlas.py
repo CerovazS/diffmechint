@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import sys
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -23,23 +22,18 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from diffmechint.analysis.atlas import (
+    MONO_DENSITY_MAX,
+    MONO_DENSITY_MIN,
+    MONO_ENTROPY_MAX,
+    parse_cell_name,
+    select_cell_dirs,
+)
+
 ATLAS_ROOT_DEFAULT = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_5b_feature_viz_ynull")
 OUT_ROOT_DEFAULT = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_8_atlas")
 
-CELL_RE = re.compile(r"^(?P<cond>[a-z_0-9]+?)_L(?P<layer>\d+)_T(?P<tbin>\d+)$")
 T_VALUES = {0: 0.025, 1: 0.20, 2: 0.50}
-
-# Mono criterion matches feature_dashboard.py.
-MONO_DENSITY_MIN = 1e-4
-MONO_DENSITY_MAX = 0.10
-MONO_ENTROPY_MAX = 2.5
-
-
-def parse_cell_name(name: str) -> tuple[str, int, int]:
-    m = CELL_RE.match(name)
-    if not m:
-        raise ValueError(f"bad cell name: {name}")
-    return m["cond"], int(m["layer"]), int(m["tbin"])
 
 
 def process_cell(cell_dir_str: str) -> tuple[dict, list[dict], np.ndarray]:
@@ -132,13 +126,7 @@ def main() -> int:
 
     layers = set(args.layers)
     conditions = set(args.conditions)
-    cell_dirs = []
-    for d in sorted(args.dashboard_root.iterdir()):
-        if not d.is_dir() or not CELL_RE.match(d.name):
-            continue
-        cond, layer, _tbin = parse_cell_name(d.name)
-        if cond in conditions and layer in layers:
-            cell_dirs.append(d)
+    cell_dirs = select_cell_dirs(args.dashboard_root, conditions, layers)
     expected = len(conditions) * len(layers) * 3
     if len(cell_dirs) != expected:
         print(f"WARN: found {len(cell_dirs)} cells, expected {expected}", file=sys.stderr)

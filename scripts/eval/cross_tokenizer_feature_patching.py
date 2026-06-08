@@ -30,29 +30,20 @@ if _INC_HOME.exists() and not _INC_TMP.exists():
     except FileExistsError:
         pass
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from diffmechint.hooks.timestep_router import current_t, timestep_context  # noqa: E402
-from diffmechint.utils import error, ok, warn  # noqa: E402
-from scripts.analysis.sae_feature_patching import (  # noqa: E402
-    _load_matryoshka_sae,
-    _resolve_sae_ckpt,
-)
-from scripts.analysis.tokenizer_dictionary_validation import (  # noqa: E402
+from diffmechint.analysis.alignment import (  # noqa: E402
     ACTIVATIONS_YNULL,
     SAE_ROOT,
     T_CENTERS,
-    _aligned_positions,
-    _cell_path,
-    _read_rows,
+    aligned_positions,
+    cell_path,
     fit_ridge_affine,
+    read_rows,
 )
-from scripts.eval.cross_tokenizer_sae_substitution_fid import (  # noqa: E402
-    _build_model,
-    _load_stats,
-)
+from diffmechint.hooks.timestep_router import current_t, timestep_context  # noqa: E402
+from diffmechint.sae import load_matryoshka_sae, resolve_sae_ckpt  # noqa: E402
+from diffmechint.sit import build_sit_model  # noqa: E402
+from diffmechint.tokenizers import load_latent_stats  # noqa: E402
+from diffmechint.utils import error, ok, warn  # noqa: E402
 
 LATENTS_BASE = Path("/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/latents")
 REF_NAME = "imagenet_val_50k"
@@ -88,9 +79,9 @@ def fit_target_to_source_map(
     ridge_alpha: float,
     seed: int,
 ):
-    src_pos, tgt_pos, _ = _aligned_positions(activations_root, source, target, dit_step, max_images, seed)
-    src = _sample_tokens(_read_rows(_cell_path(activations_root, source, dit_step, layer, t_bin), src_pos), max_tokens, seed + 2)
-    tgt = _sample_tokens(_read_rows(_cell_path(activations_root, target, dit_step, layer, t_bin), tgt_pos), max_tokens, seed + 2)
+    src_pos, tgt_pos, _ = aligned_positions(activations_root, source, target, dit_step, max_images, seed)
+    src = _sample_tokens(read_rows(cell_path(activations_root, source, dit_step, layer, t_bin), src_pos), max_tokens, seed + 2)
+    tgt = _sample_tokens(read_rows(cell_path(activations_root, target, dit_step, layer, t_bin), tgt_pos), max_tokens, seed + 2)
     return fit_ridge_affine(tgt, src, alpha=ridge_alpha)
 
 
@@ -460,7 +451,7 @@ def main() -> int:
     if images_dir.exists():
         shutil.rmtree(images_dir)
 
-    mean_d, std_d, stats = _load_stats(args.target_adapter)
+    mean_d, std_d, stats = load_latent_stats(args.target_adapter)
     mean_d = mean_d.to(device)
     std_d = std_d.to(device)
     in_channels = int(stats["feature_dim"])
@@ -471,7 +462,7 @@ def main() -> int:
     adapter = build(args.target_adapter)
     adapter.load()
     adapter.to(device)
-    model = _build_model(args.model_name, in_channels, input_size, device)
+    model = build_sit_model(args.model_name, in_channels, input_size, device)
     ema_path = args.target_run / "checkpoints" / f"step_{args.dit_step:08d}_ema.safetensors"
     if not ema_path.exists():
         error(f"SiT EMA checkpoint missing: {ema_path}")
@@ -486,12 +477,12 @@ def main() -> int:
     hook_fn = None
     hook_stats = {"active": 0, "skipped": 0, "no_t": 0}
     if args.mode != "baseline":
-        target_sae = _load_matryoshka_sae(_resolve_sae_ckpt(args.sae_root, args.target_condition, args.layer, args.t_bin, args.dit_step), device)
+        target_sae = load_matryoshka_sae(resolve_sae_ckpt(args.sae_root, args.target_condition, args.layer, args.t_bin, args.dit_step), device)
         source_sae = None
         target_to_source = None
         explicit_zero_scale = args.source_to_target_scale is not None and float(args.source_to_target_scale) == 0.0
         if args.mode in source_modes and not explicit_zero_scale:
-            source_sae = _load_matryoshka_sae(_resolve_sae_ckpt(args.sae_root, args.source_condition, args.layer, args.t_bin, args.dit_step), device)
+            source_sae = load_matryoshka_sae(resolve_sae_ckpt(args.sae_root, args.source_condition, args.layer, args.t_bin, args.dit_step), device)
             affine = fit_target_to_source_map(
                 args.activations_root,
                 args.source_condition,

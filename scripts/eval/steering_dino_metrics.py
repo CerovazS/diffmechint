@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import sys
 from pathlib import Path
 
 import torch
@@ -15,11 +14,7 @@ from timm.data import create_transform, resolve_model_data_config
 from torch.nn import functional as F
 from transformers import CLIPModel, CLIPProcessor
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from diffmechint.utils import ok, warn  # noqa: E402
+from diffmechint.utils import ok, warn, write_csv
 
 DEFAULT_DASHBOARD_ROOT = Path("outputs/phase4_15_sitl2_ynull_atlas_350k_20260603_145105/feature_viz")
 DEFAULT_IMAGENET_VAL = Path(
@@ -38,21 +33,6 @@ def read_csv(path: Path) -> list[dict[str, str]]:
 def read_tsv(path: Path) -> list[dict[str, str]]:
     with path.open(newline="", encoding="utf-8") as fh:
         return list(csv.DictReader(fh, delimiter="\t"))
-
-
-def write_csv(path: Path, rows: list[dict[str, object]]) -> None:
-    if not rows:
-        raise ValueError(f"refusing to write empty CSV: {path}")
-    fields: list[str] = []
-    for row in rows:
-        for field in row:
-            if field not in fields:
-                fields.append(field)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(fh, fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(rows)
 
 
 def candidate_row(manifest: Path, candidate_id: str) -> dict[str, str]:

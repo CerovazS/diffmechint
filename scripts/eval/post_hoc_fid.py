@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import argparse
 import csv
-import json
 import os
 import shutil
 import sys
@@ -38,46 +37,17 @@ os.environ.setdefault("TRANSFORMERS_CACHE", f"{_FAST}/lcerovaz/hf_cache/transfor
 os.environ["HF_HUB_OFFLINE"] = "1"
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
-import numpy as np  # noqa: E402
 import torch  # noqa: E402
 from safetensors.torch import load_file  # noqa: E402
 from torchvision.utils import save_image  # noqa: E402
 
-from diffmechint.sit import SiT_models, create_transport  # noqa: E402
+from diffmechint.sit import build_sit_model, create_transport, list_ema_checkpoints  # noqa: E402
 from diffmechint.sit.transport import Sampler  # noqa: E402
-from diffmechint.tokenizers import build  # noqa: E402
+from diffmechint.tokenizers import build, load_latent_stats  # noqa: E402
 from diffmechint.utils import error, info, ok, warn  # noqa: E402
 
-LATENTS_BASE = Path("/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/latents")
 REF_NAME = "imagenet_val_50k"
 NUM_CLASSES = 1000
-
-
-def _load_stats(adapter_name: str) -> tuple[torch.Tensor, torch.Tensor, dict]:
-    stats_path = LATENTS_BASE / adapter_name / "stats.json"
-    s = json.loads(stats_path.read_text())
-    mean = torch.from_numpy(np.asarray(s["per_feature_mean"], dtype=np.float32)).view(1, -1, 1, 1)
-    std = torch.from_numpy(np.asarray(s["per_feature_std"], dtype=np.float32)).view(1, -1, 1, 1)
-    return mean, std, s
-
-
-def _list_ema_checkpoints(run_dir: Path) -> list[tuple[int, Path]]:
-    out = []
-    for p in sorted((run_dir / "checkpoints").glob("step_*_ema.safetensors")):
-        step = int(p.name.split("_")[1])
-        out.append((step, p))
-    return out
-
-
-def _build_model(model_name: str, in_channels: int, input_size: int, device: torch.device) -> torch.nn.Module:
-    model = SiT_models[model_name](
-        input_size=input_size,
-        in_channels=in_channels,
-        num_classes=NUM_CLASSES,
-        class_dropout_prob=0.1,
-        learn_sigma=True,
-    ).to(device).eval()
-    return model
 
 
 @torch.no_grad()
@@ -176,7 +146,7 @@ def main() -> int:
         error(f"Reference stats '{REF_NAME}' not found in cleanfid cache. Run prefetch_cleanfid.sh first.")
         return 1
 
-    mean_d, std_d, stats = _load_stats(args.adapter)
+    mean_d, std_d, stats = load_latent_stats(args.adapter)
     mean_d = mean_d.to(device)
     std_d = std_d.to(device)
     info(f"Adapter={args.adapter} latent_shape={stats['latent_shape']} feature_dim={stats['feature_dim']}")
@@ -191,7 +161,7 @@ def main() -> int:
 
     transport = create_transport(path_type="Linear", prediction="velocity", loss_weight=None)
     info(f"Building model {args.model_name} (in_ch={in_channels}, input_size={input_size})")
-    model = _build_model(args.model_name, in_channels, input_size, device)
+    model = build_sit_model(args.model_name, in_channels, input_size, device)
 
     fid_csv = args.run_dir / "metrics" / "validation" / "fid.csv"
     fid_csv.parent.mkdir(parents=True, exist_ok=True)
@@ -207,7 +177,7 @@ def main() -> int:
             if len(parts) >= 1 and parts[0].isdigit():
                 done_steps.add(int(parts[0]))
 
-    ckpts = _list_ema_checkpoints(args.run_dir)
+    ckpts = list_ema_checkpoints(args.run_dir)
     info(f"Found {len(ckpts)} EMA checkpoints; {len(done_steps)} already computed.")
     tmp_root = args.run_dir / "fid_post_hoc_tmp"
     tmp_root.mkdir(exist_ok=True)

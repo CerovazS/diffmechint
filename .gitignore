@@ -61,6 +61,7 @@ hf_cache/
 # SLURM logs
 slurm/*.out
 slurm/*.err
+slurm/logs/
 *.slurm.log
 
 # notebooks

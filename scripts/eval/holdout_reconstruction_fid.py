@@ -32,9 +32,9 @@ from safetensors.torch import load_file  # noqa: E402
 from torch.utils.data import DataLoader, Subset  # noqa: E402
 from torchvision.utils import save_image  # noqa: E402
 
-from diffmechint.sit import SiT_models, create_transport  # noqa: E402
+from diffmechint.sit import build_sit_model, create_transport, list_ema_checkpoints  # noqa: E402
 from diffmechint.sit.transport import Sampler  # noqa: E402
-from diffmechint.tokenizers import build  # noqa: E402
+from diffmechint.tokenizers import build, load_latent_stats  # noqa: E402
 from diffmechint.training.data import CachedLatentDataset  # noqa: E402
 from diffmechint.utils import error, info, ok, warn  # noqa: E402
 
@@ -44,41 +44,6 @@ DEFAULT_OUT_ROOT = Path(
     "sit_l_2/analysis/holdout_recon_fid"
 )
 NUM_CLASSES = 1000
-
-
-def _load_stats(adapter_name: str) -> tuple[torch.Tensor, torch.Tensor, dict]:
-    stats_path = LATENTS_BASE / adapter_name / "stats.json"
-    stats = json.loads(stats_path.read_text())
-    mean = torch.from_numpy(np.asarray(stats["per_feature_mean"], dtype=np.float32)).view(
-        1, -1, 1, 1
-    )
-    std = torch.from_numpy(np.asarray(stats["per_feature_std"], dtype=np.float32)).view(
-        1, -1, 1, 1
-    )
-    return mean, std, stats
-
-
-def _list_ema_checkpoints(run_dir: Path, steps: set[int] | None = None) -> list[tuple[int, Path]]:
-    ckpts: list[tuple[int, Path]] = []
-    for path in sorted((run_dir / "checkpoints").glob("step_*_ema.safetensors")):
-        step = int(path.name.split("_")[1])
-        if steps is None or step in steps:
-            ckpts.append((step, path))
-    return ckpts
-
-
-def _build_model(
-    model_name: str, in_channels: int, input_size: int, device: torch.device
-) -> torch.nn.Module:
-    model = SiT_models[model_name](
-        input_size=input_size,
-        in_channels=in_channels,
-        num_classes=NUM_CLASSES,
-        class_dropout_prob=0.1,
-        learn_sigma=True,
-    ).to(device)
-    model.eval()
-    return model
 
 
 def _count_pngs(path: Path) -> int:
@@ -313,7 +278,7 @@ def main() -> int:
         return 1
 
     shard_dir = args.shard_dir or (LATENTS_BASE / args.adapter)
-    mean, std, stats = _load_stats(args.adapter)
+    mean, std, stats = load_latent_stats(args.adapter)
     mean = mean.to(device)
     std = std.to(device)
     input_size = int(stats["input_size"])
@@ -346,7 +311,7 @@ def main() -> int:
 
     transport = create_transport(path_type="Linear", prediction="velocity", loss_weight=None)
     info(f"Building {args.model_name} (in_ch={in_channels}, input_size={input_size})")
-    model = _build_model(args.model_name, in_channels, input_size, device)
+    model = build_sit_model(args.model_name, in_channels, input_size, device)
 
     metrics_path = args.run_dir / "metrics" / "validation" / "holdout_recon_fid.csv"
     metrics_path.parent.mkdir(parents=True, exist_ok=True)
@@ -366,7 +331,7 @@ def main() -> int:
         sampler=args.sampler,
         reference_name=ref_name,
     )
-    ckpts = _list_ema_checkpoints(args.run_dir, requested_steps)
+    ckpts = list_ema_checkpoints(args.run_dir, requested_steps)
     if not ckpts:
         raise FileNotFoundError(f"no EMA checkpoints found in {args.run_dir / 'checkpoints'}")
     info(f"Found {len(ckpts)} EMA checkpoints; {len(done_steps)} already in {metrics_path.name}")

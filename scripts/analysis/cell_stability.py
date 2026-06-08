@@ -23,6 +23,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 from diffmechint.probing.concepts import CONCEPTS, get_concept
+from diffmechint.sae import resolve_sae_ckpt
 from diffmechint.utils import info
 
 CELL_RE = re.compile(r"^(?P<condition>[a-z_0-9]+)_L(?P<layer>\d+)_T(?P<t_bin>\d+)$")
@@ -54,27 +55,6 @@ def _cell_name(condition: str, layer: int, t_bin: int) -> str:
     return f"{condition}_L{layer}_T{t_bin}"
 
 
-def _resolve_sae_ckpt(sae_root: Path, condition: str, layer: int, t_bin: int, dit_step: int) -> Path:
-    base = sae_root / condition / f"L{layer}_T{t_bin}" / f"step_{dit_step:06d}"
-    finals = []
-    last_exc: OSError | None = None
-    for attempt in range(5):
-        try:
-            finals = sorted(
-                p for p in base.glob("final_*")
-                if (p / "sae_weights.safetensors").exists()
-            )
-            break
-        except OSError as exc:
-            last_exc = exc
-            time.sleep(1.5 * (attempt + 1))
-    else:
-        raise FileNotFoundError(f"could not inspect SAE checkpoint dir {base}: {last_exc}") from last_exc
-    if not finals:
-        raise FileNotFoundError(f"missing final SAE checkpoint under {base}")
-    return finals[-1]
-
-
 def _available_cells(sae0_root: Path, sae1_root: Path, activations_root: Path, dit_step: int) -> list[tuple[str, int, int]]:
     cells = []
     for condition in ("sd_vae", "repa_e", "eq_vae"):
@@ -82,8 +62,8 @@ def _available_cells(sae0_root: Path, sae1_root: Path, activations_root: Path, d
             for t_bin in T_BINS:
                 shard = activations_root / condition / f"step_{dit_step:06d}" / f"{layer}_{t_bin}.h5"
                 try:
-                    _resolve_sae_ckpt(sae0_root, condition, layer, t_bin, dit_step)
-                    _resolve_sae_ckpt(sae1_root, condition, layer, t_bin, dit_step)
+                    resolve_sae_ckpt(sae0_root, condition, layer, t_bin, dit_step)
+                    resolve_sae_ckpt(sae1_root, condition, layer, t_bin, dit_step)
                 except FileNotFoundError:
                     continue
                 if shard.exists():
@@ -309,7 +289,7 @@ def cmd_pooled_probes(args: argparse.Namespace) -> int:
         labels_raw = labels_all[indices]
         info(f"{cell}: selected {len(indices)} class-balanced images")
         for seed_label, sae_root in ((args.seed0_label, args.seed0_sae_root), (args.seed1_label, args.seed1_sae_root)):
-            ckpt = _resolve_sae_ckpt(sae_root, condition, layer, t_bin, args.dit_step)
+            ckpt = resolve_sae_ckpt(sae_root, condition, layer, t_bin, args.dit_step)
             info(f"  {seed_label}: loading {ckpt}")
             weights = _load_weight_tensors(ckpt, device)
             features = _extract_image_features(
@@ -461,8 +441,8 @@ def cmd_subspace(args: argparse.Namespace) -> int:
         labels = _resolve_labels(shard_dir, args.latents_root, condition)
         indices = _class_balanced_indices(labels, args.max_images, args.sample_seed)
         shard_path = shard_dir / f"{layer}_{t_bin}.h5"
-        ckpt0 = _resolve_sae_ckpt(args.seed0_sae_root, condition, layer, t_bin, args.dit_step)
-        ckpt1 = _resolve_sae_ckpt(args.seed1_sae_root, condition, layer, t_bin, args.dit_step)
+        ckpt0 = resolve_sae_ckpt(args.seed0_sae_root, condition, layer, t_bin, args.dit_step)
+        ckpt1 = resolve_sae_ckpt(args.seed1_sae_root, condition, layer, t_bin, args.dit_step)
         info(f"{cell}: decoder metrics")
         metrics = _decoder_cov_metrics(ckpt0, ckpt1, args.top_dims)
         info(f"{cell}: reconstruction CKA/Procrustes on sampled y-null tokens")

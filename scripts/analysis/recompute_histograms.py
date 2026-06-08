@@ -45,6 +45,7 @@ import h5py  # noqa: E402
 import numpy as np  # noqa: E402
 import torch  # noqa: E402
 
+from diffmechint.sae import load_matryoshka_sae, resolve_sae_ckpt  # noqa: E402
 from diffmechint.utils import error, info, model_subdir, model_variant_spec, ok, warn  # noqa: E402
 
 SAE_ROOT_DEFAULT = Path(
@@ -54,22 +55,6 @@ SCRATCH_PROJECT_ROOT = Path("/leonardo_scratch/large/userexternal/lcerovaz/diffm
 ACTIVATIONS_VAL_ROOT = SCRATCH_PROJECT_ROOT / "activations_val"
 FAST_PROJECT_ROOT = SAE_ROOT_DEFAULT.parent
 N_BINS = 30
-
-
-def _resolve_sae_ckpt(sae_root: Path, condition: str, layer: int,
-                      t_bin: int, dit_step: int) -> Path:
-    base = sae_root / condition / f"L{layer}_T{t_bin}" / f"step_{dit_step:06d}"
-    finals = sorted(p for p in base.iterdir() if p.is_dir() and p.name.startswith("final_"))
-    if not finals:
-        raise FileNotFoundError(f"no final_* under {base}")
-    return finals[-1]
-
-
-def _load_matryoshka_sae(ckpt_dir: Path, device: torch.device):
-    from sae_lens import MatryoshkaBatchTopKTrainingSAE
-    sae = MatryoshkaBatchTopKTrainingSAE.load_from_disk(str(ckpt_dir), device=str(device))
-    sae.eval()
-    return sae
 
 
 @torch.no_grad()
@@ -179,10 +164,10 @@ def main() -> int:
     if device.type == "cpu":
         warn("CUDA not available — will be slow.")
 
-    sae_ckpt = _resolve_sae_ckpt(args.sae_root, args.condition, args.layer,
-                                 args.t_bin, args.dit_step)
+    sae_ckpt = resolve_sae_ckpt(args.sae_root, args.condition, args.layer,
+                                args.t_bin, args.dit_step)
     info(f"Loading SAE from {sae_ckpt}")
-    sae = _load_matryoshka_sae(sae_ckpt, device)
+    sae = load_matryoshka_sae(sae_ckpt, device)
     d_sae = int(sae.cfg.d_sae)
     info(f"  d_in={sae.cfg.d_in} d_sae={d_sae} k={sae.cfg.k}")
 

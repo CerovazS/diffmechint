@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 from pathlib import Path
 from typing import Any
 
 import matplotlib.pyplot as plt
+
+from diffmechint.utils import read_csv
 
 PALETTE = {
     "blue": "#335C67",
@@ -30,11 +31,6 @@ ROLE_COLORS = {
 
 def _read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
-
-
-def _read_csv(path: Path) -> list[dict[str, str]]:
-    with path.open(newline="", encoding="utf-8") as fh:
-        return list(csv.DictReader(fh))
 
 
 def _bool(raw: str) -> bool:
@@ -72,7 +68,7 @@ def _short_id(candidate_id: str, idx: int) -> str:
 
 
 def _plot_eap_candidate_ranks(metrics_dir: Path, plots_dir: Path) -> None:
-    rows = _read_csv(metrics_dir / "full_eap_candidate_summary.csv")
+    rows = read_csv(metrics_dir / "full_eap_candidate_summary.csv")
     rows = sorted(rows, key=lambda row: (row["selection_role"], int(row["source_rank_abs"])))
     labels = [_short_id(row["candidate_id"], idx) for idx, row in enumerate(rows)]
     x = list(range(len(rows)))
@@ -99,8 +95,8 @@ def _plot_eap_candidate_ranks(metrics_dir: Path, plots_dir: Path) -> None:
 
 
 def _plot_eap_error_share(metrics_dir: Path, plots_dir: Path) -> None:
-    rank_rows = _read_csv(metrics_dir / "full_eap_candidate_ranks.csv")
-    error_rows = _read_csv(metrics_dir / "full_eap_error_node_share.csv")
+    rank_rows = read_csv(metrics_dir / "full_eap_candidate_ranks.csv")
+    error_rows = read_csv(metrics_dir / "full_eap_error_node_share.csv")
     error_by_key = {
         (row["condition"], row["layer"], row["t_bin"], row["concept"]): float(row["error_node_abs_gap_fraction"])
         for row in error_rows
@@ -169,7 +165,7 @@ def main() -> None:
     steering = _read_json(metrics_dir / "full_steering_aggregate_summary.json")
     eap = _read_json(metrics_dir / "full_eap_aggregate_summary.json")
     output = _read_json(metrics_dir / "full_output_metric_aggregate_summary.json")
-    output_rows = _read_csv(metrics_dir / "full_output_metric_candidate_summary.csv")
+    output_rows = read_csv(metrics_dir / "full_output_metric_candidate_summary.csv")
 
     fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.2), facecolor="#FFFFFF")
     for ax in axes:

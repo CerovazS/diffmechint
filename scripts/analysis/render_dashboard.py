@@ -24,16 +24,9 @@ import argparse
 import sys
 from pathlib import Path
 
-# Make `feature_dashboard` importable whether this script is run from the repo
-# root via `uv run python scripts/analysis/render_dashboard.py` or as a module.
-_THIS_DIR = Path(__file__).resolve().parent
-if str(_THIS_DIR) not in sys.path:
-    sys.path.insert(0, str(_THIS_DIR))
-
-from diffmechint.utils import error, info, ok, warn  # noqa: E402
-
-# Reuse the canonical rebuild path inside feature_dashboard.py to avoid drift.
-from feature_dashboard import _rebuild_html_only  # noqa: E402
+# Reuse the canonical rebuild path inside diffmechint.analysis.dashboard to avoid drift.
+from diffmechint.analysis.dashboard import _rebuild_html_only
+from diffmechint.utils import error, info, ok, warn
 
 
 def main() -> int:

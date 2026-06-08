@@ -22,7 +22,6 @@ Outputs:
 from __future__ import annotations
 
 import argparse
-import re
 import sys
 from itertools import combinations, pairwise
 from pathlib import Path
@@ -33,18 +32,16 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import linear_sum_assignment
 
+from diffmechint.analysis.atlas import COND_ORDER, TBIN_ORDER
+
 ATLAS_DEFAULT = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_8_atlas")
 ATLAS = ATLAS_DEFAULT
 TOP9 = ATLAS / "top9"
 PLOTS = ATLAS / "plots"
 
-COND_ORDER = ["sd_vae", "repa_e", "eq_vae"]
-COND_LABEL = {"sd_vae": "SD-VAE", "repa_e": "REPA-E", "eq_vae": "EQ-VAE"}
 LAYER_ORDER = [3, 6, 9]
-TBIN_ORDER = [0, 1, 2]
 ALL_CELLS = [f"{c}_L{L}_T{T}"
              for c in COND_ORDER for L in LAYER_ORDER for T in TBIN_ORDER]
-CELL_RE = re.compile(r"^(?P<cond>[a-z_0-9]+?)_L(?P<layer>\d+)_T(?P<tbin>\d+)$")
 PB = {
     "ink": "#1c1b19", "teal": "#335C67", "amber": "#E09F3E",
     "red": "#9E2A2B", "cream": "#FFF3B0", "wine": "#540B0E",

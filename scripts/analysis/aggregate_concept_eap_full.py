@@ -3,25 +3,12 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
-
-def _read_csv(path: Path) -> list[dict[str, str]]:
-    with path.open(newline="", encoding="utf-8") as fh:
-        return list(csv.DictReader(fh))
-
-
-def _write_csv(path: Path, rows: list[dict[str, Any]], fieldnames: list[str]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(fh, fieldnames=fieldnames)
-        writer.writeheader()
-        for row in rows:
-            writer.writerow({key: row.get(key, "") for key in fieldnames})
+from diffmechint.utils import read_csv, write_csv
 
 
 def _run_scope(summary_path: Path) -> set[tuple[str, int, int, str]]:
@@ -45,14 +32,14 @@ def _collect_rank_rows(eap_root: Path) -> tuple[list[dict[str, Any]], list[dict[
         scope = _run_scope(summary_path)
         ranks_path = run_dir / "metrics" / "eap_candidate_ranks.csv"
         if ranks_path.exists():
-            for row in _read_csv(ranks_path):
+            for row in read_csv(ranks_path):
                 key = (row["condition"], int(row["layer"]), int(row["t_bin"]), row["concept"])
                 if key in scope:
                     row = {**row, "run_id": run_dir.name, "run_dir": str(run_dir)}
                     rank_rows.append(row)
         error_path = run_dir / "metrics" / "eap_error_node_share.csv"
         if error_path.exists():
-            for row in _read_csv(error_path):
+            for row in read_csv(error_path):
                 row = {**row, "run_id": run_dir.name, "run_dir": str(run_dir)}
                 error_rows.append(row)
     return rank_rows, error_rows, completed_runs
@@ -167,9 +154,9 @@ def main() -> None:
         "target_in_top100",
         "both_in_top100",
     ]
-    _write_csv(args.out_dir / "full_eap_candidate_ranks.csv", rank_rows, rank_fields)
-    _write_csv(args.out_dir / "full_eap_error_node_share.csv", error_rows, error_fields)
-    _write_csv(args.out_dir / "full_eap_candidate_summary.csv", candidate_rows, candidate_fields)
+    write_csv(args.out_dir / "full_eap_candidate_ranks.csv", rank_rows, rank_fields)
+    write_csv(args.out_dir / "full_eap_error_node_share.csv", error_rows, error_fields)
+    write_csv(args.out_dir / "full_eap_candidate_summary.csv", candidate_rows, candidate_fields)
 
     counts_by_role = Counter(row["selection_role"] for row in candidate_rows)
     aggregate = {

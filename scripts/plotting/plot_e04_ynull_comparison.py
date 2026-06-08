@@ -11,6 +11,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from diffmechint.utils import write_csv
+
 PB = {
     "win": "#335C67",
     "neutral": "#E09F3E",
@@ -54,14 +56,6 @@ def _load_eval_csv(path: Path, label: str) -> list[dict]:
                 "val_shard": r["val_shard"],
             })
     return rows
-
-
-def _write_csv(rows: list[dict], path: Path) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
-        w.writeheader()
-        w.writerows(rows)
 
 
 def _matched_pairs(rows: list[dict], topk_label: str, matryo_label: str) -> list[tuple[dict, dict]]:
@@ -339,7 +333,7 @@ def _write_summaries(pairs: list[tuple[dict, dict]], out_dir: Path) -> None:
             "matryoshka_dead_pct_mean": float(np.mean([b["dead_pct"] for _, b in group])),
             "delta_dead_pct_mean": float(np.mean([b["dead_pct"] - a["dead_pct"] for a, b in group])),
         })
-    _write_csv(group_rows, out_dir / "summary_by_condition_layer.csv")
+    write_csv(out_dir / "summary_by_condition_layer.csv", group_rows)
 
 
 def main() -> int:
@@ -359,7 +353,7 @@ def main() -> int:
     matryo_label = "Matryoshka k=256 d=32k"
     rows = _load_eval_csv(args.topk_csv, topk_label) + _load_eval_csv(args.matryoshka_csv, matryo_label)
     rows = [r for r in rows if r["dit_step"] == 200000 and r["stage"] == "final"]
-    _write_csv(rows, args.out_dir / "combined_ynull_step200k.csv")
+    write_csv(args.out_dir / "combined_ynull_step200k.csv", rows)
 
     pairs = _matched_pairs(rows, topk_label, matryo_label)
     if len(pairs) != 27:

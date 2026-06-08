@@ -6,12 +6,12 @@ import numpy as np
 import pytest
 import torch
 
-from diffmechint.hooks.timestep_router import timestep_context
-from scripts.analysis.tokenizer_dictionary_validation import (
+from diffmechint.analysis.alignment import (
     fit_procrustes_affine,
     linear_cka,
     rsa_spearman,
 )
+from diffmechint.hooks.timestep_router import timestep_context
 from scripts.eval.cross_tokenizer_sae_substitution_fid import make_transferred_sae_hook
 
 

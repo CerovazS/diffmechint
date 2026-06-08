@@ -3,6 +3,8 @@
 `SAETrainer` consumes `Iterator[torch.Tensor]` where each yielded tensor has
 shape `(batch_size, d_in)`. We provide:
   - `hdf5_provider`  : streams (N, T, D) cells from disk, flattens tokens
+  - `latent_hdf5_provider`: streams Phase 1 (N, C, H, W) latent shards,
+    patchified to SiT x_embedder token order
   - `synthetic_provider`: structured K-sparse feature mixtures for tests
 """
 
@@ -69,6 +71,96 @@ def hdf5_provider(
                 yield batch.to(device=device, non_blocking=True)
         if not loop_forever:
             return
+
+
+def patchify_latents(latents: torch.Tensor, patch_size: int) -> torch.Tensor:
+    """`(N, C, H, W)` → `(N, T, C*p*p)` in SiT x_embedder token order.
+
+    Tokens are row-major over the `(H/p, W/p)` grid; each token vector is the
+    flattened `(C, p, p)` block, matching timm PatchEmbed's Conv2d weight
+    layout so latent tokens align 1:1 with SiT residual-stream tokens.
+    """
+    n, c, h, w = latents.shape
+    p = int(patch_size)
+    if h % p or w % p:
+        raise ValueError(f"latent spatial dims ({h}, {w}) not divisible by patch_size={p}.")
+    th, tw = h // p, w // p
+    x = latents.reshape(n, c, th, p, tw, p)
+    return x.permute(0, 2, 4, 1, 3, 5).reshape(n, th * tw, c * p * p)
+
+
+def latent_hdf5_provider(
+    shard_paths: Sequence[str | Path] | str | Path,
+    batch_size: int,
+    *,
+    patch_size: int = 2,
+    device: str | torch.device = "cuda",
+    dtype: torch.dtype = torch.float32,
+    loop_forever: bool = True,
+    shuffle: bool = True,
+    seed: int | None = None,
+) -> Iterator[torch.Tensor]:
+    """Yield `(batch_size, C*p*p)` tensors from Phase 1 latent shards.
+
+    Each shard is an HDF5 file with dataset `latents` of shape `(N, C, H, W)`
+    fp16 (see `diffmechint.training.precompute_latents`). The latent map is
+    patchified exactly as the SiT x_embedder sees it (`patchify_latents`),
+    then spatial tokens are flattened into SAE samples — the latent analogue
+    of `hdf5_provider`.
+    """
+    paths = _normalize_paths(shard_paths)
+    if not paths:
+        raise FileNotFoundError(f"No HDF5 shards resolved from {shard_paths!r}.")
+    gen = torch.Generator(device="cpu")
+    if seed is not None:
+        gen.manual_seed(int(seed))
+
+    while True:
+        for path in paths:
+            with h5py.File(path, "r") as f:
+                arr = torch.from_numpy(f["latents"][()]).to(dtype=dtype)  # (N, C, H, W)
+            arr = patchify_latents(arr, patch_size)  # (N, T, D)
+            arr = arr.reshape(-1, arr.shape[-1])  # (N*T, D)
+            if shuffle:
+                perm = torch.randperm(arr.shape[0], generator=gen)
+                arr = arr[perm]
+            for batch in arr.split(batch_size):
+                if batch.shape[0] < batch_size:
+                    continue  # drop_last to keep SAE update sizes constant
+                yield batch.to(device=device, non_blocking=True)
+        if not loop_forever:
+            return
+
+
+def load_latent_val_tokens(
+    shard_path: Path | str,
+    *,
+    patch_size: int = 2,
+    max_tokens: int | None = None,
+    dtype: torch.dtype = torch.float32,
+) -> torch.Tensor:
+    """Load a Phase 1 latent shard into a flat CPU `(T, D)` token tensor.
+
+    Deterministic (no shuffle), mirroring `eval.load_val_tokens`: the first
+    `max_tokens` tokens in shard order, so inline val telemetry over one SAE
+    run always sees identical data.
+    """
+    with h5py.File(str(shard_path), "r") as f:
+        arr = torch.from_numpy(f["latents"][()]).to(dtype)  # (N, C, H, W)
+    t = patchify_latents(arr, patch_size).reshape(-1, arr.shape[1] * patch_size * patch_size)
+    if max_tokens is not None and t.shape[0] > max_tokens:
+        t = t[:max_tokens].contiguous()
+    return t
+
+
+def first_latent_d_in(shard_paths: Sequence[str | Path] | str | Path, patch_size: int = 2) -> int:
+    """Token width `C*p*p` of the first resolved latent shard."""
+    paths = _normalize_paths(shard_paths)
+    if not paths:
+        raise FileNotFoundError(f"No HDF5 shards resolved from {shard_paths!r}.")
+    with h5py.File(paths[0], "r") as f:
+        c = int(f["latents"].shape[1])
+    return c * int(patch_size) ** 2
 
 
 def synthetic_provider(

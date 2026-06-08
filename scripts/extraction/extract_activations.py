@@ -43,7 +43,7 @@ from safetensors.torch import load_file  # noqa: E402
 
 from diffmechint.hooks import ActivationBuffer, ResidualStreamTap  # noqa: E402
 from diffmechint.hooks.timestep_router import timestep_context  # noqa: E402
-from diffmechint.sit import SiT_models  # noqa: E402
+from diffmechint.sit import build_sit_model, list_ema_checkpoints  # noqa: E402
 from diffmechint.training.data import CachedLatentDataset  # noqa: E402
 from diffmechint.utils import (  # noqa: E402
     error,
@@ -59,25 +59,6 @@ SCRATCH_PROJECT_ROOT = Path("/leonardo_scratch/large/userexternal/lcerovaz/diffm
 LATENTS_BASE = SCRATCH_PROJECT_ROOT / "latents"
 ACTIVATIONS_BASE = SCRATCH_PROJECT_ROOT / "activations"
 NUM_CLASSES = 1000
-
-
-def _list_ema_checkpoints(run_dir: Path) -> list[tuple[int, Path]]:
-    out = []
-    for p in sorted((run_dir / "checkpoints").glob("step_*_ema.safetensors")):
-        step = int(p.name.split("_")[1])
-        out.append((step, p))
-    return out
-
-
-def _build_model(model_name: str, in_channels: int, input_size: int, device: torch.device) -> torch.nn.Module:
-    model = SiT_models[model_name](
-        input_size=input_size,
-        in_channels=in_channels,
-        num_classes=NUM_CLASSES,
-        class_dropout_prob=0.1,
-        learn_sigma=True,
-    ).to(device).eval()
-    return model
 
 
 def _build_sample_indices(
@@ -310,7 +291,7 @@ def main() -> int:
     layers = parse_layers(args.layers, spec)
 
     info(f"Building model {spec.model_name} (in_ch={in_channels}, input_size={input_size})")
-    model = _build_model(spec.model_name, in_channels, input_size, device)
+    model = build_sit_model(spec.model_name, in_channels, input_size, device)
     n_blocks = len(model.blocks)
     info(f"  model has {n_blocks} blocks; tapping {layers}")
     bad = [i for i in layers if not (0 <= i < n_blocks)]
@@ -318,7 +299,7 @@ def main() -> int:
         error(f"layer indices {bad} out of range for {n_blocks}-block model")
         return 1
 
-    ckpts = _list_ema_checkpoints(args.run_dir)
+    ckpts = list_ema_checkpoints(args.run_dir)
     if args.only_step is not None:
         ckpts = [(s, p) for s, p in ckpts if s == args.only_step]
         if not ckpts:

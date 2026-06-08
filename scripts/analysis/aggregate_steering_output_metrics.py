@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -11,26 +10,14 @@ from typing import Any
 
 import numpy as np
 
+from diffmechint.utils import read_csv, write_csv
+
 METRICS = {
     "classifier_prob": "classifier_target_probability",
     "clip_text": "clip_target_text_similarity",
     "dino_top": "dino_top_example_similarity",
 }
 CONTROL_MODES = ("random_matched_control", "wrong_window_control")
-
-
-def _read_csv(path: Path) -> list[dict[str, str]]:
-    with path.open(newline="", encoding="utf-8") as fh:
-        return list(csv.DictReader(fh))
-
-
-def _write_csv(path: Path, rows: list[dict[str, Any]], fieldnames: list[str]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(fh, fieldnames=fieldnames)
-        writer.writeheader()
-        for row in rows:
-            writer.writerow({field: row.get(field, "") for field in fieldnames})
 
 
 def _float(raw: Any) -> float:
@@ -77,7 +64,7 @@ def _bootstrap_ci(values: np.ndarray, *, n_boot: int, seed: int) -> tuple[float,
 def _mode_summary_rows(metrics_root: Path) -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
     for path in sorted(metrics_root.glob("*/metrics/steering_dino_mode_summary.csv")):
-        rows.extend(_read_csv(path))
+        rows.extend(read_csv(path))
     return rows
 
 
@@ -90,8 +77,8 @@ def _candidate_metrics(
 ) -> dict[str, Any]:
     per_image_path = candidate_dir / "metrics" / "steering_dino_per_image.csv"
     mode_summary_path = candidate_dir / "metrics" / "steering_dino_mode_summary.csv"
-    per_image = _read_csv(per_image_path)
-    mode_rows = {row["mode"]: row for row in _read_csv(mode_summary_path)}
+    per_image = read_csv(per_image_path)
+    mode_rows = {row["mode"]: row for row in read_csv(mode_summary_path)}
     out: dict[str, Any] = {
         "candidate_id": manifest_row["candidate_id"],
         "selection_role": manifest_row["selection_role"],
@@ -138,7 +125,7 @@ def main() -> None:
     parser.add_argument("--require_complete", action="store_true")
     args = parser.parse_args()
 
-    manifest_rows = {row["candidate_id"]: row for row in _read_csv(args.manifest)}
+    manifest_rows = {row["candidate_id"]: row for row in read_csv(args.manifest)}
     candidate_rows: list[dict[str, Any]] = []
     for candidate_dir in sorted(path for path in args.metrics_root.iterdir() if path.is_dir()):
         candidate_id = candidate_dir.name
@@ -177,8 +164,8 @@ def main() -> None:
     candidate_fields.extend(["strict_all_metric_confirmed", "any_metric_confirmed"])
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    _write_csv(args.out_dir / "full_output_metric_mode_summary.csv", mode_rows, mode_fields)
-    _write_csv(args.out_dir / "full_output_metric_candidate_summary.csv", candidate_rows, candidate_fields)
+    write_csv(args.out_dir / "full_output_metric_mode_summary.csv", mode_rows, mode_fields)
+    write_csv(args.out_dir / "full_output_metric_candidate_summary.csv", candidate_rows, candidate_fields)
 
     counts_by_role = Counter(row["selection_role"] for row in candidate_rows)
     aggregate = {

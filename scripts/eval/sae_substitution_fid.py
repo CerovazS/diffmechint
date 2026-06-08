@@ -46,61 +46,20 @@ os.environ.setdefault("TRANSFORMERS_CACHE", f"{_FAST}/lcerovaz/hf_cache/transfor
 os.environ["HF_HUB_OFFLINE"] = "1"
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
-import numpy as np  # noqa: E402
 import torch  # noqa: E402
 from safetensors.torch import load_file  # noqa: E402
 from torchvision.utils import save_image  # noqa: E402
 
 from diffmechint.hooks.timestep_router import current_t, timestep_context  # noqa: E402
-from diffmechint.sit import SiT_models, create_transport  # noqa: E402
+from diffmechint.sae import load_matryoshka_sae, resolve_sae_ckpt  # noqa: E402
+from diffmechint.sit import build_sit_model, create_transport  # noqa: E402
 from diffmechint.sit.transport import Sampler  # noqa: E402
-from diffmechint.tokenizers import build  # noqa: E402
+from diffmechint.tokenizers import build, load_latent_stats  # noqa: E402
 from diffmechint.utils import error, info, ok, warn  # noqa: E402
 
-LATENTS_BASE = Path("/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/latents")
 REF_NAME = "imagenet_val_50k"
 NUM_CLASSES = 1000
 T_BIN_CENTERS = (0.025, 0.20, 0.50)
-
-
-def _load_stats(adapter_name: str) -> tuple[torch.Tensor, torch.Tensor, dict]:
-    stats_path = LATENTS_BASE / adapter_name / "stats.json"
-    s = json.loads(stats_path.read_text())
-    mean = torch.from_numpy(np.asarray(s["per_feature_mean"], dtype=np.float32)).view(1, -1, 1, 1)
-    std = torch.from_numpy(np.asarray(s["per_feature_std"], dtype=np.float32)).view(1, -1, 1, 1)
-    return mean, std, s
-
-
-def _build_model(model_name: str, in_channels: int, input_size: int, device: torch.device) -> torch.nn.Module:
-    model = SiT_models[model_name](
-        input_size=input_size,
-        in_channels=in_channels,
-        num_classes=NUM_CLASSES,
-        class_dropout_prob=0.1,
-        learn_sigma=True,
-    ).to(device).eval()
-    return model
-
-
-def _resolve_sae_ckpt(sae_root: Path, condition: str, layer: int,
-                      t_bin: int, dit_step: int) -> Path:
-    """Locate the production SAE final_* dir for one cell."""
-    base = sae_root / condition / f"L{layer}_T{t_bin}" / f"step_{dit_step:06d}"
-    if not base.exists():
-        raise FileNotFoundError(f"SAE step dir missing: {base}")
-    finals = sorted(p for p in base.iterdir() if p.is_dir() and p.name.startswith("final_"))
-    if not finals:
-        raise FileNotFoundError(f"no final_* under {base}")
-    # If there are multiple, pick the largest token budget (last by sorted name).
-    return finals[-1]
-
-
-def _load_matryoshka_sae(ckpt_dir: Path, device: torch.device) -> torch.nn.Module:
-    """Load the production Matryoshka SAE via SAELens load_from_disk."""
-    from sae_lens import MatryoshkaBatchTopKTrainingSAE
-    sae = MatryoshkaBatchTopKTrainingSAE.load_from_disk(str(ckpt_dir), device=str(device))
-    sae.eval()
-    return sae
 
 
 def _make_substitution_hook(sae: torch.nn.Module, t_center: float, t_tol: float,
@@ -281,7 +240,7 @@ def main() -> int:
     info(f"run_tag={run_tag}  out_dir={out_dir}")
 
     # Adapter + latent stats.
-    mean_d, std_d, stats = _load_stats(args.adapter)
+    mean_d, std_d, stats = load_latent_stats(args.adapter)
     mean_d = mean_d.to(device)
     std_d = std_d.to(device)
     in_channels = int(stats["feature_dim"])
@@ -295,7 +254,7 @@ def main() -> int:
 
     transport = create_transport(path_type="Linear", prediction="velocity", loss_weight=None)
     info(f"Building model {args.model_name}")
-    model = _build_model(args.model_name, in_channels, input_size, device)
+    model = build_sit_model(args.model_name, in_channels, input_size, device)
 
     # Load SiT EMA checkpoint at the requested step.
     ema_path = args.run / "checkpoints" / f"step_{args.dit_step:08d}_ema.safetensors"
@@ -313,10 +272,10 @@ def main() -> int:
     sae = None
     sae_ckpt_dir = None
     if do_sub:
-        sae_ckpt_dir = _resolve_sae_ckpt(args.sae_root, args.condition,
+        sae_ckpt_dir = resolve_sae_ckpt(args.sae_root, args.condition,
                                          args.layer, args.t_bin, args.dit_step)
         info(f"Loading Matryoshka SAE from {sae_ckpt_dir}")
-        sae = _load_matryoshka_sae(sae_ckpt_dir, device)
+        sae = load_matryoshka_sae(sae_ckpt_dir, device)
         info(f"  d_in={sae.cfg.d_in} d_sae={sae.cfg.d_sae} k={sae.cfg.k}")
 
     sub_t_center = T_BIN_CENTERS[args.t_bin] if do_sub else None

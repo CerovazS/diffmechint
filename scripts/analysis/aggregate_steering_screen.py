@@ -9,6 +9,8 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
+from diffmechint.utils import write_csv
+
 CLAMP_MODES = {"native_clamp_q95", "native_clamp_q99", "native_clamp_2x_q99"}
 FIRST_ARRAY_SKIP_MODES = CLAMP_MODES
 
@@ -16,15 +18,6 @@ FIRST_ARRAY_SKIP_MODES = CLAMP_MODES
 def _read_tsv(path: Path) -> list[dict[str, str]]:
     with path.open(newline="", encoding="utf-8") as fh:
         return list(csv.DictReader(fh, delimiter="\t"))
-
-
-def _write_csv(path: Path, rows: list[dict[str, Any]], fieldnames: list[str]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(fh, fieldnames=fieldnames)
-        writer.writeheader()
-        for row in rows:
-            writer.writerow({key: row.get(key, "") for key in fieldnames})
 
 
 def _task_rows(first_task_file: Path, retry_task_file: Path) -> dict[tuple[str, str], dict[str, str]]:
@@ -259,8 +252,8 @@ def main() -> None:
     ]
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    _write_csv(args.out_dir / "full_steering_fid_results.csv", rows, result_fields)
-    _write_csv(args.out_dir / "full_steering_candidate_summary.csv", summary_rows, candidate_fields)
+    write_csv(args.out_dir / "full_steering_fid_results.csv", rows, result_fields)
+    write_csv(args.out_dir / "full_steering_candidate_summary.csv", summary_rows, candidate_fields)
 
     missing = [
         {"candidate_id": row["candidate_id"], "mode": row["mode"], "task_id": row.get("task_id", "")}

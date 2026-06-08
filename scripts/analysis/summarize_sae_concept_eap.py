@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 import math
-import sys
 import time
 from collections import Counter
 from pathlib import Path
@@ -14,18 +12,10 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from scripts.analysis.sae_feature_patching import PB, write_csv  # noqa: E402
+from diffmechint.analysis.patching import PB, write_csv
+from diffmechint.utils import read_csv
 
 DEFAULT_OUT_ROOT = Path("outputs/phase4_11_feature_activation_patching")
-
-
-def _read_csv(path: Path) -> list[dict]:
-    with path.open(newline="", encoding="utf-8") as fh:
-        return list(csv.DictReader(fh))
 
 
 def _float(raw: object) -> float:
@@ -58,7 +48,7 @@ def _load_rows(run_dirs: list[Path], relpath: str) -> list[dict]:
         path = run_dir / relpath
         if not path.exists():
             raise FileNotFoundError(f"missing {relpath}: {run_dir}")
-        for row in _read_csv(path):
+        for row in read_csv(path):
             row["source_run_dir"] = str(run_dir)
             rows.append(row)
     return rows

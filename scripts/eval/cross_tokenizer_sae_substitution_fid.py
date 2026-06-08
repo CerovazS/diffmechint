@@ -30,22 +30,21 @@ if _INC_HOME.exists() and not _INC_TMP.exists():
     except FileExistsError:
         pass
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from diffmechint.hooks.timestep_router import current_t, timestep_context  # noqa: E402
-from diffmechint.utils import error, info, ok, warn  # noqa: E402
-from scripts.analysis.tokenizer_dictionary_validation import (  # noqa: E402
+from diffmechint.analysis.alignment import (  # noqa: E402
     ACTIVATIONS_YNULL,
     SAE_ROOT,
     T_CENTERS,
     AffineMap,
-    _aligned_positions,
-    _cell_path,
-    _read_rows,
+    aligned_positions,
+    cell_path,
     fit_ridge_affine,
+    read_rows,
 )
+from diffmechint.hooks.timestep_router import current_t, timestep_context  # noqa: E402
+from diffmechint.sae import load_matryoshka_sae, resolve_sae_ckpt  # noqa: E402
+from diffmechint.sit import build_sit_model  # noqa: E402
+from diffmechint.tokenizers import load_latent_stats  # noqa: E402
+from diffmechint.utils import error, info, ok, warn  # noqa: E402
 
 LATENTS_BASE = Path("/leonardo_scratch/large/userexternal/lcerovaz/diffmechint/latents")
 REF_NAME = "imagenet_val_50k"
@@ -61,42 +60,6 @@ class TorchAffine:
 
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         return x @ self.weight + self.bias
-
-
-def _build_model(model_name: str, in_channels: int, input_size: int, device: torch.device) -> torch.nn.Module:
-    from diffmechint.sit import SiT_models
-
-    return SiT_models[model_name](
-        input_size=input_size,
-        in_channels=in_channels,
-        num_classes=NUM_CLASSES,
-        class_dropout_prob=0.1,
-        learn_sigma=True,
-    ).to(device).eval()
-
-
-def _load_stats(adapter_name: str) -> tuple[torch.Tensor, torch.Tensor, dict]:
-    stats_path = LATENTS_BASE / adapter_name / "stats.json"
-    payload = json.loads(stats_path.read_text())
-    mean = torch.from_numpy(np.asarray(payload["per_feature_mean"], dtype=np.float32)).view(1, -1, 1, 1)
-    std = torch.from_numpy(np.asarray(payload["per_feature_std"], dtype=np.float32)).view(1, -1, 1, 1)
-    return mean, std, payload
-
-
-def _resolve_sae_ckpt(sae_root: Path, condition: str, layer: int, t_bin: int, dit_step: int) -> Path:
-    base = sae_root / condition / f"L{layer}_T{t_bin}" / f"step_{dit_step:06d}"
-    finals = sorted(p for p in base.glob("final_*") if p.is_dir())
-    if not finals:
-        raise FileNotFoundError(f"no final_* SAE dir under {base}")
-    return finals[-1]
-
-
-def _load_matryoshka_sae(ckpt_dir: Path, device: torch.device) -> torch.nn.Module:
-    from sae_lens import MatryoshkaBatchTopKTrainingSAE
-
-    sae = MatryoshkaBatchTopKTrainingSAE.load_from_disk(str(ckpt_dir), device=str(device))
-    sae.eval()
-    return sae
 
 
 def _sample_tokens(acts: np.ndarray, max_tokens: int, seed: int) -> np.ndarray:
@@ -119,16 +82,16 @@ def _fit_bidirectional_maps(
     ridge_alpha: float,
     seed: int,
 ) -> tuple[AffineMap, AffineMap]:
-    src_pos, tgt_pos, _ = _aligned_positions(
+    src_pos, tgt_pos, _ = aligned_positions(
         activations_root, source, target, dit_step, max_images, seed
     )
     src = _sample_tokens(
-        _read_rows(_cell_path(activations_root, source, dit_step, layer, t_bin), src_pos),
+        read_rows(cell_path(activations_root, source, dit_step, layer, t_bin), src_pos),
         max_tokens,
         seed + 2,
     )
     tgt = _sample_tokens(
-        _read_rows(_cell_path(activations_root, target, dit_step, layer, t_bin), tgt_pos),
+        read_rows(cell_path(activations_root, target, dit_step, layer, t_bin), tgt_pos),
         max_tokens,
         seed + 2,
     )
@@ -330,7 +293,7 @@ def main() -> int:
     if images_dir.exists():
         shutil.rmtree(images_dir)
 
-    mean_d, std_d, stats = _load_stats(args.target_adapter)
+    mean_d, std_d, stats = load_latent_stats(args.target_adapter)
     mean_d = mean_d.to(device)
     std_d = std_d.to(device)
     in_channels = int(stats["feature_dim"])
@@ -343,7 +306,7 @@ def main() -> int:
     adapter.load()
     adapter.to(device)
 
-    model = _build_model(args.model_name, in_channels, input_size, device)
+    model = build_sit_model(args.model_name, in_channels, input_size, device)
     ema_path = args.target_run / "checkpoints" / f"step_{args.dit_step:08d}_ema.safetensors"
     if not ema_path.exists():
         error(f"SiT EMA checkpoint missing: {ema_path}")
@@ -358,21 +321,21 @@ def main() -> int:
     hook_fn = None
     hook_stats = {"active": 0, "skipped": 0, "no_t": 0}
     if args.mode == "native":
-        ckpt = _resolve_sae_ckpt(
+        ckpt = resolve_sae_ckpt(
             args.sae_root, args.target_condition, args.layer, args.t_bin, args.dit_step
         )
         info(f"Loading native target SAE {ckpt}")
-        sae = _load_matryoshka_sae(ckpt, device)
+        sae = load_matryoshka_sae(ckpt, device)
         hook_fn = _attach_stats(
             make_native_sae_hook(sae, T_CENTERS[args.t_bin], args.t_tol, hook_stats),
             hook_stats,
         )
     elif args.mode == "transfer":
-        ckpt = _resolve_sae_ckpt(
+        ckpt = resolve_sae_ckpt(
             args.sae_root, args.source_condition, args.layer, args.t_bin, args.dit_step
         )
         info(f"Loading source SAE {ckpt}")
-        sae = _load_matryoshka_sae(ckpt, device)
+        sae = load_matryoshka_sae(ckpt, device)
         info("Fitting target↔source ridge maps from y-null activations")
         tgt_to_src_np, src_to_tgt_np = _fit_bidirectional_maps(
             args.activations_root,

@@ -24,6 +24,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from diffmechint.analysis.atlas import COND_LABEL, COND_ORDER, TBIN_ORDER
+
 ATLAS_DEFAULT = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_8_atlas")
 ATLAS = ATLAS_DEFAULT
 PLOTS = ATLAS / "plots"
@@ -37,10 +39,7 @@ PB = {
     "wine": "#540B0E",
 }
 COND_COLORS = {"sd_vae": PB["red"], "repa_e": PB["teal"], "eq_vae": PB["amber"]}
-COND_ORDER = ["sd_vae", "repa_e", "eq_vae"]
-COND_LABEL = {"sd_vae": "SD-VAE", "repa_e": "REPA-E", "eq_vae": "EQ-VAE"}
 LAYER_ORDER = [3, 6, 9]
-TBIN_ORDER = [0, 1, 2]
 
 mpl.rcParams.update({
     "font.family": "DejaVu Sans",

@@ -6,8 +6,7 @@ import numpy as np
 import pytest
 import torch
 
-from diffmechint.hooks.timestep_router import timestep_context
-from scripts.analysis.sae_feature_patching import (
+from diffmechint.analysis.patching import (
     FeatureRow,
     _active_mask_from_scores,
     _expand_sampling_rows,
@@ -18,6 +17,7 @@ from scripts.analysis.sae_feature_patching import (
     feature_match_score,
     is_monosemantic,
 )
+from diffmechint.hooks.timestep_router import timestep_context
 from scripts.eval.cross_tokenizer_feature_patching import (
     build_class_schedule,
     make_feature_patch_hook,

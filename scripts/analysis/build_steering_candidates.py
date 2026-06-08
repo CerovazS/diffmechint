@@ -6,15 +6,10 @@ import argparse
 import csv
 import json
 import math
-import sys
 from collections import Counter
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from diffmechint.utils import ok, warn  # noqa: E402
+from diffmechint.utils import ok, warn
 
 POSITIVE_STATUS = "transfer_lower_fid_than_random_and_wrong_window"
 NEGATIVE_STATUS = "no_transfer_specific_fid_advantage"

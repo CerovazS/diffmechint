@@ -15,7 +15,6 @@ Produces:
 from __future__ import annotations
 
 import argparse
-import re
 import sys
 from pathlib import Path
 
@@ -23,6 +22,8 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+
+from diffmechint.analysis.atlas import CELL_RE, COND_LABEL, COND_ORDER, TBIN_ORDER
 
 ATLAS_DEFAULT = Path("/leonardo_work/IscrC_PDR/lcerovaz/diffmechint/outputs/phase4_8_atlas")
 ATLAS = ATLAS_DEFAULT
@@ -37,11 +38,7 @@ TIMM_SYNSETS = Path(
     "site-packages/timm/data/_info/imagenet_synsets.txt"
 )
 
-CELL_RE = re.compile(r"^(?P<cond>[a-z_0-9]+?)_L(?P<layer>\d+)_T(?P<tbin>\d+)$")
-COND_ORDER = ["sd_vae", "repa_e", "eq_vae"]
-COND_LABEL = {"sd_vae": "SD-VAE", "repa_e": "REPA-E", "eq_vae": "EQ-VAE"}
 LAYER_ORDER = [3, 6, 9]
-TBIN_ORDER = [0, 1, 2]
 PB = {
     "ink": "#1c1b19", "teal": "#335C67", "amber": "#E09F3E",
     "red": "#9E2A2B", "cream": "#FFF3B0", "wine": "#540B0E",
