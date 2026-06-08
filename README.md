@@ -1,289 +1,267 @@
 # diffmechint
 
-**Semantic Geometry of Diffusability — Mechanistic Atlas of Tokenizer Interventions**
+**Semantic Geometry of Diffusability — a mechanistic-interpretability study of
+latent-diffusion tokenizers.**
 
-> [!WARNING]
-> 🚧 **Repository under active construction (May 2026).**
-> Phases 0–4.5 are complete on the K=3 SiT-B/2 ImageNet leg (`sd_vae`, `repa_e`,
-> `eq_vae`); Phase 5 is unblocked and starts next. DC-AE-1.0 is deferred. Numbers,
-> configs and APIs in this repo continue to evolve. See `CHECKLIST.md` for live
-> per-item status.
+The project trains a single **SiT** (Scalable Interpolant Transformer, Flow-Matching +
+Optimal-Transport) backbone on **K controlled VAE / tokenizer variants** over
+ImageNet-256, then runs a fixed mech-int protocol on each condition: sparse
+autoencoders (SAEs), layer × diffusion-timestep linear probes, and sparse
+feature-circuit attribution. The goal is to read out *which* features the diffusion
+transformer learns, *in what order*, and whether that is tokenizer-invariant or
+tokenizer-shaped.
 
-> [!IMPORTANT]
-> Codebase for the paper *"The Semantic Geometry of Diffusability:
-> A Mechanistic Atlas of How Latent Geometry Shapes Diffusion Transformer
-> Learning"* (Mancusi / Strano, Sapienza — NVIDIA Academic Grant submission,
-> ICLR/ICML 2027 target).
-
-The experiment trains a **single SiT (Scalable Interpolant Transformer) backbone
-with Flow-Matching + Optimal-Transport** on **K = 5 controlled VAE/tokenizer
-variants** on ImageNet-256, then runs a fixed mech-int protocol — k-SAEs,
-layer × timestep linear probes, sparse feature circuits via EAP — on each
-condition, at 7 fractional training checkpoints.
-
-The output is the first **semantic atlas of diffusability**: which features
-emerge in the DiT's residual stream, in what order, and whether the
-coarse-to-fine schedule is tokenizer-invariant or tokenizer-shaped.
-
-> [!NOTE]
-> See [`PLAN.md`](PLAN.md) for the full implementation plan and
-> [`CHECKLIST.md`](CHECKLIST.md) for live progress per phase.
+This README explains **how the repo is organized and how to run the files and
+experiments**. The curated research record (hypotheses, results, evidence) lives in
+the Flywheel graph; [`index.md`](index.md) is a local mirror of it.
 
 ---
 
-## Quick start
+## Setup
+
+Dependencies are managed with [**uv**](https://docs.astral.sh/uv/) — `pyproject.toml`
+is the single source of truth.
 
 ```bash
-uv sync --extra dev
-uv run pytest tests/
+uv sync --extra dev          # create .venv and install everything
+source .venv/bin/activate    # or prefix commands with `uv run`
+uv run pytest tests/         # sanity-check the install
+uv run ruff check .          # lint
 ```
 
-GPU smoke for the tokenizer adapters (real HF download, ~2 min on 1 A100):
+> [!NOTE]
+> Add dependencies only with `uv add <pkg>` — never `uv pip install` (it breaks the
+> `pyproject.toml` / `uv.lock` lockstep).
+
+**HuggingFace token.** Tokenizer adapters download from the Hub. Export `HF_TOKEN`
+before any download (on compute nodes it is not picked up from `~/.bashrc`
+automatically):
+
+```bash
+export HF_TOKEN=hf_...
+```
+
+**Storage (CINECA Leonardo).** Code and lightweight outputs live under `$WORK`;
+**latents, activations and checkpoints must go to `$FAST` or `$SCRATCH`** (`$WORK`
+quota is too small). `outputs/` is a symlink into `$FAST`/`$SCRATCH`; never commit
+weights or large artifacts.
+
+---
+
+## How the code is organized
+
+The repo separates **library code**, **thin entry-point scripts**, **configs**, and
+**cluster job templates**:
+
+```
+src/diffmechint/   ← all the real logic (importable package)
+scripts/           ← thin CLI shells that import from src/diffmechint and expose argparse
+conf/              ← Hydra configs (composed for SiT training)
+slurm/             ← CINECA SLURM batch templates (one per stage)
+tests/             ← pytest suite
+flywheel/          ← curated per-node evidence uploaded to the research graph
+index.md           ← local mirror of the Flywheel graph (one entry per node)
+```
+
+Most `scripts/analysis/*.py` and `scripts/eval/*.py` files are **6-line wrappers**:
+the implementation lives in the package, e.g. `scripts/analysis/feature_dashboard.py`
+→ `src/diffmechint/analysis/dashboard.py`. Run a script with `--help` to see its
+exact flags.
+
+```
+src/diffmechint/
+├── tokenizers/     adapters + registry (sd_vae, eq_vae, repa_e, dc_ae_1_0, rae)
+├── sit/            vendored SiT model + transport (FM-OT) + sampling + train entry-point
+├── training/       LightningModule, datamodule, latent precompute, checkpointing, callbacks
+├── hooks/          residual-stream taps, timestep router, activation buffer
+├── sae/            SAELens-backed SAE builder / trainer / eval / checkpoint loaders
+├── probing/        concept registry + Revelio-grid linear probes
+├── circuits/       EAP concept-margin attribution
+├── analysis/       alignment, atlas, dashboard, latent_atlas, latent_probe,
+│                   patching/ (bank·match·activation·families·sampling), spectral_probe, ...
+├── spectral.py     DCT / octave-band utilities for the spectral analyses
+└── utils/          rich console helpers, IO, plotting palette
+```
+
+---
+
+## Running experiments
+
+All stages follow the same pattern: a **library script** you can run locally for a
+smoke / small slice, plus a **matching `slurm/<stage>.slurm`** template for the full
+run on Leonardo. Use `--help` on any script for the full flag set.
+
+### 0. Smoke-test the tokenizer adapters (real HF download, ~2 min on 1 GPU)
 
 ```bash
 uv run python scripts/util/smoke_adapters_gpu.py
 ```
 
-1k-step SiT-B/2 smoke run with synthetic latents on a single GPU:
+### 1. Precompute latents (image → VAE → HDF5 + per-feature `stats.json`)
 
 ```bash
-uv run python -m diffmechint.training.train \
-    trainer.max_steps=1000 \
-    +data.batch_size=32 +data.n_samples=8192 \
-    +ckpt_dir=outputs/smoke
+# local, one condition
+uv run python -m diffmechint.training.precompute_latents tokenizer=sd_vae
+# full sweep on CINECA
+sbatch slurm/precompute_all.slurm        # train split
+sbatch slurm/precompute_val_all.slurm    # val split
 ```
 
-> [!TIP]
-> On CINECA Leonardo, point the HF cache to `$FAST/lcerovaz/hf_cache` (already
-> warmed for the 4 working VAE adapters) and the latent / checkpoint dirs to
-> `$SCRATCH/diffmechint/`. `$WORK` quota is too small for the precomputed
-> latents (~10 GB per condition).
+### 2. Train the SiT backbone (Hydra entry-point, FM-OT)
+
+```bash
+# 1k-step smoke with synthetic latents on a single GPU
+uv run python -m diffmechint.training.train \
+    model=sit_b_2 transport=fm_ot \
+    trainer.max_steps=1000 +ckpt_dir=outputs/smoke
+
+# full run on CINECA
+sbatch slurm/train_sit_full.slurm
+```
+
+Configs compose from `conf/config.yaml` and the subgroups `conf/{model,transport,
+trainer,tokenizer,callbacks}/`. Override anything on the command line
+(`key=value`, `+key=value` to add). Objects are built with Hydra `_target_` /
+`instantiate` — there are no `if tokenizer == ...` branches.
+
+### 3. Extract residual-stream activations (hooks + buffer)
+
+```bash
+uv run python scripts/extraction/extract_activations.py --help
+sbatch slurm/extract_activations.slurm <condition> <step_NNNNNN>
+```
+
+`--y_null` re-extracts counterfactual activations with the class label replaced by
+the null token (for class-conditional ablations).
+
+### 4. Train SAEs over the (condition × layer × timestep × checkpoint) grid
+
+```bash
+# image-latent DiT activations (TopK / BatchTopK / Matryoshka)
+uv run python scripts/training/train_sae.py \
+    --conditions sd_vae repa_e eq_vae --variant matryoshka
+sbatch slurm/train_sae.slurm
+
+# SAEs directly on tokenizer latent tokens
+sbatch slurm/train_latent_sae.slurm
+```
+
+### 5. Evaluate SAEs
+
+```bash
+# held-out reconstruction EV / dead-feature % per cell
+uv run python scripts/eval/eval_sae_on_val.py --help
+sbatch slurm/eval_sae_on_val.slurm
+
+# causal-faithfulness: drop the SAE into the sampler, measure FID shift
+sbatch slurm/sae_substitution_fid.slurm
+```
+
+### 6. Analysis
+
+| What | Script (→ package module) | SLURM |
+|---|---|---|
+| Feature dashboard + monosemanticity atlas | `scripts/analysis/feature_dashboard.py` → `analysis/dashboard.py`; `scripts/analysis/atlas/*` → `analysis/atlas.py` | `feature_dashboard.slurm` |
+| Linear probes (Revelio grid) | `scripts/analysis/run_revelio_grid.py` → `probing/` | `revelio_grid.slurm` |
+| Cross-tokenizer alignment (probe-transfer / CKA-RSA / activation-proxy) | `scripts/analysis/tokenizer_dictionary_validation.py` → `analysis/alignment.py` (subcommands) | `tokenizer_dictionary_validation.slurm` |
+| Feature / family activation patching | `scripts/analysis/sae_feature_patching.py` → `analysis/patching/*` (subcommands) | `feature_activation_patching.slurm` |
+| Concept-margin EAP circuits | `scripts/analysis/sae_concept_eap.py` → `circuits/eap.py` | `concept_eap_array.slurm` |
+| Latent-token atlas / probe | `scripts/analysis/latent_feature_atlas.py`, `latent_probe.py` → `analysis/latent_*` | `latent_probe.slurm` |
+| Spectral (PSD / band alignment / inheritance / probe) | `scripts/analysis/{latent_psd,band_alignment,latent_dit_inheritance,spectral_probe}.py` → `analysis/*` + `spectral.py` | `band_alignment.slurm`, `band_inheritance.slurm`, `spectral_probe.slurm` |
+
+The subcommand-style scripts expose their stages explicitly, e.g.:
+
+```bash
+uv run python scripts/analysis/tokenizer_dictionary_validation.py probe-transfer --help
+uv run python scripts/analysis/sae_feature_patching.py build-bank --help
+```
+
+### Plotting
+
+`scripts/plotting/` turns run outputs into figures + CSVs (`plot_run.py`,
+`plot_fid_compare.py`, the per-experiment `plot_*.py`). All plots use the project's
+Palette-B on a white background.
 
 ---
 
-## Layout
+## Running on CINECA Leonardo
 
-```
-diffmechint/
-├── PLAN.md                — single source of truth for design + phases
-├── CHECKLIST.md           — per-phase progress tracker
-├── pyproject.toml         — uv-managed deps, single source of truth
-├── conf/                  — Hydra configs (tokenizer, model, transport, trainer, sae, probe, callbacks)
-├── src/diffmechint/
-│   ├── tokenizers/        — adapters + registry (sd_vae, eq_vae, repa_e, dc_ae_1_0, rae)
-│   ├── sit/               — vendored willisma/SiT @ cbde832, MIT (with diffmechint patches)
-│   ├── training/
-│   │   ├── sit_module.py        — LightningModule (FM-OT + EMA + resume_from)
-│   │   ├── data.py              — CachedLatentDataModule (HDF5 + z-score + holdout split)
-│   │   ├── precompute_latents.py — image → VAE → HDF5 + per-feature stats.json
-│   │   ├── checkpointing.py     — fractional ckpt callback (7 frac steps + EMA shadow)
-│   │   └── callbacks/           — SampleCallback (PNG grids) + MiniFIDCallback (clean-fid)
-│   ├── hooks/             — ResidualStreamTap, timestep router, ActivationBuffer
-│   ├── sae/               — SAELens-backed SAE training + warm-start sweep
-│   ├── probing/           — concepts registry + Revelio-grid linear probes
-│   ├── circuits/          — EAP + faithfulness + SHIFT (Phase 6, pending)
-│   ├── analysis/          — Hungarian dictionary overlap + temporal atlas (Phase 7, pending)
-│   └── utils/             — rich console helpers
-├── scripts/
-│   ├── training/                  — SiT / SAE training drivers (train_sit_full.sh, train_sae.py)
-│   ├── extraction/                — activation + latent precompute (extract_activations.py, precompute_*_imagenet.sh)
-│   ├── eval/                      — post-hoc evaluators (post_hoc_fid.py, round_trip_psnr_imagenet.{py,sh}, eval_sae_on_val.py, sae_substitution_fid.py, make_substitution_grid.py, extract_metrics.py)
-│   ├── plotting/                  — figure / CSV producers (plot_run.py, plot_fid_compare.py, plot_e0{4,5,6}_*.py, regenerate_flywheel_findings.py)
-│   └── util/                      — one-offs: prefetchers, dataset builders, smoke tests (prefetch_tokenizers.py, prefetch_cleanfid.sh, smoke_adapters_gpu.py, build_imagenet_val_imagefolder.py, migrate-session.sh)
-├── slurm/                 — CINECA SLURM templates (precompute, train, FID)
-├── tests/                 — pytest suite (88 tests green)
-└── outputs/               — gitignored; symlinked to $FAST/diffmechint/outputs/ on CINECA
+**Validate interactively before submitting batch jobs.** Grab a GPU session, test,
+then `sbatch` the matching template:
+
+```bash
+srun -p boost_usr_prod -A <ACCOUNT> --gres=gpu:1 --mem=40G --time=2:00:00 --pty bash
+module load cuda/12.2
+source .venv/bin/activate
+# compute nodes have no internet — set the squid proxy if you need downloads:
+export http_proxy='http://login01:<port>'; export https_proxy="$http_proxy"
 ```
 
-### Standardized run output layout
+The `slurm/*.slurm` templates read their parameters from environment variables /
+positional args (see the header of each file); scheduler `.out`/`.err` logs are
+written under `slurm/logs/` (gitignored).
 
-> [!IMPORTANT]
-> Every `<run_id>/` produced by `scripts/training/train_sit_full.sh` uses this exact layout:
->
-> ```
-> runs/<run_id>/
-> ├── checkpoints/
-> │   ├── step_NNNNNNNN.safetensors          ← live model weights
-> │   ├── step_NNNNNNNN_ema.safetensors      ← EMA shadow (analysis target)
-> │   └── step_NNNNNNNN_metadata.json
-> ├── samples/
-> │   └── step_NNNNNNNN_cfg{1p0,4p0}.png     ← 4×4 grid, ODE dopri5 50 steps
-> ├── lightning_logs/version_0/metrics.csv   ← raw Lightning log
-> ├── metrics/                               ← extract_metrics.py output
-> │   ├── train/{loss_step,loss_epoch}.csv
-> │   ├── validation/{loss,fid}.csv
-> │   └── summary.json
-> └── plots/                                 ← plot_run.py output (palette B)
->     ├── train_loss.png  val_loss.png  fid.png  summary.png
-> ```
->
-> If you write a new training script, **conform to this layout** so
-> `extract_metrics.py` and `plot_run.py` work without modification.
+---
+
+## Run-output conventions
+
+Every run writes to its own uniquely-named directory under `outputs/` and never
+overwrites a previous run. A training `<run_id>/` uses:
+
+```
+outputs/<pipeline>/<run_id>/
+├── checkpoints/   step_*.safetensors  +  step_*_ema.safetensors (analysis target)  +  *_metadata.json
+├── samples/       step_*_cfg{1p0,4p0}.png
+├── metrics/       train/ · validation/ · summary.json   (extract_metrics.py)
+├── plots/         loss / fid / summary PNGs              (plot_run.py)
+└── reports/       reproducibility.md + commit.txt + summary.md
+```
+
+If you add a training script, conform to this layout so `extract_metrics.py` and
+`plot_run.py` work unchanged.
+
+**Latent normalization.** `stats.json` (written next to each latent set) is the
+single source of truth for de/normalization and DiT setup — no consumer should
+hardcode latent layout. Conditions have very different per-channel σ, so runtime
+z-scoring (`CachedLatentDataModule(normalize=True)`, default) is required for
+matched-compute comparisons.
+
+```
+ENCODE  image → vae.encode → mean·scaling_factor → z (HDF5, fp16)
+LOAD    z → (z − μ)/σ                                   ← stats.json
+SAMPLE  z̃ → z̃·σ + μ → ÷scaling_factor → vae.decode → image
+```
 
 ---
 
 ## Conditions (K = 5)
 
-The four diffusability clusters from the proposal, plus the SD-VAE baseline:
+| condition | cluster | hf repo / source | adapter |
+|---|---|---|---|
+| `sd_vae`    | baseline                       | `stabilityai/sd-vae-ft-mse`                 | 🟢 working |
+| `eq_vae`    | spectral / equivariance        | `zelaki/eq-vae-ema`                         | 🟢 working |
+| `repa_e`    | semantic alignment (joint VAE) | `REPA-E/e2e-sdvae-hf`                        | 🟢 working |
+| `dc_ae_1_0` | information-ordered bottleneck | `mit-han-lab/dc-ae-f32c32-in-1.0-diffusers` | 🟢 working |
+| `rae`       | discriminative encoder (DINOv2)| `nyu-visionx/rae-dinov2-base-vitxl-n08-256` | 🟡 scaffold |
 
-| condition  | cluster                          | hf repo / source                                  | adapter status |
-|------------|----------------------------------|---------------------------------------------------|----------------|
-| sd_vae     | baseline                         | `stabilityai/sd-vae-ft-mse`                       | 🟢 working      |
-| eq_vae     | spectral / equivariance          | `zelaki/eq-vae-ema`                               | 🟢 working      |
-| repa_e     | semantic alignment (joint VAE)   | `REPA-E/e2e-sdvae-hf`                             | 🟢 working      |
-| dc_ae_1_0  | information-ordered bottleneck   | `mit-han-lab/dc-ae-f32c32-in-1.0-diffusers`       | 🟢 working      |
-| rae        | discriminative encoder (DINOv2)  | `nyu-visionx/rae-dinov2-base-vitxl-n08-256`       | 🟡 scaffold     |
-
-DC-AE 1.5 enters as a 6th condition once `dc-ai-projects/DC-Gen` is released.
-
-> [!NOTE]
-> Round-trip PSNR on 256 real ImageNet images (run via
-> [`scripts/eval/round_trip_psnr_imagenet.py`](scripts/eval/round_trip_psnr_imagenet.py)):
-> sd_vae **25.11 dB**, eq_vae **24.14 dB**, repa_e **24.23 dB**,
-> dc_ae_1_0 **23.00 dB** — all ≥ 22 dB threshold (PLAN §14).
-
-> [!CAUTION]
-> The four working VAEs have **different per-channel σ** on ImageNet
-> (sd_vae 0.83, eq_vae **2.66**, repa_e 0.80, dc_ae_1_0 **3.08**).
-> Without runtime z-score normalization (`CachedLatentDataModule(normalize=True)`,
-> default), DiT training across the K=4 conditions is **not matched-compute
-> comparable**. The full per-feature stats live in
-> `$SCRATCH/diffmechint/latents/<tok>/stats.json`.
-
----
-
-## Pipeline conventions
-
-### Latent stats schema (`stats.json` v1)
-
-`stats.json` is the single source of truth for de/normalization and downstream
-DiT setup — no consumer should hardcode latent layout:
-
-```json
-{
-  "kind": "spatial",          // "spatial" (B,C,H,W) | "sequence" (B,T,D)
-  "feature_axis": 1,          // axis on the batched tensor
-  "feature_dim": 4,           // C for spatial, D for sequence
-  "input_size": 32,           // H for spatial, T for sequence
-  "scaling_factor": 0.18215,  // applied during VAE.encode (already in HDF5)
-  "suggested_patch_size": 2,  // SiT patchify hint
-  "per_feature_mean": [...],
-  "per_feature_std":  [...]
-}
-```
-
-### De/normalization chain (reversible)
-
-```
-ENCODE   image → vae.encode → mean*scaling_factor → z (HDF5, fp16)
-LOAD     z → (z - μ)/σ                                  ← stats.json
-SAMPLE   z̃ → z̃*σ + μ → ÷scaling_factor → vae.decode → image
-```
-
-> [!IMPORTANT]
-> `MiniFIDCallback` is **disabled by default** on K=4 training jobs
-> (`callbacks=sample_only`). Reason: `clean-fid` requires Inception weight
-> downloads and a built reference stat cache that the compute nodes can't
-> reach without the squid proxy, and a partial failure caused 30-min NCCL
-> deadlocks. **Use `scripts/eval/post_hoc_fid.py` after training instead** —
-> it computes Mini-FID for every saved EMA checkpoint and writes
-> `metrics/validation/fid.csv`. Run via `slurm/post_hoc_fid.slurm`.
+Round-trip PSNR on 256 real ImageNet images (`scripts/eval/round_trip_psnr_imagenet.py`):
+sd_vae 25.1 dB · eq_vae 24.1 dB · repa_e 24.2 dB · dc_ae_1_0 23.0 dB.
 
 ---
 
 ## Stack
 
-Python 3.11 · PyTorch 2.6 · Lightning 2.4+ · Hydra 1.3 · uv · timm · diffusers
-0.30+ · SAELens 6.x · sklearn · h5py · safetensors · clean-fid · CUDA 12.x.
+Python 3.11 · PyTorch 2.6 · Lightning · Hydra · uv · timm · diffusers · SAELens ·
+scikit-learn · h5py · safetensors · clean-fid · CUDA 12.x.
 
-Hardware path:
-- **CINECA Leonardo** (2× / 4× A100 64 GB) for matched-compute DiT training and the
-  full SAE / probe / circuit sweep.
-- **Local 3090 / 2080 Ti** (`100.124.107.92` via Tailscale) for adapter smokes
-  and short DiT runs.
-- **NVIDIA H100 ×8** when the Academic Grant lands; trainer config in
-  `conf/trainer/nvidia_8xh100.yaml` is already wired.
-
----
-
-## Phase status (high-level)
-
-| Phase | Subject                                             | Status                              | Tests |
-|-------|-----------------------------------------------------|-------------------------------------|-------|
-| 0     | Repo bootstrap + vendor SiT                         | ✅ done                             | 8     |
-| 1     | Tokenizer adapters + latent precompute (4 × 1.28 M ImageNet → HDF5) | ✅ done | 17 |
-| 2     | SiT training pipeline (FM-OT, fractional ckpts, val + sample callbacks) | ✅ done — 3 / 3 conditions reached step 200 k on Leonardo (sd_vae · repa_e · eq_vae_noz). post-hoc FID 25 / 43 / 52 | 12 |
-| 3     | Activation extraction (hooks + buffer)              | ✅ done — train + val activation trees cached for all 3 conditions × 7 DiT-step × 9 (L, t) cells | 23 |
-| 4     | SAE training — TopK / BatchTopK / Matryoshka sweeps | ✅ done — 567 SAEs across 3 variant sweeps (27 chains × 7 DiT-ckpt × 3 variants); Matryoshka K=256 d=32 k wins val EV (E04 / I04 / E05) | 9 |
-| 4.5   | Causal-faithfulness gate (Matryoshka substitution-FID) | ✅ done — 30 jobs (3 baselines + 27 sub), **27 / 27 cells faithful** (ΔFID < 2); E06 on Flywheel | — |
-| 5     | Linear probes (Revelio grid)                        | 🟢 unblocked — all 27 cells admissible; scaffolding done | 18 |
-| 6     | Sparse feature circuits via EAP                     | 🔴 pending                          | —     |
-| 7     | Cross-condition analysis (Hungarian + temporal)     | 🔴 pending                          | —     |
-| 8     | Audio extension (deferred)                          | 🔴 pending                          | —     |
-
-**Total: 88/88 unit tests green.** Per-phase verification commands and
-acceptance gates live in `PLAN.md` §14.
-
-### Phase 4 / 4.5 highlights
-
-- **E02 / E03** — TopK k-comparison and dataset-size ablations on a single condition pre-Phase-2-completion (`sd_vae`, k=32 vs k=64 winner; k=64 confirmed across 3 conditions on the canonical cell).
-- **E04** — Matryoshka vs plain TopK head-to-head on the full 27-cell production grid: Matryoshka wins 103 / 108 matched stages, mean Δ EV +0.060.
-- **I04** — Promotes Matryoshka as the default Phase-5 / Phase-6 SAE; sets a "BatchTopK promotion gap" decision rule of 0.02 val EV.
-- **E05** — BatchTopK sweep tested against the I04 rule: gap to Matryoshka at deep cells is −0.10 to −0.14, far worse than the 0.02 tolerance. Matryoshka stays default.
-- **E06 (Phase 4.5a)** — Drops the production Matryoshka SAE into the SiT residual stream at one (L, t) cell during sampling; measures Clean-FID shift. All 27 cells fall under the +2.0 faithfulness gate (mean ΔFID +0.59, max +1.80, min −0.10), so the entire Matryoshka grid is admissible as a Phase-5 probe basis.
+Hardware paths: CINECA Leonardo (A100 64 GB) for matched-compute training and the full
+SAE / probe / circuit sweeps; a local 3090 / 2080 Ti for adapter smokes and short runs;
+H100 pods for burst capacity (`conf/trainer/` has the multi-GPU configs).
 
 ---
 
 ## License
 
-MIT for repo code. Vendored upstream code preserves its own LICENSE files:
-- `src/diffmechint/sit/LICENSE.txt` — SiT (Meta, MIT)
-- SAELens, transformer-lens, dictionary_learning et al. are runtime / fallback
-  deps, used per their own licenses.
-
----
-
-## TODO — what's left to do
-
-The full plan lives in `PLAN.md` and per-item progress in `CHECKLIST.md`. The
-short list:
-
-### Code-only (no GPU / data dependency, can be done locally)
-
-- [ ] **(Phase 6)** EAP via `nnsight`, sparse feature circuits, faithfulness +
-      completeness + minimality triplet, SHIFT ablation, RIEBench score.
-- [ ] **(Phase 7)** Hungarian-matched cross-tokenizer dictionary overlap +
-      temporal-atlas plotting (phase transitions, swing-by, dips).
-- [ ] **(1.7-RAE)** Vendor the RAE ViT decoder from `bytetriper/RAE` so
-      `RAEAdapter.load/encode/decode` actually run.
-- [ ] **(1.10)** `TokenGridAdapter` — only needed once non-grid latents
-      (RAE / MAETok) are wired into the training loop.
-- [ ] **(2.3)** Optional Laplace-logSNR `t_sampler` — uniform-t works for the
-      smoke; lands when real ImageNet runs do.
-- [ ] **(2.x)** Fix `FractionalCheckpoint` to also save optimizer + scheduler +
-      RNG state (Lightning-native `.ckpt`) so future crashes can be **fully
-      resumed** instead of weight-resumed (current `+resume_from=` only loads
-      live + EMA weights, optimizer momenta lost).
-- [ ] **(2.y)** Fix `MiniFIDCallback` to work in DDP — needs
-      `torch.distributed.barrier()` after rank-0-only block to avoid NCCL
-      allreduce timeout. For now the callback is replaced by `post_hoc_fid.py`.
-
-### Gated on Phase 4.5 / Phase 5 (some done, rest unblocked)
-
-- [x] ~~**(2.11)** Full 200 k-step DiT-B/2 runs on **sd_vae · eq_vae · repa_e**~~ — done (DC-AE-1.0 with patch_size=1 deferred; no blocking impact on the K=3 SAE story).
-- [x] ~~**(2.12)** Per-condition Mini-FID curves via `post_hoc_fid.py`~~ — done at 200 k: sd_vae 52.31, repa_e 43.46, eq_vae 25.29.
-- [x] ~~**(4.9)** Canonical-cell SAE on a real DiT ckpt~~ — done in E02 (`sd_vae`, k=64, val EV 0.890 at L6/T1, dead-pct < 0.1 %).
-- [x] ~~**(4.10)** 28-SAE warm-started sweep~~ — superseded by E03 dataset-size ablation + the 567-SAE 3-variant production sweep (cold-start per stage replaced warm-start, see `plan/phase4_sae.md` §"Per-checkpoint training strategy").
-- [x] ~~**(4.11)** Full 27-cell production sweep~~ — done **three times** (TopK k=128, BatchTopK k=128, Matryoshka K=256 — 567 SAEs total at d_sae=32 768). Matryoshka wins (E04 / I04 / E05).
-- [x] ~~**(4.12)** Verify saved SAEs load into `sae_vis` / `sae_dashboard`~~ — confirmed via `eval_sae_on_val.py` loading every `final_*/sae_weights.safetensors` through `MatryoshkaBatchTopKTrainingSAE.load_from_disk`.
-- [x] ~~**(4.5a)** Causal-faithfulness substitution-FID gate~~ — done: 27 / 27 cells faithful (E06), Phase 5 green-lit for the full grid.
-- [ ] **(5.7)** Real 5 × 3 × 3 probe-accuracy heatmap per condition (Phase 5 production run).
-- [ ] **(5.8)** Cross-condition probe-peak migration figure for Claim 1.
-
-### Optional / stretch
-
-- [ ] **(1.8 / 1.9)** Add `MAETok` and `VA-VAE` adapters as a 6th and 7th
-      condition (their HF checkpoints exist; ~50 LoC each).
-- [ ] **(Phase 8)** Audio extension (Semantic-VAE / SALAD-VAE) — separate
-      branch, do not block vision.
-- [ ] **DC-AE 1.5** condition as soon as `dc-ai-projects/DC-Gen` releases.
+MIT for repo code. Vendored upstream code keeps its own LICENSE files
+(`src/diffmechint/sit/LICENSE.txt` — SiT, Meta, MIT). SAELens, transformer-lens,
+dictionary_learning et al. are used per their own licenses.
