@@ -1,19 +1,59 @@
 # diffmechint
 
-**Semantic Geometry of Diffusability — a mechanistic-interpretability study of
-latent-diffusion tokenizers.**
+## The Semantic Geometry of Diffusability
 
-The project trains a single **SiT** (Scalable Interpolant Transformer, Flow-Matching +
-Optimal-Transport) backbone on **K controlled VAE / tokenizer variants** over
-ImageNet-256, then runs a fixed mech-int protocol on each condition: sparse
-autoencoders (SAEs), layer × diffusion-timestep linear probes, and sparse
-feature-circuit attribution. The goal is to read out *which* features the diffusion
-transformer learns, *in what order*, and whether that is tokenizer-invariant or
-tokenizer-shaped.
+**A controlled mechanistic-interpretability study of how an image tokenizer's
+latent representation shapes feature learning in diffusion transformers.**
 
-This README explains **how the repo is organized and how to run the files and
-experiments**. The curated research record (hypotheses, results, evidence) lives in
-the Flywheel graph; [`index.md`](index.md) is a local mirror of it.
+`diffmechint` trains matched **SiT** models on ImageNet-256: one model per latent
+tokenizer, with the backbone scale, data, optimization budget, and evaluation
+protocol matched across conditions. The tokenizer and its latent layout define
+each experimental condition. Every trained model is then analyzed with sparse
+autoencoders (SAEs), layer × diffusion-timestep probes, representation alignment,
+and causal interventions.
+
+The project asks a concrete question:
+
+> Do diffusion transformers recover the same denoising abstractions in different
+> coordinate systems, or does the tokenizer change the features and causal
+> computations that the model learns?
+
+## Research objectives
+
+| Objective | Operational test | Intended conclusion |
+|---|---|---|
+| Map feature emergence | Compare SAE features and probe accuracy across training checkpoints, layers, and diffusion timesteps | Identify when and where semantic and spectral information becomes readable |
+| Test representational invariance | Match dictionaries and compare residual streams with probe transfer, CKA/RSA, and activation similarity | Distinguish shared structure from tokenizer-specific organization |
+| Test causal equivalence | Patch matched features and feature families across tokenizer-conditioned models, then measure activation and sample-level effects | Determine whether aligned representations perform the same computation |
+| Validate the measurement layer | Measure held-out SAE reconstruction, feature usage, and FID under SAE substitution | Establish where SAE-based conclusions are faithful enough to support intervention claims |
+
+## Claims and evidence status
+
+> [!IMPORTANT]
+> This is an active research repository. The design includes five tokenizer
+> adapters, but the current comparative evidence is primarily based on three
+> trained conditions: `sd_vae`, `repa_e`, and `eq_vae`. Most causal analyses use
+> matched SiT-B/2 checkpoints at 200k steps. Results should not be generalized to
+> every tokenizer family or diffusion architecture without further validation.
+
+The current evidence supports the following bounded claims:
+
+| Supported claim | Decisive evidence | Boundary |
+|---|---|---|
+| The selected Matryoshka SAEs are sufficiently faithful for the tested intervention grid | All 27 tested layer × timestep × tokenizer cells stayed below the defined ΔFID = 2 substitution gate (mean +0.59; maximum +1.80) | This rules out catastrophic SAE substitution error; it does not make every learned feature interpretable |
+| Cross-tokenizer feature families do not show reliable source-specific transfer in the tested activation-space interventions | Across 110 directed family-patching tasks, mean coefficient R² was 0.012 and transfer exceeded shuffled pairing by only 3.69e-7 explained variance on average | This is a negative result for the tested K=3 models, cells, and matching procedure—not proof that universal diffusion features never exist |
+| The current sparse dictionaries do not capture the full concept-relevant computation | In 36 concept-margin circuits, the top 100 SAE features retained about 0.020× of the clean margin gap without the reconstruction-error node and 0.273× with it | The error node is carrying material signal, so feature-only circuit claims remain incomplete |
+| Matryoshka improves held-out reconstruction over plain TopK on the tested null-label distribution | Matryoshka won explained variance in all 27 matched cells (0.97779 vs 0.94737 mean EV), with a higher dead-feature rate (12.89% vs 7.55%) | This motivates the SAE choice; it is not a claim about generative quality or universal SAE superiority |
+
+The broader thesis—that latent geometry determines the learning dynamics and
+causal organization of a diffusion transformer—remains a hypothesis under test.
+The current results establish measurement validity in the tested grid and expose
+strong limits on cross-tokenizer transfer, but they do not yet isolate latent
+geometry as the sole cause of those differences.
+
+For the evolving run record and implementation state, see [`program.md`](program.md)
+and [`CHECKLIST.md`](CHECKLIST.md). Curated experiment evidence is maintained in the
+project's Flywheel research graph.
 
 ---
 
@@ -234,15 +274,19 @@ SAMPLE  z̃ → z̃·σ + μ → ÷scaling_factor → vae.decode → image
 
 ---
 
-## Conditions (K = 5)
+## Experimental conditions
 
-| condition | cluster | hf repo / source | adapter |
+The full design spans five tokenizer conditions. The first three form the current
+matched-comparison set; the remaining two extend the design but are not part of the
+headline claims above.
+
+| condition | experimental role | hf repo / source | current evidence status |
 |---|---|---|---|
-| `sd_vae`    | baseline                       | `stabilityai/sd-vae-ft-mse`                 | 🟢 working |
-| `eq_vae`    | spectral / equivariance        | `zelaki/eq-vae-ema`                         | 🟢 working |
-| `repa_e`    | semantic alignment (joint VAE) | `REPA-E/e2e-sdvae-hf`                        | 🟢 working |
-| `dc_ae_1_0` | information-ordered bottleneck | `mit-han-lab/dc-ae-f32c32-in-1.0-diffusers` | 🟢 working |
-| `rae`       | discriminative encoder (DINOv2)| `nyu-visionx/rae-dinov2-base-vitxl-n08-256` | 🟡 scaffold |
+| `sd_vae` | conventional latent-diffusion baseline | `stabilityai/sd-vae-ft-mse` | production comparison |
+| `eq_vae` | spectrally regularized / equivariant latent space | `zelaki/eq-vae-ema` | production comparison |
+| `repa_e` | semantically aligned, jointly trained VAE | `REPA-E/e2e-sdvae-hf` | production comparison |
+| `dc_ae_1_0` | high-compression, information-ordered bottleneck | `mit-han-lab/dc-ae-f32c32-in-1.0-diffusers` | adapter and latent precompute validated; excluded from current headline claims |
+| `rae` | planned discriminative DINOv2 representation with learned decoder | `nyu-visionx/rae-dinov2-base-vitxl-n08-256` | adapter scaffold only |
 
 Round-trip PSNR on 256 real ImageNet images (`scripts/eval/round_trip_psnr_imagenet.py`):
 sd_vae 25.1 dB · eq_vae 24.1 dB · repa_e 24.2 dB · dc_ae_1_0 23.0 dB.

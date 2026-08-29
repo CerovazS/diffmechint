@@ -1,4 +1,4 @@
-# 8× H100 (NVIDIA Academic Grant phase). FA3, larger batch.
+# 8× H100 configuration. FA3, larger batch.
 max_steps: 400000
 devices: 8
 precision: bf16-mixed
